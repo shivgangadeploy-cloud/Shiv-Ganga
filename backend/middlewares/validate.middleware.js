@@ -1,0 +1,44 @@
+const parseJSONFields = (obj) => {
+  for (const key in obj) {
+    if (typeof obj[key] === "string") {
+      try {
+        const parsed = JSON.parse(obj[key]);
+        if (Array.isArray(parsed) || typeof parsed === "object") {
+          obj[key] = parsed;
+        }
+      } catch (err) {
+      }
+    }
+  }
+};
+
+const validate = (schema, property) => {
+  return (req, res, next) => {
+    if (property === "body" && req.is("multipart/form-data")) {
+      parseJSONFields(req.body);
+    }
+
+    const { error, value } = schema.validate(req[property], {
+      abortEarly: false,
+      stripUnknown: true
+    });
+
+    if (error) {
+      return res.status(400).json({
+        success: false,
+        message: `${property} validation failed`,
+        errors: error.details.map(err => ({
+          field: err.path.join("."),
+          message: err.message
+        }))
+      });
+    }
+
+    req[property] = value;
+    next();
+  };
+};
+
+export const validateBody = (schema) => validate(schema, "body");
+export const validateQuery = (schema) => validate(schema, "query");
+export const validateParams = (schema) => validate(schema, "params");

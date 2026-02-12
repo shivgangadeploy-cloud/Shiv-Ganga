@@ -1,0 +1,96 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #0a2239; /* Deep Royal Blue */
+  --color-primary-light: #1d344b;
+  --color-accent: #d4af37; /* Metallic Gold */
+  --color-accent-hover: #f2c94c; /* Brighter Gold */
+  --color-background: #fafafa; /* Crisp White/Grey */
+  --color-background-paper: #ffffff;
+  --color-text-primary: #1a1a1a;
+  --color-text-secondary: #4a4a4a;
+  --color-text-light: #f5f5f5;
+
+  --font-sans: "Inter", sans-serif;
+  --font-serif: "Playfair Display", serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
+  }
+  ::selection {
+    background-color: var(--color-accent);
+    color: var(--color-primary);
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  .heading {
+    font-family: var(--font-serif);
+    font-weight: 600;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary text-white px-8 py-4 rounded-sm uppercase tracking-[0.15em] text-xs font-semibold transition-all duration-300 hover:bg-primary-light hover:shadow-lg relative overflow-hidden;
+  }
+  .btn-accent {
+    @apply bg-accent text-primary px-8 py-4 rounded-sm uppercase tracking-[0.15em] text-xs font-bold transition-all duration-300 hover:bg-accent-hover hover:shadow-[0_10px_20px_rgba(212,175,55,0.3)] hover:-translate-y-1;
+  }
+  .text-gradient-gold {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-[#D4AF37] via-[#F2C94C] to-[#D4AF37];
+  }
+  .section-header {
+    @apply text-center mb-20;
+  }
+}
+
+@layer utilities {
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 rounded-full;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400;
+  }
+}
+.section-subtitle {
+  @apply text-accent text-xs uppercase tracking-[0.25em] font-semibold block mb-4;
+}
+.section-title {
+  @apply text-4xl md:text-5xl lg:text-6xl font-serif text-primary leading-tight;
+}
+.glass-panel {
+  @apply bg-white/80 backdrop-blur-lg border border-white/20 shadow-2xl;
+}
+.card-hover {
+  @apply transition-all duration-500 hover:shadow-2xl hover:-translate-y-2;
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
