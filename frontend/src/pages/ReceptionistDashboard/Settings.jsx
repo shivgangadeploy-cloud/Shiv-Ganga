@@ -41,7 +41,7 @@ const Settings = () => {
   const [activeTab, setActiveTab] = useState('Profile');
 
   // API base URL
-  const API_BASE_URL = 'http://localhost:5001/api';
+  const API_BASE_URL = 'https://shiv-ganga-2.onrender.com/api';
 
   // Fetch profile data on component mount
   useEffect(() => {

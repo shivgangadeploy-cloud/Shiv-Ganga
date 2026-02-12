@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:5001/api",
+  baseURL: import.meta.env.VITE_API_BASE_URL || "https://shiv-ganga-2.onrender.com/api",
   withCredentials: true, // 🔐 default: protected routes
 });
 

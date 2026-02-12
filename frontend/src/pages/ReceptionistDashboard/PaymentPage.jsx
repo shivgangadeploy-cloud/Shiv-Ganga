@@ -61,7 +61,7 @@ const PaymentPage = () => {
 
   // 3. FIX: Define API locally to guarantee it works and attaches the token
   const API = axios.create({
-    baseURL: "http://localhost:5001/api",
+    baseURL: "https://shiv-ganga-2.onrender.com/api",
   });
 
   // 4. Token Interceptor (Fixes 401 Unauthorized)

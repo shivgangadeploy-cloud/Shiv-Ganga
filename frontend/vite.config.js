@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "http://localhost:5001",
+        target: "https://shiv-ganga-2.onrender.com",
         changeOrigin: true,
         secure: false,
       },

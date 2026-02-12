@@ -19,7 +19,7 @@ export default function Notifications() {
 
   /* ================= AXIOS INSTANCE ================= */
   const API = axios.create({
-    baseURL: "http://localhost:5001/api",
+    baseURL: "https://shiv-ganga-2.onrender.com/api",
   });
 
   API.interceptors.request.use((req) => {
