@@ -67,7 +67,7 @@ const Sidebar = ({ children }) => {
   });
 
   const API = axios.create({
-    baseURL: "https://shiv-ganga-2.onrender.com/api",
+    baseURL: "https://shiv-ganga-3.onrender.com/api",
   });
 
   API.interceptors.request.use((req) => {

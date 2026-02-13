@@ -14,7 +14,7 @@ import Sidebar from './Sidebar';
 
 const MyProfile = () => {
   const navigate = useNavigate();
-  const API_BASE = "https://shiv-ganga-2.onrender.com/api";
+  const API_BASE = "https://shiv-ganga-3.onrender.com/api";
 
   // ✅ STATES
   const [profile, setProfile] = React.useState(null);
