@@ -43,7 +43,8 @@ app.use(express.json());
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
-  "https://your-frontend-name.vercel.app" // 👈 ADD THIS
+  "https://shiv-ganga-3.onrender.com",
+  "https://shiv-ganga-frontend-po3g.vercel.app" // 👈 ADD THIS
 ];
 
 app.use(cors({

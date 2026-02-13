@@ -22,9 +22,10 @@ import {
   X,
   Search,
 } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import AttractionsList from "./AttractionList";
 import { rooms } from "../data/rooms";
+import api from "../api/api";
 
 // Shared rooms data
 const roomsData = [
@@ -304,6 +305,7 @@ const hotelFacilities = [
 
 // Room Detail Page Component
 function RoomDetail({ roomId, onBack, setSelectedRoomId }) {
+  const navigate = useNavigate();
   const [selectedImage, setSelectedImage] = useState(null);
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
@@ -327,18 +329,9 @@ function RoomDetail({ roomId, onBack, setSelectedRoomId }) {
       const params = {
         checkInDate: checkIn,
         checkOutDate: checkOut,
-        adults: persons,
+        adults,
         children,
       };
-
-      // category optional
-      if (roomCategoryId) {
-        const selectedRoom = rooms.find((r) => String(r.id) === roomCategoryId);
-
-        if (selectedRoom?.name) {
-          params.category = selectedRoom.name;
-        }
-      }
 
       const res = await api.get("/room/search", { params });
 
@@ -347,14 +340,17 @@ function RoomDetail({ roomId, onBack, setSelectedRoomId }) {
           step: 2,
           checkIn,
           checkOut,
-          adults: persons,
+          adults,
           children,
           rooms: res.data?.data || [],
         },
       });
     } catch (error) {
       console.error(error);
-      alert("Failed to search rooms");
+      const message =
+        error?.response?.data?.message ||
+        "Failed to search rooms. Please try again.";
+      alert(message);
     }
   };
 
