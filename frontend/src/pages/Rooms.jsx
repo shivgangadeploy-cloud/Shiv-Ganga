@@ -22,7 +22,7 @@ import {
   X,
   Search,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import AttractionsList from "./AttractionList";
 import { rooms } from "../data/rooms";
 
@@ -1138,9 +1138,19 @@ function RoomsList({ onSelectRoom }) {
   );
 }
 
-// Main App Component
-export default function App() {
-  const [selectedRoomId, setSelectedRoomId] = useState(null);
+// Main Rooms Page Component
+export default function Rooms() {
+  const location = useLocation();
+  const state = location?.state || {};
+
+  const initialRoomId =
+    state.roomId ||
+    state.selectedRoomId ||
+    (typeof state.roomIndex === "number"
+      ? roomsData[state.roomIndex]?.id || null
+      : null);
+
+  const [selectedRoomId, setSelectedRoomId] = useState(initialRoomId);
 
   return (
     <div>

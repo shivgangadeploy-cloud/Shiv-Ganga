@@ -57,7 +57,7 @@ const RoomSection = () => {
           viewport={{ once: true }}
           className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
         >
-          {rooms.slice(0, 3).map((room) => {
+          {rooms.slice(0, 3).map((room, index) => {
             const slideIndex = roomSlides[room.id] ?? 0;
             const activeImage = room.images?.[slideIndex] || room.image;
 
@@ -143,7 +143,11 @@ const RoomSection = () => {
                     </button>
                     <button
                       type="button"
-                      onClick={() => navigate(`/rooms/${room.id}`)}
+                      onClick={() =>
+                        navigate("/rooms", {
+                          state: { roomIndex: index },
+                        })
+                      }
                       className="flex-1 h-[48px] px-6 border border-gray-200 text-primary uppercase tracking-[0.2em] text-xs font-bold hover:bg-primary hover:text-white hover:border-primary transition-colors rounded-2xl cursor-pointer"
                     >
                       View Details

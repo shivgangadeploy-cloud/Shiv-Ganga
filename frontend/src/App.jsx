@@ -8,7 +8,6 @@ import AvailableCoupons from "./components/AvailableCoupons";
 import Home from "./pages/Homepage/Home";
 import About from "./pages/About";
 import Rooms from "./pages/Rooms";
-import RoomDetail from "./pages/RoomDetail";
 import Contact from "./pages/Contact";
 import Gallery from "./pages/Gallery";
 import Offers from "./pages/Offers";
@@ -66,7 +65,6 @@ export default function App() {
             <Route index element={<Home />} />
             <Route path="about" element={<About />} />
             <Route path="rooms" element={<Rooms />} />
-            <Route path="rooms/:id" element={<RoomDetail />} />
             <Route path="contact" element={<Contact />} />
             <Route path="gallery" element={<Gallery />} />
             <Route path="offers" element={<Offers />} />

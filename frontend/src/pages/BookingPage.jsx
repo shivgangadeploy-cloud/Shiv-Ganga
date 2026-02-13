@@ -677,55 +677,7 @@ export default function BookingPage() {
             </div>
           </div>
         </div>
-        <AnimatePresence>
-          {currentStep < 5 && (
-            <motion.div
-              initial={{ y: 80, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 80, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 300, damping: 28 }}
-              className="fixed bottom-0 left-0 right-0 md:hidden bg-white/95 backdrop-blur border-t border-gray-200"
-            >
-              <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-                <button
-                  onClick={prevStep}
-                  disabled={currentStep === 1}
-                  className="px-4 py-3 text-xs uppercase tracking-widest font-bold border border-gray-200 text-gray-600 hover:border-primary hover:text-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <ChevronLeft className="inline-block mr-1" size={14} />
-                  Back
-                </button>
-                <div className="flex items-end gap-2">
-                  <span className="text-gray-600 text-xs uppercase tracking-widest">
-                    Total
-                  </span>
-                  <span className="text-xl font-semibold text-primary">
-                    Rs. {isMember ? finalPayableAmount : grandTotal}
-                  </span>
-                </div>
-                <button
-                  onClick={() => {
-                    if (currentStep < 4) {
-                      proceedNext();
-                    } else                           if (currentStep === 4) {
-                            setPaymentError("");
-                            if (isMember) {
-                              setShowPaymentChoice(true);
-                            } else {
-                              setShowMembershipPopup(true);
-                            }
-                          }
-                  }}
-                  disabled={!canNext}
-                  className="btn-primary px-6 py-3 text-xs disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
-                >
-                  {nextLabel}{" "}
-                  <ArrowRight className="inline-block ml-1" size={16} />
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+      
 
         <AnimatePresence>
           {showMembershipPopup && (
