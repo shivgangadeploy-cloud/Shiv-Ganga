@@ -317,8 +317,12 @@ Remaining: ₹${booking.pendingAmount || 0}
                 transition-all"
                   />
                 </div> */}
+                 <div>
+                  <h1 className="text-xl font-bold text-primary">
+                    Admin Dashboard
+                  </h1>
+                </div>
 
-                
               </div>
 
               {/* RIGHT */}
