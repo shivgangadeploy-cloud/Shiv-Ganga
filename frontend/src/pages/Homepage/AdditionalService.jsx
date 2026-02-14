@@ -132,7 +132,7 @@ const AdditionalService = () => {
 
               {/* Orange Label */}
               <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20">
-                <div className="bg-accent text-white text-sm px-8 py-2 rounded-full font-medium shadow-lg">
+                <div className="bg-accent text-white text-sm px-6 py-2 rounded-full font-medium shadow-lg">
                   {item.title}
                 </div>
               </div>
