@@ -305,7 +305,7 @@ Remaining: ₹${booking.pendingAmount || 0}
                 </button>
 
                 {/* SEARCH */}
-                <div className="relative flex-1 max-w-[420px] transition-all">
+                {/* <div className="relative flex-1 max-w-[420px] transition-all">
                   <Search
                     size={16}
                     className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
@@ -316,7 +316,9 @@ Remaining: ₹${booking.pendingAmount || 0}
                 focus:outline-none focus:ring-2 focus:ring-primary/40
                 transition-all"
                   />
-                </div>
+                </div> */}
+
+                
               </div>
 
               {/* RIGHT */}
