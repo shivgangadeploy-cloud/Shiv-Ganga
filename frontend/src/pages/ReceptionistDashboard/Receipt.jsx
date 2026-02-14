@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import api from "../axios";
+import api from "../../api/api";
 import { Printer } from "lucide-react";
 import Sidebar from "./Sidebar";
 
@@ -65,28 +65,29 @@ useEffect(() => {
 
   return (
     <Sidebar>
-      <div className="max-w-4xl mx-auto bg-white p-10 rounded-3xl shadow-xl border border-slate-100">
-        {/* HEADER */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-extrabold text-[#0f172a]">
-              Booking Receipt
-            </h1>
-            <p className="text-sm text-slate-500 font-medium">
-              Booking ID: <span className="font-bold">{booking.guestId}</span>
-            </p>
+      <div className="min-h-screen w-full overflow-x-hidden flex items-start justify-center px-3 sm:px-4 md:px-6 py-6 md:py-10">
+        <div className="w-full max-w-4xl mx-auto bg-white p-4 sm:p-6 md:p-10 rounded-2xl sm:rounded-3xl shadow-xl border border-slate-100">
+          {/* HEADER */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 md:mb-8">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0f172a]">
+                Booking Receipt
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
+                Booking ID: <span className="font-bold">{booking.guestId}</span>
+              </p>
+            </div>
+
+            <button
+              onClick={() => window.print()}
+              className="flex items-center gap-2 bg-[#0f172a] text-white px-4 py-2 rounded-lg font-bold hover:bg-[#D4AF37] transition-colors shrink-0"
+            >
+              <Printer size={16} /> Print
+            </button>
           </div>
 
-          <button
-            onClick={() => window.print()}
-            className="flex items-center gap-2 bg-[#0f172a] text-white px-4 py-2 rounded-lg font-bold hover:bg-[#D4AF37]"
-          >
-            <Printer size={16} /> Print
-          </button>
-        </div>
-
-        {/* GUEST & STAY */}
-        <div className="grid grid-cols-2 gap-6 mb-8">
+          {/* GUEST & STAY */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6 md:mb-8">
           <div>
             <h3 className="text-xs font-bold text-slate-400 uppercase mb-2">
               Guest Details
@@ -121,21 +122,21 @@ useEffect(() => {
         </div>
 
         {/* ROOM INFO */}
-        <div className="mb-8">
+        <div className="mb-6 md:mb-8">
           <h3 className="text-xs font-bold text-slate-400 uppercase mb-2">
             Room Details
           </h3>
-          <div className="flex justify-between bg-slate-50 p-4 rounded-xl border">
-            <div>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 bg-slate-50 p-4 rounded-xl border">
+            <div className="min-w-0">
               <p className="font-bold text-[#0f172a]">
-                Room {booking.room.roomNumber}
+                Room {booking.room?.roomNumber}
               </p>
-              <p className="text-sm text-slate-500">{booking.room.name}</p>
+              <p className="text-sm text-slate-500 truncate">{booking.room?.name}</p>
               <p className="text-xs text-slate-400">
                 Adults: {booking.adults} | Children: {booking.children}
               </p>
             </div>
-            <div className="text-right font-bold">
+            <div className="text-left sm:text-right font-bold shrink-0">
               {formatCurrency(booking.totalAmount)}
             </div>
           </div>
@@ -180,9 +181,10 @@ useEffect(() => {
           </div>
         </div>
 
-        {/* FOOTER */}
-        <div className="mt-10 text-center text-xs text-slate-400">
-          Thank you for staying with us • Shiv Ganga Hospitality
+          {/* FOOTER */}
+          <div className="mt-8 md:mt-10 text-center text-xs text-slate-400">
+            Thank you for staying with us • Shiv Ganga Hospitality
+          </div>
         </div>
       </div>
     </Sidebar>

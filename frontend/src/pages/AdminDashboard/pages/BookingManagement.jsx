@@ -108,7 +108,7 @@ export default function BookingCalendar() {
         </div>
 
         {/* TABLE DATA LINKED TO CONTROLLERS */}
-        <div className="overflow-x-auto">
+        <div className="hidden md:block overflow-x-auto">
           {loading ? (
             <div className="p-10 flex justify-center">
               <Loader2 className="animate-spin text-primary" />
@@ -195,6 +195,60 @@ export default function BookingCalendar() {
                 )}
               </tbody>
             </table>
+          )}
+        </div>
+
+        {/* MOBILE CARDS */}
+        <div className="md:hidden">
+          {loading ? (
+            <div className="p-8 text-center text-gray-500">Loading bookings...</div>
+          ) : filteredBookings.length === 0 ? (
+            <div className="p-8 text-center text-gray-500">No bookings found</div>
+          ) : (
+            <div className="p-3 space-y-3">
+              {filteredBookings.map((b) => (
+                <div key={b._id} className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="text-sm font-bold text-gray-800">
+                        {b.user?.firstName} {b.user?.lastName}
+                      </div>
+                      <div className="text-[10px] text-primary font-bold uppercase tracking-widest">
+                        {b.guestId}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-bold text-accent text-sm">₹ {b.totalAmount}</div>
+                    </div>
+                  </div>
+
+                  <div className="mt-2 grid grid-cols-2 gap-3">
+                    <div>
+                      <div className="text-[10px] uppercase tracking-widest text-gray-400">Room</div>
+                      <div className="text-sm text-gray-700">{b.room?.roomNumber || "—"}</div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] uppercase tracking-widest text-gray-400">Date</div>
+                      <div className="text-sm text-gray-700">
+                        {new Date(b.checkInDate).toLocaleDateString()}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] uppercase tracking-widest text-gray-400">Payment</div>
+                      <span className={`inline-block text-[11px] px-2 py-1 border rounded-2xl ${statusBadgeClass(b.paymentStatus)}`}>
+                        {b.paymentStatus}
+                      </span>
+                    </div>
+                    <div>
+                      <div className="text-[10px] uppercase tracking-widest text-gray-400">Status</div>
+                      <span className="inline-block text-[11px] px-2 py-1 border rounded-2xl bg-blue-100 text-blue-700 border-blue-200">
+                        {b.bookingStatus}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>

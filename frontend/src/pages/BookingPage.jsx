@@ -70,6 +70,7 @@ import api from "../api/api";
 export default function BookingPage() {
   const navigate = useNavigate(); // ✅ INSIDE component
   const location = useLocation();
+  console.log("Razorpay key:", import.meta.env.VITE_RAZORPAY_KEY);
   const appliedCoupon = location.state?.appliedCoupon;
 
   const [rooms, setRooms] = useState(location.state?.rooms || []);
@@ -127,7 +128,9 @@ export default function BookingPage() {
   const [availableRoomsCount, setAvailableRoomsCount] = useState(null);
   const [showPaymentChoice, setShowPaymentChoice] = useState(false);
   const [paymentCompleted, setPaymentCompleted] = useState(false);
-  const [paymentError, setPaymentError] = useState("");
+  const [selectedPaymentType, setSelectedPaymentType] = useState(null); // "FULL" | "PARTIAL"
+  const PARTIAL_PAYMENT_FIXED_AMOUNT = 1000; // ₹1000 fixed partial payment
+  const [paymentError, setPaymentError] = useState(""); // ✅ Added from version 2 for error handling
 
   // whatsApp link
   const WhatsAppLink = () => {
@@ -169,12 +172,15 @@ export default function BookingPage() {
       if (typeof otpCountdown !== "undefined") setOtpCountdown(otpCountdown);
     }
   }, []);
+
+  // ✅ Added from version 2 - Clear coupon after payment
   useEffect(() => {
     if (paymentCompleted) {
-      navigate(location.pathname, {
-        replace: true,
-        state: { ...(location.state || {}), appliedCoupon: null },
-      });
+      // Don't clear the coupon here - let it show in confirmation
+      // navigate(location.pathname, {
+      //   replace: true,
+      //   state: { ...(location.state || {}), appliedCoupon: null },
+      // });
     }
   }, [paymentCompleted]);
 
@@ -234,37 +240,33 @@ export default function BookingPage() {
       return;
     }
   };
+
+  // 🔥 FIXED: Only FULL payment amount is corrected, PARTIAL remains same
   const openRazorpay = async (type = "FULL") => {
-    setPaymentError("");
+    setPaymentError(""); // ✅ Clear previous errors
     try {
+      // ✅ Added Razorpay check from version 2
       if (typeof window.Razorpay === "undefined") {
         setPaymentError("Payment gateway not loaded. Please refresh the page.");
         setShowPaymentChoice(true);
         return;
       }
-      if (finalPayableAmount <= 0) {
-        setPaymentError("Invalid amount. Please check your booking details.");
-        setShowPaymentChoice(true);
-        return;
-      }
 
+      // For FULL payment, user pays the full finalPayableAmount
+      // For PARTIAL payment, user always pays a fixed ₹1000 (or less if total is smaller)
       const payableAmount =
         type === "PARTIAL"
-          ? Math.round(finalPayableAmount * 0.3)
+          ? Math.min(PARTIAL_PAYMENT_FIXED_AMOUNT, finalPayableAmount)
           : finalPayableAmount;
 
+      // ✅ Added amount validation from version 2
       if (payableAmount < 1) {
         setPaymentError("Minimum payment amount is ₹1. Please pay full amount.");
         setShowPaymentChoice(true);
         return;
       }
 
-      const amountInPaise = Math.round(payableAmount * 100);
-      if (amountInPaise < 100) {
-        setPaymentError("Minimum payment amount is ₹1.");
-        setShowPaymentChoice(true);
-        return;
-      }
+      const amountInPaise = Math.round(payableAmount * 100); // ✅ Added from version 2
 
       const res = await api.post("/online-booking/create-order", {
         roomId: formData.selectedRooms[0]._id,
@@ -282,11 +284,12 @@ export default function BookingPage() {
         phoneNumber: formData.phone,
         specialRequest: formData.specialRequests,
         paymentType: type,
+        // Tell backend exactly how much we want to pay now when doing PARTIAL
+        partialAmount: type === "PARTIAL" ? payableAmount : undefined,
         isMember,
         couponCode: appliedCoupon?.code || null,
-        amountInPaise,
-        totalAmount: finalPayableAmount,
-        partialAmount: type === "PARTIAL" ? payableAmount : undefined,
+        amountInPaise, // ✅ Added from version 2
+        totalAmount: finalPayableAmount, // ✅ Added from version 2
       });
 
       const { order, transactionId, bookingPayload } = res.data;
@@ -308,17 +311,21 @@ export default function BookingPage() {
               transactionId,
               bookingPayload,
             });
+            // ✅ Added verification check from version 2
             if (!verifyRes.data?.success) {
               setPaymentError(verifyRes.data?.message || "Payment verification failed");
               setShowPaymentChoice(true);
               return;
             }
-            setPaymentCompleted(true);
-            nextStep();
           } catch (e) {
+            // ✅ Added error handling from version 2
             const msg = e.response?.data?.message || e.message || "Payment verification failed. Please contact support.";
             setPaymentError(msg);
             setShowPaymentChoice(true);
+            return;
+          } finally {
+            setPaymentCompleted(true);
+            nextStep();
           }
         },
 
@@ -330,12 +337,14 @@ export default function BookingPage() {
       };
 
       const rzp = new window.Razorpay(options);
+      // ✅ Added payment.failed handler from version 2
       rzp.on("payment.failed", function (response) {
         setPaymentError(response.error?.description || "Payment failed. Please try again.");
         setShowPaymentChoice(true);
       });
       rzp.open();
     } catch (err) {
+      // ✅ Added detailed error message from version 2
       const msg = err.response?.data?.message || err.message || "Unable to start payment. Please try again.";
       setPaymentError(msg);
       setShowPaymentChoice(true);
@@ -372,29 +381,23 @@ export default function BookingPage() {
     }
   };
 
-  const updateRoomQuantity = (room, delta) => {
+  const selectRoom = (room) => {
     setFormData((prev) => {
-      const existing = prev.selectedRooms.find((r) => r._id === room._id);
-      let newRooms;
-      if (existing) {
-        const newQuantity = existing.quantity + delta;
-        if (newQuantity <= 0) {
-          newRooms = prev.selectedRooms.filter((r) => r._id !== room._id);
-        } else {
-          newRooms = prev.selectedRooms.map((r) =>
-            r._id === room._id ? { ...r, quantity: newQuantity } : r,
-          );
-        }
-      } else if (delta > 0) {
-        // Default to EP plan when adding a room
-        newRooms = [
+      const exists = prev.selectedRooms.some((r) => r._id === room._id);
+      if (exists) {
+        return {
+          ...prev,
+          selectedRooms: prev.selectedRooms.filter((r) => r._id !== room._id),
+        };
+      }
+
+      return {
+        ...prev,
+        selectedRooms: [
           ...prev.selectedRooms,
           { ...room, quantity: 1, plan: "ep" },
-        ];
-      } else {
-        newRooms = prev.selectedRooms;
-      }
-      return { ...prev, selectedRooms: newRooms };
+        ],
+      };
     });
   };
 
@@ -511,6 +514,25 @@ export default function BookingPage() {
   const finalPayableAmount =
     grandTotal - membershipDiscountAmount - couponDiscountAmount;
 
+  // Payment breakdown (used in confirmation + summary)
+  const paidAmount =
+    selectedPaymentType === "PARTIAL"
+      ? Math.min(PARTIAL_PAYMENT_FIXED_AMOUNT, finalPayableAmount)
+      : selectedPaymentType === "FULL"
+        ? finalPayableAmount
+        : 0;
+
+  const remainingAmount =
+    selectedPaymentType === "PARTIAL"
+      ? Math.max(0, finalPayableAmount - paidAmount)
+      : 0;
+
+  const canApplyCoupon =
+    otpVerified &&
+    (formData.selectedActivities.length > 0 ||
+      formData.selectedRooms.length > 0) &&
+    !appliedCoupon; // Only one coupon can be applied at a time
+
   const bookingReference = (() => {
     const seed = `${formData.checkIn}|${formData.checkOut}|${formData.firstName}|${formData.lastName}|${formData.phone}|${formData.email}`;
     let hash = 0;
@@ -580,9 +602,10 @@ export default function BookingPage() {
 
   // ================= CHECK EXISTING MEMBERSHIP =================
 
+  console.log("Grand total:", grandTotal);
 
   return (
-    <div className="min-h-screen bg-background pb-20 pt-10">
+    <div className="relative min-h-screen bg-background pb-20 pt-6 sm:pt-10 overflow-x-hidden">
       <Seo
         title="Book Your Stay | Shiv Ganga Hotel"
         description="Plan your stay at Shiv Ganga Hotel Rishikesh. Check availability, choose rooms, and confirm your booking."
@@ -590,9 +613,9 @@ export default function BookingPage() {
         image={bgImage}
       />
       {/* Background Elements */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-accent/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2"></div>
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2"></div>
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-0 right-0 w-[320px] h-[320px] md:w-[500px] md:h-[500px] bg-accent/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2"></div>
+        <div className="absolute bottom-0 left-0 w-[320px] h-[320px] md:w-[500px] md:h-[500px] bg-primary/5 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2"></div>
       </div>
       <div
         className="absolute inset-0 bg-cover bg-center"
@@ -601,7 +624,7 @@ export default function BookingPage() {
 
       {/* Dark overlay (controls opacity safely) */}
       <div className="absolute inset-0 bg-primary opacity-80 pointer-events-none"></div>
-      <div className="container mx-auto px-4 relative z-10">
+      <div className="container mx-auto px-3 sm:px-4 md:px-6 max-w-[100vw] relative z-10">
         {/* Header */}
         <div>
           <div className="text-center mb-16">
@@ -625,15 +648,22 @@ export default function BookingPage() {
         </div>
 
         {/* Progress Bar */}
-        <div className="max-w-4xl mx-auto mb-20">
-          <div className="relative">
-            <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white -z-10 transform -translate-y-1/2"></div>
-            <div
-              className="absolute top-1/2 left-0 h-[1px] bg-accent -z-10 transform -translate-y-1/2 transition-all duration-700 ease-in-out"
-              style={{ width: `${((currentStep - 1) / 4) * 100}%` }}
-            ></div>
+        <div className="w-full mb-14 sm:mb-20">
+          <div className="relative max-w-5xl mx-auto px-2 sm:px-4">
 
-            <div className="flex justify-between items-center w-full px-4">
+            {/* Background line */}
+            <div className="absolute top-5 sm:top-1/2 left-0 w-full h-[1px] bg-white/40 -z-10 sm:-translate-y-1/2" />
+
+            {/* Active progress line */}
+            <div
+              className="absolute top-5 sm:top-1/2 left-0 h-[2px] bg-accent -z-10 sm:-translate-y-1/2 transition-all duration-700 ease-in-out"
+              style={{
+                width: `${((currentStep - 1) / (steps.length - 1)) * 100}%`,
+              }}
+            />
+
+            <div className="flex justify-between items-start sm:items-center w-full">
+
               {steps.map((step) => {
                 const isActive = currentStep >= step.id;
                 const isCurrent = currentStep === step.id;
@@ -641,43 +671,102 @@ export default function BookingPage() {
                 return (
                   <div
                     key={step.id}
-                    className="flex flex-col items-center group cursor-pointer relative"
+                    className="flex flex-col items-center text-center flex-1 cursor-pointer group relative"
                     onClick={() =>
                       step.id < currentStep && setCurrentStep(step.id)
                     }
                   >
+                    {/* Circle */}
                     <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center border transition-all duration-500 text-primary 
+                      className={`
+                        w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center
+                        border transition-all duration-500 text-primary
                         ${
                           isActive
-                            ? "border-accent text-primary bg-accent"
-                            : "border-white bg-white/80 text-primrary"
+                            ? "border-accent bg-accent"
+                            : "border-white bg-white/80"
                         }
-                        ${isCurrent ? "ring-4 ring-accent/10 scale-110" : ""}
-                        `}
+                        ${isCurrent ? "ring-4 ring-accent/20 scale-110" : ""}
+                      `}
                     >
                       {isActive ? (
-                        <step.icon size={18} strokeWidth={1.5} />
+                        <step.icon size={14} strokeWidth={1.5} />
                       ) : (
-                        <span className="text-sm">{step.id}</span>
+                        <span className="text-xs sm:text-sm">{step.id}</span>
                       )}
                     </div>
+
+                    {/* Label */}
                     <span
-                      className={`absolute -bottom-8 text-[10px] uppercase tracking-widest font-medium whitespace-nowrap transition-all duration-500 ${
-                        isActive
-                          ? "text-accent  opacity-100 translate-y-0"
-                          : "text-white opacity-0 -translate-y-2"
-                      }`}
+                      className={`
+                        mt-2 text-[9px] sm:text-[11px]
+                        uppercase tracking-wide font-medium
+                        leading-tight transition-all duration-500
+                        ${
+                          isActive
+                            ? "text-accent opacity-100"
+                            : "text-white/60 opacity-70"
+                        }
+                      `}
                     >
                       {step.title}
                     </span>
                   </div>
                 );
               })}
+
             </div>
           </div>
         </div>
-      
+        {/* <AnimatePresence>
+          {currentStep < 5 && (
+            <motion.div
+              initial={{ y: 80, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 80, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 28 }}
+              className="fixed bottom-0 left-0 right-0 md:hidden bg-white/95 backdrop-blur border-t border-gray-200"
+            >
+              <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+                <button
+                  onClick={prevStep}
+                  disabled={currentStep === 1}
+                  className="px-4 py-3 text-xs uppercase tracking-widest font-bold border border-gray-200 text-gray-600 hover:border-primary hover:text-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="inline-block mr-1" size={14} />
+                  Back
+                </button>
+                <div className="flex items-end gap-2">
+                  <span className="text-gray-600 text-xs uppercase tracking-widest">
+                    Total
+                  </span>
+                  <span className="text-xl font-semibold text-primary">
+                    Rs. {finalPayableAmount}
+                  </span>
+                </div>
+                <button
+                  onClick={() => {
+                    if (currentStep < 4) {
+                      proceedNext();
+                    } else if (currentStep === 4) {
+                      setPaymentError(""); // ✅ Clear error before showing popup
+                      if (isMember) {
+                        setShowPaymentChoice(true); // 🔥 skip membership popup
+                      } else {
+                        setShowMembershipPopup(true);
+                      }
+                    }
+                  }}
+                  disabled={!canNext}
+                  className="btn-primary px-6 py-3 text-xs disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+                >
+                  {nextLabel}{" "}
+                  <ArrowRight className="inline-block ml-1" size={16} />
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence> */}
 
         <AnimatePresence>
           {showMembershipPopup && (
@@ -701,11 +790,11 @@ export default function BookingPage() {
                 <div className="flex gap-3">
                   <button
                     className="flex-1 border px-4 py-3 rounded-xl"
-                      onClick={() => {
+                    onClick={() => {
                       setIsMember(false);
                       setShowMembershipPopup(false);
-                      setPaymentError("");
-                      setShowPaymentChoice(true);
+                      setPaymentError(""); // ✅ Clear error before showing payment choice
+                      setShowPaymentChoice(true); // 🔥
                     }}
                   >
                     No
@@ -716,8 +805,8 @@ export default function BookingPage() {
                     onClick={() => {
                       setIsMember(true);
                       setShowMembershipPopup(false);
-                      setPaymentError("");
-                      setShowPaymentChoice(true);
+                      setPaymentError(""); // ✅ Clear error before showing payment choice
+                      setShowPaymentChoice(true); // 🔥
                     }}
                   >
                     Yes, Apply Discount
@@ -728,66 +817,18 @@ export default function BookingPage() {
           )}
         </AnimatePresence>
 
-        {/* ================= MEMBERSHIP POPUP ================= */}
-        {/* <AnimatePresence>
-          {showMembershipPopup && (
-            <motion.div
-              className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center"
-              onClick={() => setShowMembershipPopup(false)}
-            >
-              <motion.div
-                className="bg-white rounded-2xl p-6 max-w-md w-full"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <h3 className="text-xl font-semibold text-primary mb-2">
-                  Become a Member?
-                </h3>
-
-                <p className="text-sm text-gray-600 mb-6">
-                  Get <b>{membershipDiscount}% instant discount</b> on your
-                  booking.
-                </p>
-
-                <div className="flex gap-3">
-                  <button
-                    className="flex-1 border px-4 py-3 rounded-xl"
-                    onClick={() => {
-                      setIsMember(false);
-                      setShowMembershipPopup(false);
-                      setShowPaymentChoice(true);
-                    }}
-                  >
-                    No
-                  </button>
-
-                  <button
-                    className="flex-1 bg-primary text-white px-4 py-3 rounded-xl"
-                    onClick={() => {
-                      setIsMember(true);
-                      setShowMembershipPopup(false);
-                      setShowPaymentChoice(true);
-                    }}
-                  >
-                    Yes, Apply Discount
-                  </button>
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence> */}
-
-        {/* ================= PAYMENT CHOICE POPUP (ADD HERE) ================= */}
+        {/* ================= PAYMENT CHOICE POPUP (UPDATED WITH ERROR DISPLAY) ================= */}
         <AnimatePresence>
           {showPaymentChoice && (
-            <motion.div
-              className="fixed inset-0 z-[110] bg-black/50 flex items-center justify-center"
+            <motion.div 
+              className="fixed inset-0 z-[110] bg-black/50 flex items-center justify-center p-4 overflow-y-auto"
               onClick={() => {
                 setShowPaymentChoice(false);
-                setPaymentError("");
+                setPaymentError(""); // ✅ Clear error on close
               }}
             >
-              <motion.div
-                className="bg-white rounded-2xl p-6 max-w-md w-full"
+              <motion.div 
+                className="bg-white rounded-2xl p-4 sm:p-6 max-w-md w-full mx-auto my-auto transition-all duration-300"
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex justify-between items-center mb-4">
@@ -806,6 +847,7 @@ export default function BookingPage() {
                   </button>
                 </div>
 
+                {/* ✅ Added error display from version 2 */}
                 {paymentError && (
                   <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
                     {paymentError}
@@ -814,9 +856,10 @@ export default function BookingPage() {
 
                 <button
                   className="w-full bg-primary text-white py-3 rounded-xl mb-3"
-                    onClick={() => {
+                  onClick={() => {
                     setShowPaymentChoice(false);
-                    setPaymentError("");
+                    setPaymentError(""); // ✅ Clear error before payment
+                    setSelectedPaymentType("FULL");
                     openRazorpay("FULL");
                   }}
                 >
@@ -827,20 +870,22 @@ export default function BookingPage() {
                   className="w-full border py-3 rounded-xl"
                   onClick={() => {
                     setShowPaymentChoice(false);
-                    setPaymentError("");
+                    setPaymentError(""); // ✅ Clear error before payment
+                    setSelectedPaymentType("PARTIAL");
                     openRazorpay("PARTIAL");
                   }}
                 >
-                  Pay Partial (30% – ₹{Math.round(finalPayableAmount * 0.3)})
+                  Pay Partial (₹
+                  {Math.min(PARTIAL_PAYMENT_FIXED_AMOUNT, finalPayableAmount)})
                 </button>
               </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        <div className="grid lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 max-w-7xl mx-auto w-full">
           {/* Main Content Area */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 min-w-0">
             <AnimatePresence mode="wait">
               {currentStep === 1 && (
                 <motion.div
@@ -849,13 +894,13 @@ export default function BookingPage() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.5 }}
-                  className="bg-white rounded-2xl shadow-2xl shadow-gray-200/50 border border-primary/20 p-8 md:p-12"
+                  className="bg-white rounded-2xl shadow-2xl shadow-gray-200/50 border border-primary/20 p-4 sm:p-6 md:p-8 lg:p-12 transition-all duration-300"
                 >
-                  <h2 className="text-3xl font-semibold text-primary mb-10 text-center">
+                  <h2 className="text-2xl sm:text-3xl font-semibold text-primary mb-6 sm:mb-10 text-center">
                     Select Dates & Guests
                   </h2>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-10">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-10 mb-6 sm:mb-10">
                     <div className="space-y-4">
                       <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">
                         Check-In Date
@@ -995,7 +1040,7 @@ export default function BookingPage() {
                       const selected = formData.selectedRooms.find(
                         (r) => r._id === room._id,
                       );
-                      const quantity = selected ? selected.quantity : 0;
+                      const isSelected = !!selected;
                       const currentPlan = selected
                         ? selected.plan || "ep"
                         : "ep";
@@ -1007,7 +1052,7 @@ export default function BookingPage() {
                         <div
                           key={room._id}
                           className={`bg-white transition-all duration-500 hover:shadow-2xl hover:-translate-y-1 rounded-2xl border-primary/20 ${
-                            quantity > 0
+                            isSelected
                               ? "border border-accent shadow-lg"
                               : "border border-gray-100 shadow-sm"
                           }`}
@@ -1040,7 +1085,7 @@ export default function BookingPage() {
                                   {room.description}
                                 </p>
 
-                                {quantity > 0 && room.priceDetails && (
+                                {isSelected && room.priceDetails && (
                                   <div className="mb-6 bg-gray-50/50 p-4 border border-gray-100">
                                     <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-3">
                                       Select Rate Plan
@@ -1091,34 +1136,19 @@ export default function BookingPage() {
                                 </div>
                               </div>
                               <div className="flex gap-6 mt-auto items-center border-t border-gray-100 pt-6">
-                                <div className="flex items-center border border-gray-200">
-                                  <button
-                                    onClick={() => updateRoomQuantity(room, -1)}
-                                    className="p-3 text-gray-400 hover:text-primary transition-colors disabled:opacity-30"
-                                    disabled={quantity === 0}
-                                  >
-                                    <Minus size={14} />
-                                  </button>
-                                  <span className="w-8 text-center text-lg font-medium text-primary">
-                                    {quantity}
-                                  </span>
-                                  <button
-                                    onClick={() => updateRoomQuantity(room, 1)}
-                                    className="p-3 text-gray-400 hover:text-primary transition-colors"
-                                  >
-                                    <Plus size={14} />
-                                  </button>
-                                </div>
-                                <div className="flex-1 text-xs uppercase tracking-widest text-gray-400">
-                                  {quantity > 0 ? (
-                                    <span className="text-accent">
-                                      Selected
-                                    </span>
-                                  ) : (
-                                    "Add Room"
-                                  )}
-                                </div>
                                 <button
+                                  type="button"
+                                  onClick={() => selectRoom(room)}
+                                  className={`flex-1 px-6 py-3 text-xs uppercase tracking-widest font-bold rounded-2xl transition-colors cursor-pointer ${
+                                    isSelected
+                                      ? "bg-accent text-primary border border-accent"
+                                      : "border border-gray-200 text-gray-600 hover:border-primary hover:text-primary"
+                                  }`}
+                                >
+                                  {isSelected ? "Selected" : "Select Room"}
+                                </button>
+                                <button
+                                  type="button"
                                   onClick={() => navigate(`/rooms/${room._id}`)}
                                   className="text-xs uppercase tracking-widest font-bold text-gray-400 hover:text-primary transition-colors underline decoration-gray-200 underline-offset-4 hover:decoration-primary"
                                 >
@@ -1318,6 +1348,7 @@ export default function BookingPage() {
 
                     <button
                       onClick={() =>
+                        canApplyCoupon &&
                         navigate("/coupons", {
                           state: {
                             mode: "public",
@@ -1335,8 +1366,13 @@ export default function BookingPage() {
                           },
                         })
                       }
-                      className="px-5 py-2 border border-accent text-accent rounded-xl font-bold text-sm
-             hover:bg-accent hover:text-primary transition"
+                      disabled={!canApplyCoupon}
+                      className={`px-5 py-2 border rounded-xl font-bold text-sm transition
+             ${
+               canApplyCoupon
+                 ? "border-accent text-accent hover:bg-accent hover:text-primary"
+                 : "border-gray-300 text-gray-400 cursor-not-allowed opacity-60"
+             }`}
                     >
                       Apply Coupon
                     </button>
@@ -1484,18 +1520,19 @@ export default function BookingPage() {
                   key="step5"
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="bg-white rounded-2xl shadow-2xl shadow-gray-200/50 border border-white/20 p-8 md:p-16 text-center max-w-3xl mx-auto"
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                  className="w-full max-w-3xl overflow-x-hidden bg-white rounded-2xl shadow-2xl shadow-gray-200/50 border border-white/20 p-4 sm:p-6 md:p-8 lg:p-16 text-center mx-auto"
                 >
-                  <div className="w-24 h-24 bg-accent/30 rounded-full flex items-center justify-center mx-auto mb-8 animate-in fade-in zoom-in duration-700">
-                    <Check size={48} className="text-accent" strokeWidth={1} />
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 bg-accent/30 rounded-full flex items-center justify-center mx-auto mb-6 sm:mb-8 animate-in fade-in zoom-in duration-700">
+                    <Check size={40} className="sm:w-12 sm:h-12 text-accent" strokeWidth={1} />
                   </div>
-                  <span className="text-accent text-xs uppercase tracking-[0.4em] font-medium block mb-4">
+                  <span className="text-accent text-xs uppercase tracking-[0.4em] font-medium block mb-3 sm:mb-4">
                     Success
                   </span>
-                  <h2 className="text-4xl md:text-5xl font-semibold text-primary mb-6">
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold text-primary mb-4 sm:mb-6 px-1">
                     Booking Confirmed
                   </h2>
-                  <p className="text-gray-500 text-lg mb-12 max-w-lg mx-auto font-light leading-relaxed">
+                  <p className="text-gray-500 text-sm sm:text-base md:text-lg mb-8 sm:mb-12 max-w-lg mx-auto font-light leading-relaxed px-1">
                     Thank you for choosing Shiv Ganga Hotel. Your reservation
                     has been confirmed and a confirmation email has been sent to{" "}
                     <span className="font-medium text-primary border-b border-accent/30">
@@ -1504,30 +1541,30 @@ export default function BookingPage() {
                     .
                   </p>
 
-                  <div className="bg-gray-50/50 p-8 border border-gray-100 max-w-lg mx-auto mb-10 text-left relative overflow-hidden">
+                  <div className="bg-gray-50/50 p-4 sm:p-6 md:p-8 border border-gray-100 w-full max-w-lg mx-auto mb-8 sm:mb-10 text-left relative overflow-hidden rounded-xl">
                     <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-accent to-transparent"></div>
 
-                    <div className="flex justify-between items-end mb-8 pb-8 border-b border-gray-200 border-dashed">
-                      <div>
+                    <div className="flex flex-col sm:flex-row justify-between sm:items-end gap-4 mb-6 sm:mb-8 pb-6 sm:pb-8 border-b border-gray-200 border-dashed">
+                      <div className="min-w-0">
                         <span className="text-[10px] uppercase tracking-widest text-gray-400 block mb-1">
                           Booking Reference
                         </span>
-                        <span className="text-xl font-semibold text-primary">
+                        <span className="text-base sm:text-xl font-semibold text-primary break-all">
                           {bookingReference}
                         </span>
                       </div>
-                      <div className="text-right">
+                      <div className="text-left sm:text-right shrink-0">
                         <span className="text-[10px] uppercase tracking-widest text-gray-400 block mb-1">
                           Status
                         </span>
-                        <span className="text-green-600 text-xs font-bold uppercase tracking-wider bg-green-50 px-2 py-1 border border-green-100">
+                        <span className="text-green-600 text-xs font-bold uppercase tracking-wider bg-green-50 px-2 py-1 border border-green-100 inline-block">
                           Confirmed
                         </span>
                       </div>
                     </div>
 
-                    <div className="space-y-6">
-                      <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-4 sm:space-y-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                         <div>
                           <span className="text-[10px] uppercase tracking-widest text-gray-400 block mb-1">
                             Check-In
@@ -1603,27 +1640,82 @@ export default function BookingPage() {
                         </div>
                       )}
 
-                      <div className="pt-6 border-t border-gray-200 border-dashed flex justify-between items-end">
-                        <span className="text-xs uppercase tracking-widest text-gray-500 font-bold">
-                          Total Amount
-                        </span>
-                        <span className="text-2xl font-semibold text-accent">
-                          Rs. {finalPayableAmount}
-                        </span>
+                      <div className="pt-6 border-t border-gray-200 border-dashed space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-500">Room & Add-ons</span>
+                          <span className="font-medium text-primary">
+                            Rs. {grandTotal}
+                          </span>
+                        </div>
+
+                        {membershipDiscountAmount > 0 && (
+                          <div className="flex justify-between text-sm text-green-600">
+                            <span>Membership Discount</span>
+                            <span>- Rs. {membershipDiscountAmount}</span>
+                          </div>
+                        )}
+
+                        {/* COUPON DISCOUNT - ADD THIS IF MISSING */}
+                        {couponDiscountAmount > 0 && (
+                          <div className="flex justify-between text-sm text-green-600">
+                            <span>Coupon Discount {appliedCoupon?.code ? `(${appliedCoupon.code})` : ''}</span>
+                            <span>- Rs. {couponDiscountAmount}</span>
+                          </div>
+                        )}
+
+                        <div className="flex justify-between items-end pt-1">
+                          <span className="text-xs uppercase tracking-widest text-gray-500 font-bold">
+                            Final Amount
+                          </span>
+                          <span className="text-2xl font-semibold text-accent">
+                            Rs. {finalPayableAmount}
+                          </span>
+                        </div>
+
+                        {selectedPaymentType && (
+                          <div className="mt-3 pt-3 border-t border-dashed border-gray-200 text-sm space-y-1">
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">
+                                Payment Type
+                              </span>
+                              <span className="font-medium text-primary">
+                                {selectedPaymentType === "PARTIAL"
+                                  ? "Partial Payment"
+                                  : "Full Payment"}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">
+                                Paid Now
+                              </span>
+                              <span className="font-semibold text-primary">
+                                Rs. {paidAmount}
+                              </span>
+                            </div>
+                            {selectedPaymentType === "PARTIAL" && (
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">
+                                  Remaining Amount
+                                </span>
+                                <span className="font-semibold text-primary">
+                                  Rs. {remainingAmount}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex justify-center gap-4">
+                  <div className="flex flex-col sm:flex-row justify-center items-stretch sm:items-center gap-3 sm:gap-4">
                     <button
                       onClick={WhatsAppLink}
-                      className="group px-8 py-3 border border-primary text-primary text-xs uppercase tracking-widest font-bold transition-colors cursor-pointer
-             hover:bg-[#25D366] hover:text-white rounded-2xl
-             flex items-center gap-2"
+                      className="group px-6 sm:px-8 py-3 border border-primary text-primary text-xs uppercase tracking-widest font-bold transition-all duration-300 cursor-pointer hover:bg-[#25D366] hover:text-white rounded-2xl flex items-center justify-center gap-2"
                     >
                       <FaWhatsapp
                         size={22}
-                        className="text-[#25D366] transition-colors group-hover:text-white"
+                        className="text-[#25D366] transition-colors group-hover:text-white shrink-0"
                       />
                       <span className="transition-colors group-hover:text-white">
                         Get Details in WhatsApp
@@ -1631,7 +1723,7 @@ export default function BookingPage() {
                     </button>
                     <button
                       onClick={() => navigate("/")}
-                      className="btn-primary px-8 py-3 text-xs rounded-2xl cursor-pointer uppercase tracking-widest font-bold hover:bg-accent"
+                      className="btn-primary px-6 sm:px-8 py-3 text-xs rounded-2xl cursor-pointer uppercase tracking-widest font-bold hover:bg-accent transition-all duration-300"
                     >
                       Return Home
                     </button>
@@ -1642,13 +1734,13 @@ export default function BookingPage() {
           </div>
 
           {/* Sidebar Summary */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-32">
+          <div className="lg:col-span-1 min-w-0 order-first lg:order-none">
+            <div className="sticky top-24 lg:top-32 transition-all duration-300">
               <div className="bg-white rounded-2xl shadow-xl border border-primary/20 overflow-hidden">
-                <div className="bg-primary p-6 text-white">
-                  <h3 className="text-xl font-semibold">Booking Summary</h3>
+                <div className="bg-primary p-4 sm:p-6 text-white">
+                  <h3 className="text-lg sm:text-xl font-semibold">Booking Summary</h3>
                 </div>
-                <div className="p-6 space-y-6">
+                <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
                   {formData.selectedRooms.length > 0 ? (
                     <div className="space-y-4 pb-6 border-b border-gray-100">
                       {formData.selectedRooms.map((room, idx) => {
@@ -1805,6 +1897,31 @@ export default function BookingPage() {
                         Rs. {finalPayableAmount}
                       </span>
                     </div>
+
+                    {selectedPaymentType && (
+                      <div className="mt-3 pt-3 border-t border-dashed border-gray-200 text-xs space-y-1">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">
+                            {selectedPaymentType === "PARTIAL"
+                              ? "Partial Payment (Paid Now)"
+                              : "Paid Now"}
+                          </span>
+                          <span className="font-semibold text-primary">
+                            Rs. {paidAmount}
+                          </span>
+                        </div>
+                        {selectedPaymentType === "PARTIAL" && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">
+                              Remaining Payable
+                            </span>
+                            <span className="font-semibold text-primary">
+                              Rs. {remainingAmount}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <div className="mt-4 flex items-center gap-3">
                     <button
@@ -1821,11 +1938,11 @@ export default function BookingPage() {
                           if (currentStep < 4) {
                             proceedNext();
                           } else if (currentStep === 4) {
-                            setPaymentError("");
+                            setPaymentError(""); // ✅ Clear error before showing popup
                             if (isMember) {
-                              setShowPaymentChoice(true);
+                              setShowPaymentChoice(true); // 🔥 already member
                             } else {
-                              setShowMembershipPopup(true);
+                              setShowMembershipPopup(true); // 🔥 new user
                             }
                           }
                         }}
@@ -1859,3 +1976,4 @@ export default function BookingPage() {
     </div>
   );
 }
+

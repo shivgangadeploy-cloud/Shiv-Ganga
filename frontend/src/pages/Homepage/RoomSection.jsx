@@ -133,26 +133,69 @@ const RoomSection = () => {
                     ))}
                   </div>
 
-                  <div className="flex gap-3 mt-auto">
-                    <button
-                      type="button"
-                      onClick={() => navigate("/booking")}
-                      className="btn-primary flex-1 h-[48px] text-xs cursor-pointer rounded-2xl uppercase tracking-[0.2em] font-bold hover:bg-accent transition-colors"
-                    >
-                      Book Now
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        navigate("/rooms", {
-                          state: { roomIndex: index },
-                        })
-                      }
-                      className="flex-1 h-[48px] px-6 border border-gray-200 text-primary uppercase tracking-[0.2em] text-xs font-bold hover:bg-primary hover:text-white hover:border-primary transition-colors rounded-2xl cursor-pointer"
-                    >
-                      View Details
-                    </button>
-                  </div>
+                  <div className="flex flex-col lg:flex-row gap-3 mt-4 pt-2 w-full shrink-0">
+
+  <button
+    type="button"
+    onClick={() => navigate("/booking")}
+    className="
+      w-full lg:flex-1
+      
+      min-h-[44px] sm:min-h-[48px]
+      px-4 sm:px-5 md:px-6
+      
+      btn-primary
+      
+      text-[11px] sm:text-xs md:text-sm
+      uppercase tracking-[0.12em] sm:tracking-[0.15em]
+      font-bold
+      
+      rounded-lg sm:rounded-xl md:rounded-2xl
+      
+      cursor-pointer
+      hover:bg-accent
+      active:scale-[0.98]
+      transition-all duration-200
+      
+      flex items-center justify-center
+    "
+  >
+    Book Now
+  </button>
+
+  <button
+    type="button"
+    onClick={() =>
+      navigate("/rooms", {
+        state: { roomIndex: index },
+      })
+    }
+    className="
+      w-full lg:flex-1
+      
+      min-h-[44px] sm:min-h-[48px]
+      px-4 sm:px-5 md:px-6
+      
+      border border-gray-200
+      text-primary
+      
+      text-[11px] sm:text-xs md:text-sm
+      uppercase tracking-[0.12em] sm:tracking-[0.15em]
+      font-bold
+      
+      rounded-lg sm:rounded-xl md:rounded-2xl
+      
+      cursor-pointer
+      hover:bg-primary hover:text-white hover:border-primary
+      transition-all duration-200
+      
+      flex items-center justify-center
+    "
+  >
+    View Details
+  </button>
+
+</div>
                 </div>
               </motion.div>
             );

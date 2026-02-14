@@ -208,8 +208,8 @@ Remaining: ₹${booking.pendingAmount || 0}
   };
 
   return (
-    <div className="relative h-screen overflow-hidden bg-gray-50 text-gray-800">
-      <div className="flex h-full">
+    <div className="relative h-screen max-w-[100vw] overflow-hidden bg-gray-50 text-gray-800">
+      <div className="flex h-full min-w-0">
         {/* ================= SIDEBAR (NO SCROLL) ================= */}
         <aside
           className={`bg-gradient-to-t from-primary via-primary/80 to-accent/40 text-primary transition-all duration-300 ${
@@ -338,7 +338,7 @@ Remaining: ₹${booking.pendingAmount || 0}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 10, scale: 0.98 }}
                       transition={{ duration: 0.2 }}
-                      className="absolute right-4 top-[64px] w-[360px] bg-white rounded-2xl border border-gray-200 shadow-2xl overflow-hidden z-40"
+                      className="absolute right-2 sm:right-4 top-[64px] w-[calc(100vw-1rem)] max-w-[360px] bg-white rounded-2xl border border-gray-200 shadow-2xl overflow-hidden z-40"
                     >
                       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-300">
                         <div className="flex items-center gap-2">
@@ -522,7 +522,7 @@ Remaining: ₹${booking.pendingAmount || 0}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8 scrollbar-thin"
+            className="flex-1 min-w-0 overflow-auto overflow-x-hidden p-4 sm:p-6 lg:p-8 scrollbar-thin"
           >
             <Outlet />
           </Motion.main>

@@ -234,11 +234,24 @@ export const createOfflineBooking = async (req, res, next) => {
 
     await notifyReceptionistPaymentCompleted({ booking, user, room });
 
+    const normalizeKey = (s) =>
+      (s || "").toString().trim().toLowerCase().replace(/\s+/g, " ");
+    const normalizedPriceMap = Object.fromEntries(
+      Object.entries(ADD_ONS_PRICE_MAP || {}).map(([k, v]) => [
+        normalizeKey(k),
+        v,
+      ]),
+    );
     const activities = (addOns || []).map((a) => {
-      const unit = ADD_ONS_PRICE_MAP[a?.name] || Number(a?.price || 0) || 0;
-      const qty = Number(a?.quantity || 0);
+      const qty = Math.max(0, Number(a?.quantity || 0));
+      const name = (a?.name || "").toString().trim();
+      const key = normalizeKey(name);
+      const unit =
+        (ADD_ONS_PRICE_MAP && ADD_ONS_PRICE_MAP[name]) ??
+        normalizedPriceMap[key] ??
+        (Number(a?.price || 0) || 0);
       return {
-        name: a?.name || "",
+        name,
         quantity: qty,
         unitPrice: unit,
         totalPrice: unit * qty,

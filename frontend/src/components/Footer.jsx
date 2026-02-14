@@ -19,7 +19,7 @@ export default function Footer() {
   const { property } = settings;
 
   return (
-    <footer className="relative text-white pt-16 sm:pt-20 md:pt-28 pb-10 overflow-hidden">
+    <footer className="relative text-white pt-14 sm:pt-20 md:pt-28 pb-10 overflow-hidden">
       {/* Background */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-105"
@@ -31,41 +31,45 @@ export default function Footer() {
 
       {/* MAIN GRID */}
       <motion.div
-        className="relative max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-16 mb-14"
+        className="relative max-w-7xl mx-auto px-4 sm:px-6
+    grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4
+    gap-10 lg:gap-16 mb-14 text-left"
         initial={{ opacity: 0, y: 35 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.65, ease: "easeOut" }}
       >
         {/* BRAND */}
-        <div className="space-y-6 text-center sm:text-left">
+        <div className="space-y-5">
           <Link
             to="/"
             className="inline-block hover:scale-105 transition-transform"
           >
-            <h2 className="text-2xl sm:text-3xl font-serif font-bold tracking-[0.35em] uppercase">
+            <h2 className="text-xl sm:text-3xl font-serif font-bold tracking-[0.3em] uppercase">
               {property.hotelName}
             </h2>
-            <p className="text-accent text-[10px] tracking-[0.45em] uppercase mt-1">
+            <p className="text-accent text-[10px] tracking-[0.4em] uppercase mt-1">
               Luxury Stay
             </p>
           </Link>
 
-          <p className="text-sm leading-relaxed max-w-xs mx-auto sm:mx-0 opacity-90">
+          <p className="text-sm leading-relaxed opacity-90 max-w-sm">
             Experience the epitome of luxury and Indian heritage. Your sanctuary
             in the heart of the city, where every detail is curated for comfort.
           </p>
 
-          <div className="flex justify-center sm:justify-start gap-4">
+          <div className="flex gap-3">
             {[Facebook, Instagram, Twitter].map((Icon, i) => (
               <a
                 key={i}
                 href="#"
-                aria-label="Social link"
-                className="w-10 h-10 rounded-full border border-white/40 flex items-center justify-center hover:bg-accent hover:border-accent hover:text-primary transition-all duration-300 group"
+                className="w-9 h-9 rounded-full border border-white/40
+            flex items-center justify-center
+            hover:bg-accent hover:border-accent hover:text-primary
+            transition-all duration-300 group"
               >
                 <Icon
-                  size={18}
+                  size={16}
                   className="group-hover:scale-110 transition-transform"
                 />
               </a>
@@ -74,12 +78,12 @@ export default function Footer() {
         </div>
 
         {/* QUICK LINKS */}
-        <div className="text-center sm:text-left">
-          <h3 className="text-xs sm:text-sm font-bold uppercase tracking-[0.25em] mb-6">
+        <div>
+          <h3 className="text-xs sm:text-sm font-bold uppercase tracking-[0.25em] mb-5">
             Quick Links
           </h3>
 
-          <ul className="space-y-3 inline-block sm:block">
+          <ul className="space-y-2">
             {[
               { name: "About Us", path: "/about" },
               { name: "Accommodations", path: "/rooms" },
@@ -106,29 +110,25 @@ export default function Footer() {
         </div>
 
         {/* CONTACT */}
-        <div className="text-center sm:text-left">
-          <h3 className="text-xs sm:text-sm font-bold uppercase tracking-[0.25em] mb-6">
+        <div>
+          <h3 className="text-xs sm:text-sm font-bold uppercase tracking-[0.25em] mb-5">
             Contact Us
           </h3>
 
-          <ul className="space-y-5 max-w-sm mx-auto sm:mx-0">
-            <li className="flex flex-col sm:flex-row items-center sm:items-start gap-3">
-              <MapPin className="text-accent shrink-0" size={20} />
-              <span className="text-sm leading-relaxed break-words">
-                {property.address}
-              </span>
+          <ul className="space-y-4 text-sm">
+            <li className="flex items-start gap-3">
+              <MapPin className="text-accent shrink-0 mt-1" size={18} />
+              <span>{property.address}</span>
             </li>
 
-            <li className="flex flex-col sm:flex-row items-center gap-3">
-              <Phone className="text-accent shrink-0" size={20} />
-              <span className="text-sm break-words text-center sm:text-left">
-                {property.phones?.join(", ")}
-              </span>
+            <li className="flex items-center gap-3">
+              <Phone className="text-accent shrink-0" size={18} />
+              <span>{property.phones?.join(", ")}</span>
             </li>
 
-            <li className="flex flex-col sm:flex-row items-center gap-3">
-              <Mail className="text-accent shrink-0" size={20} />
-              <div className="flex flex-col gap-1 text-sm">
+            <li className="flex items-start gap-3">
+              <Mail className="text-accent shrink-0 mt-1" size={18} />
+              <div className="flex flex-col gap-1">
                 {property.emails?.map((email, idx) => (
                   <a
                     key={idx}
@@ -144,26 +144,31 @@ export default function Footer() {
         </div>
 
         {/* NEWSLETTER */}
-        <div className="text-center sm:text-left">
-          <h3 className="text-xs sm:text-sm font-bold uppercase tracking-[0.25em] mb-6">
+        <div>
+          <h3 className="text-xs sm:text-sm font-bold uppercase tracking-[0.25em] mb-5">
             Newsletter
           </h3>
 
-          <p className="text-sm mb-5 opacity-90 max-w-xs mx-auto sm:mx-0">
+          <p className="text-sm mb-4 opacity-90 max-w-sm">
             Subscribe for exclusive offers and hotel updates.
           </p>
 
           <form
-            className="flex flex-col gap-3 max-w-xs mx-auto sm:mx-0"
+            className="flex flex-col gap-3 max-w-sm"
             onSubmit={(e) => e.preventDefault()}
           >
             <input
               type="email"
               placeholder="Your Email Address"
-              className="bg-white/10 border border-white/30 px-4 py-3 rounded-md text-sm text-white placeholder:text-white/60 focus:outline-none focus:border-accent"
+              className="bg-white/10 border border-white/30 px-4 py-3
+          rounded-md text-sm text-white placeholder:text-white/60
+          focus:outline-none focus:border-accent"
             />
 
-            <button className="bg-white text-primary hover:bg-accent hover:text-white py-3 rounded-md text-xs font-bold uppercase tracking-widest transition">
+            <button
+              className="bg-white text-primary hover:bg-accent hover:text-white
+          py-3 rounded-md text-xs font-bold uppercase tracking-widest transition"
+            >
               Subscribe
             </button>
           </form>
@@ -172,17 +177,21 @@ export default function Footer() {
 
       {/* BOTTOM BAR */}
       <motion.div
-        className="relative max-w-7xl mx-auto px-4 sm:px-6 pt-6 border-t border-white/30 flex flex-col md:flex-row gap-4 justify-between items-center text-[11px] sm:text-xs"
+        className="relative max-w-7xl mx-auto px-4 sm:px-6 pt-6
+    border-t border-white/30
+    flex flex-col md:flex-row gap-3
+    justify-between items-start md:items-center
+    text-[11px] sm:text-xs text-left"
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
         transition={{ duration: 0.5, delay: 0.15 }}
       >
-        <p className="text-center md:text-left">
+        <p>
           © {currentYear} {property.hotelName}. All Rights Reserved.
         </p>
 
-        <div className="flex flex-wrap justify-center gap-6">
+        <div className="flex flex-wrap gap-5">
           <Link to="/privacypolicy" className="hover:text-accent transition">
             Privacy Policy
           </Link>

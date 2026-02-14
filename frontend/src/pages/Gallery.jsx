@@ -223,24 +223,46 @@ export default function Gallery() {
 
             {/* Filter Tabs */}
             <div className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
-                <div className="max-w-7xl mx-auto px-6 py-6">
-                    <div className="flex flex-wrap gap-3 justify-center">
-                        {filters.map((filter) => (
-                            <button
-                                key={filter.id}
-                                onClick={() => setActiveFilter(filter.id)}
-                                className={`px-6 py-2.5 rounded-full font-medium transition-all duration-300 ${
-                                    activeFilter === filter.id
-                                        ? 'bg-amber-400 text-slate-900 shadow-md scale-105'
-                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
-                                }`}
-                            >
-                                {filter.label}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            </div>
+
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
+
+    {/* Mobile scroll container */}
+    <div className="
+      flex gap-3
+      overflow-x-auto sm:overflow-visible
+      sm:flex-wrap
+      sm:justify-center
+      scrollbar-hide
+      pb-1
+    ">
+
+      {filters.map((filter) => (
+        <button
+          key={filter.id}
+          onClick={() => setActiveFilter(filter.id)}
+          className={`
+            shrink-0
+            px-5 sm:px-6
+            py-2 sm:py-2.5
+            text-sm sm:text-base
+            rounded-full font-medium
+            transition-all duration-300
+
+            ${
+              activeFilter === filter.id
+                ? "bg-amber-400 text-slate-900 shadow-md scale-105"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105"
+            }
+          `}
+        >
+          {filter.label}
+        </button>
+      ))}
+
+    </div>
+
+  </div>
+</div>
 
             {/* Gallery Grid - Uniform Layout */}
             <div className="max-w-7xl mx-auto px-6 py-20">

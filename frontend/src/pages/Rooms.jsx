@@ -25,7 +25,6 @@ import {
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import AttractionsList from "./AttractionList";
 import { rooms } from "../data/rooms";
-import api from "../api/api";
 
 // Shared rooms data
 const roomsData = [
@@ -305,7 +304,6 @@ const hotelFacilities = [
 
 // Room Detail Page Component
 function RoomDetail({ roomId, onBack, setSelectedRoomId }) {
-  const navigate = useNavigate();
   const [selectedImage, setSelectedImage] = useState(null);
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
@@ -319,9 +317,16 @@ function RoomDetail({ roomId, onBack, setSelectedRoomId }) {
   const room = roomsData.find((r) => r.id === roomId);
   const similarRooms = roomsData.filter((r) => r.id !== roomId).slice(0, 3);
 
+  const navigate = useNavigate();
+
   const handleSearch = async () => {
     if (!checkIn || !checkOut) {
       alert("Please select check-in and check-out dates");
+      return;
+    }
+
+    if (new Date(checkOut) <= new Date(checkIn)) {
+      alert("Checkout must be after check-in");
       return;
     }
 
@@ -331,6 +336,7 @@ function RoomDetail({ roomId, onBack, setSelectedRoomId }) {
         checkOutDate: checkOut,
         adults,
         children,
+        category: room.category,
       };
 
       const res = await api.get("/room/search", { params });
@@ -342,15 +348,12 @@ function RoomDetail({ roomId, onBack, setSelectedRoomId }) {
           checkOut,
           adults,
           children,
-          rooms: res.data?.data || [],
+          rooms: res?.data?.data || [],
         },
       });
-    } catch (error) {
-      console.error(error);
-      const message =
-        error?.response?.data?.message ||
-        "Failed to search rooms. Please try again.";
-      alert(message);
+    } catch (err) {
+      console.error(err);
+      alert("Search failed");
     }
   };
 
@@ -374,22 +377,44 @@ function RoomDetail({ roomId, onBack, setSelectedRoomId }) {
 
   const reviews = [
     {
-      user: "Sarah M.",
+      id: 1,
+      name: "Ronak Raval",
       rating: 5,
-      date: "Oct 2023",
-      text: "Absolutely stunning room! The views were breathtaking and the service was impeccable.",
+      time: "1 month ago",
+      review:
+        "Best experience in Rishikesh at Shiv Ganga hotel. Service and room quality is good. Although need to improve washroom. Rest is good.",
     },
     {
-      user: "James D.",
-      rating: 4,
-      date: "Sep 2023",
-      text: "Very comfortable and spacious. The amenities were top-notch.",
+      id: 2,
+      name: "Nitin nn",
+      rating: 5,
+      time: "3 weeks ago",
+      review:
+        "Very amazing hotel in whole Rishikesh — good for all categories of stay.",
     },
     {
-      user: "Elena R.",
+      id: 3,
+      name: "Shyam Bisht",
       rating: 5,
-      date: "Aug 2023",
-      text: "A truly luxurious experience. Worth every penny.",
+      time: "1 month ago",
+      review:
+        "Great service by the team, especially Mr Vinod — very kind and polite. Rooms are good and services are great. Highly recommended.",
+    },
+    {
+      id: 4,
+      name: "Manish Jha",
+      rating: 5,
+      time: "3 weeks ago",
+      review:
+        "Amazing hotel and clean rooms. If you want to stay in Rishikesh, please stay and enjoy.",
+    },
+    {
+      id: 5,
+      name: "Mona Dixit",
+      rating: 5,
+      time: "1 month ago",
+      review:
+        "Very nice hotel. Santosh ji was very cooperative, especially with kids. Happy with the facilities.",
     },
   ];
 
@@ -627,10 +652,10 @@ function RoomDetail({ roomId, onBack, setSelectedRoomId }) {
                       <div className="flex justify-between items-start mb-3">
                         <div>
                           <h4 className="font-bold text-gray-800">
-                            {review.user}
+                            {review.name}
                           </h4>
                           <span className="text-xs text-gray-500">
-                            {review.date}
+                            {review.time}
                           </span>
                         </div>
                         <div className="flex text-yellow-400">
@@ -646,7 +671,7 @@ function RoomDetail({ roomId, onBack, setSelectedRoomId }) {
                           ))}
                         </div>
                       </div>
-                      <p className="text-gray-600 italic">"{review.text}"</p>
+                      <p className="text-gray-600 italic">"{review.review}"</p>
                     </div>
                   ))}
                 </div>
@@ -938,35 +963,61 @@ function RoomsList({ onSelectRoom }) {
 
       <div className="max-w-7xl mx-auto px-6 py-20">
         {/* Filter Tabs */}
-        <div className="flex flex-wrap justify-center gap-4 mb-16">
-          {[
-            { key: "all", label: "All Rooms", icon: Sparkles },
-            { key: "standard", label: "Standard", icon: Armchair },
-            { key: "deluxe", label: "Deluxe", icon: Star },
-            { key: "triple", label: "Triple", icon: Users },
-            { key: "family", label: "Family", icon: Users },
-          ].map(({ key, label, icon: Icon }) => (
-            <button
-              key={key}
-              onClick={() => handleFilterChange(key)}
-              className={`group px-8 py-3.5 rounded-full text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${
-                selectedFilter === key
-                  ? "bg-[#0A2239] text-white shadow-xl scale-105"
-                  : "bg-white text-gray-700 hover:bg-gray-50 border-2 border-gray-200 hover:border-accent hover:scale-105"
-              }`}
-            >
-              <Icon
-                size={16}
-                className={
-                  selectedFilter === key
-                    ? "animate-pulse"
-                    : "group-hover:rotate-12 transition-transform"
-                }
-              />
-              {label}
-            </button>
-          ))}
-        </div>
+      <div className="mb-16">
+
+  {/* Responsive container */}
+  <div
+    className="
+      flex gap-4
+      overflow-x-auto sm:overflow-visible
+      sm:flex-wrap
+      sm:justify-center
+      scrollbar-hide
+      pb-2
+    "
+  >
+    {[
+      { key: "all", label: "All Rooms", icon: Sparkles },
+      { key: "standard", label: "Standard", icon: Armchair },
+      { key: "deluxe", label: "Deluxe", icon: Star },
+      { key: "triple", label: "Triple", icon: Users },
+      { key: "family", label: "Family", icon: Users },
+    ].map(({ key, label, icon: Icon }) => (
+      <button
+        key={key}
+        onClick={() => handleFilterChange(key)}
+        className={`
+          shrink-0
+          flex items-center gap-2
+
+          px-6 sm:px-8
+          py-2.5 sm:py-3.5
+
+          text-sm font-semibold
+          rounded-full
+          transition-all duration-300
+
+          ${
+            selectedFilter === key
+              ? "bg-[#0A2239] text-white shadow-xl scale-105"
+              : "bg-white text-gray-700 border-2 border-gray-200 hover:bg-gray-50 hover:border-accent hover:scale-105"
+          }
+        `}
+      >
+        <Icon
+          size={16}
+          className={
+            selectedFilter === key
+              ? "animate-pulse"
+              : "group-hover:rotate-12 transition-transform"
+          }
+        />
+        {label}
+      </button>
+    ))}
+  </div>
+
+</div>
 
         {/* Room Cards Grid */}
         <div
@@ -1041,7 +1092,7 @@ function RoomsList({ onSelectRoom }) {
                   )}
                 </div>
 
-                <div className="flex gap-3 mt-auto">
+                <div className="flex flex-col lg:flex-row gap-3  pt-2 w-full shrink-0">
                   <button
                     onClick={() => onSelectRoom(room.id)}
                     className="flex-1 border-2 border-gray-200 py-3 px-4 rounded-xl text-sm font-semibold hover:from-accent hover:to-orange-50 hover:border-accent transition-all duration-300 hover:scale-105"

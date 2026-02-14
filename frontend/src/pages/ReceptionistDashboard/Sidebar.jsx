@@ -348,7 +348,7 @@ const Sidebar = ({ children }) => {
   };
 
   return (
-    <div className="flex h-screen w-full bg-[#F8FAFC] overflow-hidden font-sans">
+    <div className="flex h-screen w-full max-w-[100vw] bg-[#F8FAFC] overflow-hidden font-sans">
       {selectedNotification && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#0f172a]/40 backdrop-blur-md animate-in fade-in duration-300">
           <div className="bg-white w-full max-w-sm md:max-w-md rounded-[2rem] shadow-2xl overflow-hidden scale-100 animate-in zoom-in-95 duration-300 m-4 border border-white/40 ring-1 ring-black/5">
@@ -683,9 +683,9 @@ const Sidebar = ({ children }) => {
         <main
           ref={mainContentRef}
           onScroll={handleScroll}
-          className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth custom-scrollbar"
+          className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden p-4 md:p-6 lg:p-8 scroll-smooth custom-scrollbar"
         >
-          <div className="max-w-7xl mx-auto pb-20 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="max-w-7xl mx-auto w-full pb-20 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {children}
           </div>
         </main>

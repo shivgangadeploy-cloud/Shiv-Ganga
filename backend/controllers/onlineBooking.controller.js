@@ -1277,16 +1277,31 @@ export const verifyPayment = async (req, res, next) => {
         room,
       });
 
-      const activities = (bookingDoc.addOns || []).map((a) => {
-        const qty = Number(a?.quantity || 0);
-        const unit = Number(a?.price || 0);
-        return {
-          name: a?.name || "",
-          quantity: qty,
-          unitPrice: unit,
-          totalPrice: unit * qty,
-        };
-      });
+      const normalizeKey = (s) =>
+        (s || "").toString().trim().toLowerCase().replace(/\s+/g, " ");
+      const normalizedPriceMap = Object.fromEntries(
+        Object.entries(ADD_ONS_PRICE_MAP || {}).map(([k, v]) => [
+          normalizeKey(k),
+          v,
+        ]),
+      );
+      const activities = (bookingDoc.addOns || [])
+        .filter((a) => (a?.name || "").toString().trim())
+        .map((a) => {
+          const qty = Math.max(0, Number(a?.quantity || 0));
+          const name = (a?.name || "").toString().trim();
+          const key = normalizeKey(name);
+          const unit =
+            (ADD_ONS_PRICE_MAP && ADD_ONS_PRICE_MAP[name]) ??
+            normalizedPriceMap[key] ??
+            (Number(a?.price || 0) || 0);
+          return {
+            name,
+            quantity: qty,
+            unitPrice: unit,
+            totalPrice: unit * qty,
+          };
+        });
 
       await sendBookingConfirmationMail({
         name: `${user.firstName} ${user.lastName}`,
@@ -1474,11 +1489,24 @@ export const fakeVerifyPayment = async (req, res, next) => {
       room,
     });
 
+  const normalizeKey = (s) =>
+    (s || "").toString().trim().toLowerCase().replace(/\s+/g, " ");
+  const normalizedPriceMap = Object.fromEntries(
+    Object.entries(ADD_ONS_PRICE_MAP || {}).map(([k, v]) => [
+      normalizeKey(k),
+      v,
+    ]),
+  );
   const activities = (bookingDoc.addOns || []).map((a) => {
-    const qty = Number(a?.quantity || 0);
-    const unit = Number(a?.price || 0);
+    const qty = Math.max(0, Number(a?.quantity || 0));
+    const name = (a?.name || "").toString().trim();
+    const key = normalizeKey(name);
+    const unit =
+      (ADD_ONS_PRICE_MAP && ADD_ONS_PRICE_MAP[name]) ??
+      normalizedPriceMap[key] ??
+      (Number(a?.price || 0) || 0);
     return {
-      name: a?.name || "",
+      name,
       quantity: qty,
       unitPrice: unit,
       totalPrice: unit * qty,

@@ -299,7 +299,7 @@ const handleCalendarClick = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
           <StatCard title="My Bookings Today" value={bookings.length} icon={<BookOpen size={24} />} color="border-l-[#D4AF37]" />
           <StatCard title="Pending Arrivals" value={bookings.filter(b => b.status === 'Pending').length} icon={<Luggage size={24} />} color="border-l-[#0f172a]" />
           <StatCard title="Completed Check-outs" value={bookings.filter(b => b.status === 'Check-out').length} icon={<LogOut size={24} />} color="border-l-slate-400" />
@@ -325,8 +325,19 @@ const handleCalendarClick = () => {
                 </button>
               ))}
             </div>
-            
-            
+
+            {/* Mobile search */}
+            <div className="relative w-full md:w-auto md:min-w-[200px] md:hidden">
+                  <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input 
+                    type="text" 
+                    placeholder="Search list..." 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50"
+                  />
+            </div>
+
             <div className="relative w-full md:w-auto md:min-w-[200px] hidden md:block">
                   <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input 
@@ -367,16 +378,16 @@ const handleCalendarClick = () => {
 
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="overflow-x-auto w-full custom-scrollbar">
-              <table className="w-full text-left border-collapse min-w-[900px]">
+              <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-100">
-                    <th className="py-4 px-6 text-[10px] font-bold uppercase tracking-widest text-slate-400">Booking Reference</th>
-                    <th className="py-4 px-6 text-[10px] font-bold uppercase tracking-widest text-slate-400">Guest Name</th>
-                    <th className="py-4 px-6 text-[10px] font-bold uppercase tracking-widest text-slate-400 text-center">Room</th>
-                    <th className="py-4 px-6 text-[10px] font-bold uppercase tracking-widest text-slate-400">Dates</th>
-                    <th className="py-4 px-6 text-[10px] font-bold uppercase tracking-widest text-slate-400 text-right">Amount</th>
-                    <th className="py-4 px-6 text-[10px] font-bold uppercase tracking-widest text-slate-400 text-center">Status</th>
-                    <th className="py-4 px-6 text-[10px] font-bold uppercase tracking-widest text-slate-400">Action</th>
+                    <th className="py-3 px-3 sm:py-4 sm:px-6 text-[10px] font-bold uppercase tracking-widest text-slate-400">Booking Reference</th>
+                    <th className="py-3 px-3 sm:py-4 sm:px-6 text-[10px] font-bold uppercase tracking-widest text-slate-400">Guest Name</th>
+                    <th className="py-3 px-3 sm:py-4 sm:px-6 text-[10px] font-bold uppercase tracking-widest text-slate-400 text-center">Room</th>
+                    <th className="py-3 px-3 sm:py-4 sm:px-6 text-[10px] font-bold uppercase tracking-widest text-slate-400">Dates</th>
+                    <th className="py-3 px-3 sm:py-4 sm:px-6 text-[10px] font-bold uppercase tracking-widest text-slate-400 text-right">Amount</th>
+                    <th className="py-3 px-3 sm:py-4 sm:px-6 text-[10px] font-bold uppercase tracking-widest text-slate-400 text-center">Status</th>
+                    <th className="py-3 px-3 sm:py-4 sm:px-6 text-[10px] font-bold uppercase tracking-widest text-slate-400">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
@@ -385,71 +396,71 @@ const handleCalendarClick = () => {
                       const isEditing = editingId === row.id;
                       return (
                         <tr key={row.id} className="hover:bg-[#FFF8E1]/40 transition-colors group cursor-pointer relative">
-                          <td className="py-4 px-6 text-sm font-bold text-[#D4AF37] font-mono">{row.displayId}</td>
+                          <td className="py-3 px-3 sm:py-4 sm:px-6 text-xs sm:text-sm font-bold text-[#D4AF37] font-mono break-words">{row.displayId}</td>
                           
                           
-                          <td className="py-4 px-6">
+                          <td className="py-3 px-3 sm:py-4 sm:px-6">
                             {isEditing ? (
                               <input 
                                 type="text" 
                                 name="name" 
                                 value={editFormData.name} 
                                 onChange={handleEditFormChange}
-                                className="w-full p-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-[#D4AF37]"
+                                className="w-full p-2 text-xs sm:text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-[#D4AF37]"
                               />
                             ) : (
                               <div className="flex items-center gap-3">
-                                <div className="size-9 rounded-full bg-[#0f172a] text-white flex items-center justify-center font-bold text-xs shadow-md">
+                                <div className="size-8 sm:size-9 rounded-full bg-[#0f172a] text-white flex items-center justify-center font-bold text-[10px] sm:text-xs shadow-md">
                                   {row.initials}
                                 </div>
                                 <div>
-                                  <p className="text-sm font-bold text-[#0f172a]">{row.name}</p>
-                                  <p className={`text-[10px] font-bold uppercase tracking-wider ${row.tierColor}`}>{row.tier}</p>
+                                  <p className="text-xs sm:text-sm font-bold text-[#0f172a] break-words">{row.name}</p>
+                                  <p className={`text-[9px] sm:text-[10px] font-bold uppercase tracking-wider ${row.tierColor}`}>{row.tier}</p>
                                 </div>
                               </div>
                             )}
                           </td>
 
               
-                          <td className="py-4 px-6 text-sm text-center font-bold text-slate-600">
+                          <td className="py-3 px-3 sm:py-4 sm:px-6 text-xs sm:text-sm text-center font-bold text-slate-600">
                             {isEditing ? (
                               <input 
                                 type="text" 
                                 name="room" 
                                 value={editFormData.room} 
                                 onChange={handleEditFormChange}
-                                className="w-20 p-2 text-sm text-center border border-slate-200 rounded-lg focus:outline-none focus:border-[#D4AF37]"
+                                className="w-16 sm:w-20 p-2 text-xs sm:text-sm text-center border border-slate-200 rounded-lg focus:outline-none focus:border-[#D4AF37]"
                               />
                             ) : row.room}
                           </td>
 
-                          <td className="py-4 px-6 text-sm font-medium text-slate-500">
+                          <td className="py-3 px-3 sm:py-4 sm:px-6 text-xs sm:text-sm font-medium text-slate-500 break-words">
                             {isEditing ? (
                               <input 
                                 type="text" 
                                 name="dates" 
                                 value={editFormData.dates} 
                                 onChange={handleEditFormChange}
-                                className="w-full p-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-[#D4AF37]"
+                                className="w-full p-2 text-xs sm:text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-[#D4AF37]"
                               />
                             ) : row.dates}
                           </td>
 
                         
-                          <td className="py-4 px-6 text-sm font-black text-[#0f172a] text-right">
+                          <td className="py-3 px-3 sm:py-4 sm:px-6 text-xs sm:text-sm font-black text-[#0f172a] text-right">
                             {isEditing ? (
                               <input 
                                 type="text" 
                                 name="amount" 
                                 value={editFormData.amount} 
                                 onChange={handleEditFormChange}
-                                className="w-24 p-2 text-sm text-right border border-slate-200 rounded-lg focus:outline-none focus:border-[#D4AF37]"
+                                className="w-20 sm:w-24 p-2 text-xs sm:text-sm text-right border border-slate-200 rounded-lg focus:outline-none focus:border-[#D4AF37]"
                               />
                             ) : row.amount}
                           </td>
 
                       
-                          <td className="py-4 px-6 text-center">
+                          <td className="py-3 px-3 sm:py-4 sm:px-6 text-center">
                             {isEditing ? (
                               <select 
                                 name="status" 
@@ -470,7 +481,7 @@ const handleCalendarClick = () => {
                             )}
                           </td>
 
-                          <td className="py-4 px-6 text-center relative">
+                          <td className="py-3 px-3 sm:py-4 sm:px-6 text-center relative">
                             {isEditing ? (
                               <div className="flex items-center justify-center gap-2">
                                 <button onClick={handleSaveEdit} className="p-2 bg-emerald-50 text-emerald-600 rounded-full hover:bg-emerald-100 transition-colors">

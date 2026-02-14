@@ -19,6 +19,7 @@ import {
   X,
   Check,
   IndianRupee,
+  ShieldCheck,
 } from "lucide-react";
 import api from "../../axios";
 
@@ -53,33 +54,51 @@ export default function PayrollManagement() {
     activeStaff: 0,
   });
 
-  // --- FETCH STAFF PAYMENTS ---
   const fetchStaffPayments = async () => {
     try {
       setLoading(true);
-
-      const res = await api.get("/staff-salary/staff-list", {
-        params: { month: "FEB", year: 2026 },
+      const [salaryRes, staffRes] = await Promise.all([
+        api.get("/staff-salary/staff-list", {
+          params: { month: "FEB", year: 2026 },
+        }),
+        api.get("/staff"),
+      ]);
+      const salaryList = Array.isArray(salaryRes.data?.data)
+        ? salaryRes.data.data
+        : [];
+      const baselineList = Array.isArray(staffRes.data?.data)
+        ? staffRes.data.data
+        : [];
+      const byId = new Map(baselineList.map((b) => [b._id || b.id, b]));
+      const byEmp = new Map(baselineList.map((b) => [b.employeeId, b]));
+      const byName = new Map(baselineList.map((b) => [b.name, b]));
+      const mapped = salaryList.map((s) => {
+        const baseline =
+          byId.get(s._id) ||
+          byEmp.get(s.employeeId) ||
+          byName.get(s.name) ||
+          null;
+        const mergedBasic =
+          baseline &&
+          baseline.basicSalary !== undefined &&
+          baseline.basicSalary !== null
+            ? Number(baseline.basicSalary)
+            : Number(s.basicSalary) || 0;
+        return {
+          id: s.salaryId || s._id,
+          staffId: s._id,
+          displayId: s.employeeId,
+          name: s.name,
+          dept: s.role,
+          deptLabel: s.role.replace("_", " ").toUpperCase(),
+          base: mergedBasic,
+          bonus: Number(s.allowances) || 0,
+          deductions: Number(s.deductions) || 0,
+          net: Number(s.totalPayable) || 0,
+          status: s.salaryStatus === "PAID" ? "Paid" : "Pending",
+          salaryId: s.salaryId || null,
+        };
       });
-
-      const mapped = res.data.data.map((s) => ({
-        id: s.salaryId || s._id,
-        staffId: s._id,
-        displayId: s.employeeId,
-        name: s.name,
-
-        dept: s.role, // 🔥 raw backend role
-        deptLabel: s.role.replace("_", " ").toUpperCase(),
-
-        base: Number(s.basicSalary) || 0,
-        bonus: Number(s.allowances) || 0,
-        deductions: Number(s.deductions) || 0,
-        net: Number(s.totalPayable) || 0,
-
-        status: s.salaryStatus === "PAID" ? "Paid" : "Pending",
-        salaryId: s.salaryId || null,
-      }));
-
       setStaffList(mapped);
       setStats((prev) => ({
         ...prev,
@@ -234,7 +253,7 @@ export default function PayrollManagement() {
   };
 
   return (
-    <div className="space-y-6 px-2 sm:px-0 pb-10 text-slate-900">
+    <div className="space-y-6 px-2 sm:px-0 pb-10 font-sans text-slate-900">
       {/* ================= HEADER ================= */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="flex items-center gap-3">
@@ -256,7 +275,7 @@ export default function PayrollManagement() {
       </div>
 
       {/* ================= KPI CARDS ================= */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 ">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard
           title="Net Disbursement"
           value={`${GLOBAL_CONFIG.currency}${stats.netDisbursement.toLocaleString()}`}
@@ -301,23 +320,23 @@ export default function PayrollManagement() {
               value={selectedDept}
               onChange={(e) => setSelectedDept(e.target.value)}
               className="
-      appearance-none
-      pl-4 pr-10 py-2.5
-      bg-slate-50
-      border border-slate-200
-      rounded-xl
-      text-[11px]
-      font-bold
-      uppercase
-      tracking-widest
-      text-slate-600
-      cursor-pointer
-      hover:bg-slate-100
-      focus:outline-none
-      focus:ring-1
-      focus:ring-primary/20
-      transition-all
-    "
+     appearance-none
+     pl-4 pr-10 py-2.5
+     bg-slate-50
+     border border-slate-200
+     rounded-xl
+     text-[11px]
+     font-bold
+     uppercase
+     tracking-widest
+     text-slate-600
+     cursor-pointer
+     hover:bg-slate-100
+     focus:outline-none
+     focus:ring-1
+     focus:ring-primary/20
+     transition-all
+   "
             >
               {DEPARTMENTS.map((dept) => (
                 <option key={dept.value} value={dept.value}>
@@ -483,8 +502,8 @@ export default function PayrollManagement() {
                               }
                             }}
                             className={`px-4 py-1.5 text-white text-[10px] font-bold uppercase tracking-widest rounded-lg shadow transition-all
-        ${staff.salaryId ? "bg-accent" : "bg-slate-700"}
-      `}
+       ${staff.salaryId ? "bg-accent" : "bg-slate-700"}
+     `}
                           >
                             {staff.salaryId ? "Pay Now" : "Process Salary"}
                           </button>
@@ -549,10 +568,10 @@ function PaymentActionModal({ employee, onClose, onConfirm }) {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         className="
-          bg-white rounded-2xl shadow-2xl w-full max-w-xl
-          relative z-10 border border-slate-200
-          max-h-[90vh] flex flex-col
-        "
+         bg-white rounded-2xl shadow-2xl w-full max-w-xl
+         relative z-10 border border-slate-200
+         max-h-[90vh] flex flex-col
+       "
       >
         {/* HEADER */}
         <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
@@ -631,11 +650,11 @@ function PaymentActionModal({ employee, onClose, onConfirm }) {
                   key={method}
                   onClick={() => setPaymentMethod(method)}
                   className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest border transition-all
-                    ${
-                      paymentMethod === method
-                        ? "bg-primary text-white border-primary"
-                        : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
-                    }`}
+                   ${
+                     paymentMethod === method
+                       ? "bg-primary text-white border-primary"
+                       : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+                   }`}
                 >
                   {method}
                 </button>
@@ -695,31 +714,19 @@ function PaymentActionModal({ employee, onClose, onConfirm }) {
 /* ================= STAT CARD COMPONENT ================= */
 function StatCard({ title, value, icon: Icon, color }) {
   return (
-    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative group hover:border-primary/20 transition-all">
-      <div className="flex justify-between items-start">
-        <div>
-          <p className="text-[11px] font-bold uppercase tracking-widest text-gray-500">
-            {title}
-          </p>
-          <h2
-            className={`text-2xl font-black mt-1 tracking-tight text-gray-800`}
-          >
-            {value}
-          </h2>
-        </div>
-        <div
-          className={`p-3 rounded-xl bg-slate-50 ${color} group-hover:scale-110 transition-all duration-300`}
-        >
-          <Icon size={22} />
-        </div>
+    <div className="bg-white rounded-2xl p-5 flex items-center gap-4 shadow-sm border border-slate-100">
+      {/* Icon Container matched to Overview style */}
+      <div className={`p-3 rounded-2xl bg-primary/10 ${color}`}>
+        <Icon size={20} />
       </div>
-      <div className="mt-4 flex items-center gap-2">
-        <div className="flex items-center gap-1 text-[9px] font-bold text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-md">
-          <ArrowUpRight size={12} /> SECURE
+
+      <div>
+        {/* Label matched to Overview: text-[10px] uppercase tracking-widest text-gray-500 */}
+        <div className="text-[10px] uppercase tracking-widest text-gray-500">
+          {title}
         </div>
-        <span className="text-[9px] font-bold text-slate-300 uppercase tracking-widest">
-          Live Data
-        </span>
+        {/* Value matched to Overview: text-xl font-semibold text-primary */}
+        <div className="text-xl font-semibold text-primary mt-0.5">{value}</div>
       </div>
     </div>
   );

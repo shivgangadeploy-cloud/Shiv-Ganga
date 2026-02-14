@@ -83,7 +83,8 @@ export default function Receptionists() {
           email: staff.email,
           mobile: staff.mobile,
           role: staff.role,
-          basicSalary: staff.basicSalary || 0,
+          basicSalary: staff.basicSalary,
+          isActive: staff.isActive,
         }));
         setList(formattedData);
       }
@@ -122,7 +123,7 @@ export default function Receptionists() {
       email: staff.email,
       phoneNumber: staff.mobile,
       password: "", // Empty for edit - user can set new password if needed
-      basicSalary: staff.basicSalary || "",
+      basicSalary: staff.basicSalary ?? "",
       role: staff.role,
     });
     setOpen(true);
@@ -130,10 +131,17 @@ export default function Receptionists() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setForm((prev) => {
+      const next = { ...prev, [name]: value };
+      if (name === "role") {
+        if (value !== "receptionist") {
+          next.password = "";
+        } else if (!editingId && !next.password) {
+          next.password = generatePassword();
+        }
+      }
+      return next;
+    });
   };
 
   const generatePassword = () => {
@@ -166,12 +174,13 @@ export default function Receptionists() {
     }
   };
 
+  // Deprecated: unified to receptionist/register with role-aware payload
+
   const updateReceptionist = async (id, staffData) => {
     try {
       const response = await API.put(`/receptionists/${id}`, staffData);
       if (response.data.success) {
         toast.success("Receptionist updated successfully");
-        fetchReceptionists();
         return true;
       }
     } catch (error) {
@@ -180,6 +189,8 @@ export default function Receptionists() {
       return false;
     }
   };
+
+  // Deprecated: unified to /receptionists/:id
 
   const deleteReceptionist = async (id) => {
     if (!window.confirm("Are you sure you want to delete this receptionist?")) {
@@ -195,6 +206,33 @@ export default function Receptionists() {
     } catch (error) {
       toast.error("Failed to delete receptionist");
       console.error("Error deleting receptionist:", error);
+    }
+  };
+
+  const toggleActive = async (staff) => {
+    const targetStatus = !staff.isActive;
+    const confirmMsg = targetStatus
+      ? "Activate this staff member? They will be able to log in to the receptionist dashboard."
+      : "Deactivate this staff member? They will no longer be able to log in to the receptionist dashboard.";
+    if (!window.confirm(confirmMsg)) return;
+
+    try {
+      const response = await API.put(`/receptionists/${staff.id}`, {
+        isActive: targetStatus,
+      });
+      if (response.data.success) {
+        toast.success(
+          `Staff ${targetStatus ? "activated" : "deactivated"} successfully`,
+        );
+        setList((prev) =>
+          prev.map((s) =>
+            s.id === staff.id ? { ...s, isActive: targetStatus } : s,
+          ),
+        );
+      }
+    } catch (error) {
+      toast.error("Failed to update staff status");
+      console.error("Error toggling staff active status:", error);
     }
   };
 
@@ -221,8 +259,9 @@ export default function Receptionists() {
       return;
     }
 
-    // Prepare data for API
-    const staffData = {
+    // Prepare data for API (unified receptionist register payload)
+    const isReceptionist = form.role === "receptionist";
+    const payload = {
       firstName: form.firstName.trim(),
       lastName: form.lastName.trim(),
       email: form.email.trim().toLowerCase(),
@@ -230,18 +269,27 @@ export default function Receptionists() {
       role: form.role,
       basicSalary: Number(form.basicSalary),
     };
-
-    // Add password only if creating new or password field is filled
-    if (!editingId || form.password.trim()) {
-      staffData.password = form.password.trim();
+    // Include password only for receptionist role
+    if (
+      isReceptionist &&
+      (!editingId || (form.password && form.password.trim()))
+    ) {
+      payload.password = form.password.trim();
     }
 
     setLoading(true);
 
     if (editingId) {
       // Update existing
-      const success = await updateReceptionist(editingId, staffData);
+      const success = await updateReceptionist(editingId, payload);
       if (success) {
+        setList((prev) =>
+          prev.map((s) =>
+            s.id === editingId
+              ? { ...s, basicSalary: Number(form.basicSalary) }
+              : s,
+          ),
+        );
         setOpen(false);
         setForm({
           firstName: "",
@@ -255,7 +303,7 @@ export default function Receptionists() {
       }
     } else {
       // Create new
-      const success = await createReceptionist(staffData);
+      const success = await createReceptionist(payload);
       if (success) {
         setOpen(false);
         setForm({
@@ -283,7 +331,7 @@ export default function Receptionists() {
         <div className="flex items-center gap-3">
           <Users className="text-primary" />
           <div className="text-sm font-bold uppercase tracking-widest text-gray-600">
-            Receptionist Management
+            Staff Management
           </div>
           <div className="h-[1px] w-8 bg-accent" />
         </div>
@@ -293,30 +341,31 @@ export default function Receptionists() {
           disabled={loading}
           className="btn-primary px-4 py-2 text-xs flex items-center gap-2 rounded-xl shadow disabled:opacity-50"
         >
-          <UserPlus size={14} /> Create Receptionist
+          <UserPlus size={14} /> Create Staff
         </button>
       </div>
 
       {/* TABLE */}
       <div className="bg-white border border-gray-300 rounded-xl overflow-x-auto shadow-sm">
         <div className="min-w-[1000px]">
-          <div className="grid grid-cols-7 px-4 py-3 text-xs uppercase tracking-widest text-gray-500 border-b border-gray-300 bg-gray-50">
+          <div className="grid grid-cols-8 px-4 py-3 text-xs uppercase tracking-widest text-gray-500 border-b border-gray-300 bg-gray-50">
             <div>Name</div>
             <div>Employee ID</div>
             <div>Email</div>
             <div>Mobile</div>
             <div>Username</div>
             <div>Role</div>
+            <div>Status</div>
             <div>Actions</div>
           </div>
 
           {loading && list.length === 0 ? (
             <div className="px-4 py-6 text-center text-sm text-gray-500">
-              Loading receptionists...
+              Loading staff...
             </div>
           ) : list.length === 0 ? (
             <div className="px-4 py-6 text-center text-sm text-gray-500">
-              No receptionists created yet.
+              No staff created yet.
             </div>
           ) : (
             list.map((staff) => (
@@ -326,7 +375,7 @@ export default function Receptionists() {
                 initial="hidden"
                 animate="visible"
                 whileHover={{ scale: 1.01 }}
-                className="grid grid-cols-7 px-4 py-3 items-center transition bg-white hover:bg-gray-50"
+                className="grid grid-cols-8 px-4 py-3 items-center transition bg-white hover:bg-gray-50"
               >
                 <div className="font-medium">{staff.fullName}</div>
                 <div className="text-primary">{staff.employeeId}</div>
@@ -339,26 +388,54 @@ export default function Receptionists() {
                   {staff.role.replace("_", " ")}
                 </div>
 
+                <div>
+                  <span
+                    className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${
+                      staff.isActive
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
+                        : "bg-red-50 text-red-600 border border-red-100"
+                    }`}
+                  >
+                    {staff.isActive ? "Active" : "Inactive"}
+                  </span>
+                </div>
+
                 {/* ACTIONS */}
-                <div className="flex gap-2">
+                <div className="flex items-center gap-3">
+                  {/* Edit Button */}
                   <motion.button
-                    whileHover={{ scale: 1.15 }}
+                    whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => openEdit(staff)}
-                    className="p-2 border rounded-lg hover:bg-blue-50 text-blue-600"
+                    className="p-2.5 bg-blue-50/50 border border-blue-100 rounded-xl text-blue-600 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all duration-200 shadow-sm"
                     title="Edit"
                   >
-                    <Pencil size={14} />
+                    <Pencil size={16} />
                   </motion.button>
 
+                  {/* Delete Button */}
                   <motion.button
-                    whileHover={{ scale: 1.15 }}
+                    whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => deleteReceptionist(staff.id)}
-                    className="p-2 border rounded-lg hover:bg-red-50 text-red-600"
+                    className="p-2.5 bg-rose-50/50 border border-rose-100 rounded-xl text-rose-600 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition-all duration-200 shadow-sm"
                     title="Delete"
                   >
-                    <Trash2 size={14} />
+                    <Trash2 size={16} />
+                  </motion.button>
+
+                  {/* Toggle Active Button */}
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => toggleActive(staff)}
+                    className={`px-4 py-2 text-xs font-bold uppercase tracking-wider border rounded-xl shadow-sm transition-all duration-200 ${
+                      staff.isActive
+                        ? "bg-amber-50/50 border-amber-200 text-amber-700 hover:bg-amber-600 hover:text-white hover:border-amber-600"
+                        : "bg-emerald-50/50 border-emerald-200 text-emerald-700 hover:bg-emerald-600 hover:text-white hover:border-emerald-600"
+                    }`}
+                  >
+                    {staff.isActive ? "Deactivate" : "Activate"}
                   </motion.button>
                 </div>
               </motion.div>
@@ -382,7 +459,7 @@ export default function Receptionists() {
             className="bg-white w-full max-w-2xl rounded-2xl p-5 shadow-xl"
           >
             <div className="text-sm font-bold uppercase tracking-widest text-gray-600 mb-4">
-              {editingId ? "Edit Receptionist" : "Create New Receptionist"}
+              {editingId ? "Edit Staff" : "Create New Staff"}
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -468,36 +545,38 @@ export default function Receptionists() {
               </div>
 
               {/* Password Field */}
-              <div className="col-span-2">
-                <label className="text-xs text-gray-500">
-                  {editingId
-                    ? "New Password (leave empty to keep current)"
-                    : "Password *"}
-                </label>
-                <div className="relative">
-                  <input
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    value={form.password}
-                    onChange={handleInputChange}
-                    className="w-full border px-3 py-2 rounded-2xl text-sm pr-10"
-                    required={!editingId}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                  >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
+              {form.role === "receptionist" && (
+                <div className="col-span-2">
+                  <label className="text-xs text-gray-500">
+                    {editingId
+                      ? "New Password (leave empty to keep current)"
+                      : "Password *"}
+                  </label>
+                  <div className="relative">
+                    <input
+                      name="password"
+                      type={showPassword ? "text" : "password"}
+                      value={form.password}
+                      onChange={handleInputChange}
+                      className="w-full border px-3 py-2 rounded-2xl text-sm pr-10"
+                      required={!editingId}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                  {!editingId && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Password will be automatically generated and sent to the
+                      receptionist's email
+                    </p>
+                  )}
                 </div>
-                {!editingId && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    Password will be automatically generated and sent to the
-                    receptionist's email
-                  </p>
-                )}
-              </div>
+              )}
             </div>
 
             <div className="mt-5 flex justify-end gap-2">

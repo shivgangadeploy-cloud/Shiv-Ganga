@@ -7,7 +7,7 @@ const Privacy = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background pt-[120px] pb-20">
+    <div className="min-h-screen bg-background pt-8 pb-20">
       <div className="container mx-auto px-6 max-w-4xl">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

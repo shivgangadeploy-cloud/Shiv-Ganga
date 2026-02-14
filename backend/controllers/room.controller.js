@@ -679,6 +679,13 @@ export const getAvailableRooms = async (req, res, next) => {
     const checkIn = new Date(checkInDate);
     const checkOut = new Date(checkOutDate);
 
+    if (isNaN(checkIn.getTime()) || isNaN(checkOut.getTime())) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid date format",
+      });
+    }
+
     if (checkIn >= checkOut) {
       return res.status(400).json({
         success: false,
@@ -690,12 +697,13 @@ export const getAvailableRooms = async (req, res, next) => {
       status: { $ne: "Maintenance" },
     };
 
-    if (adults !== undefined) {
-      roomFilters.capacityAdults = { $gte: Number(adults) };
+    const adultsNum = Number(adults);
+    const childrenNum = Number(children);
+    if (adults !== undefined && adults !== "" && !Number.isNaN(adultsNum) && adultsNum > 0) {
+      roomFilters.capacityAdults = { $gte: adultsNum };
     }
-
-    if (children !== undefined) {
-      roomFilters.capacityChildren = { $gte: Number(children) };
+    if (children !== undefined && children !== "" && !Number.isNaN(childrenNum) && childrenNum >= 0) {
+      roomFilters.capacityChildren = { $gte: childrenNum };
     }
 
     const bookedRoomIds = await Booking.find({
