@@ -21,8 +21,8 @@ import { useSystemSettings } from "../../context/SystemSettingsContext";
 
 const BackgroundImages = [
   bg1,
-  "https://i.pinimg.com/1200x/6e/f0/c7/6ef0c787c911908e8079cea4c77af2ca.jpg",
-  "https://i.pinimg.com/736x/e1/7d/86/e17d8620ad35f8ac2184c7d8eeca7476.jpg",
+  "/images/home-hero2.webp",
+  "/images/home-hero3.webp",
 ];
 
 export default function Home() {

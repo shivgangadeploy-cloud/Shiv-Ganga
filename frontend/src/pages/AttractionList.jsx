@@ -11,7 +11,7 @@ const ATTRACTIONS = {
     distance: "2.5 km",
     category: "Spiritual",
     image:
-      "https://www.hotelshivgangarishikesh.com/assets/images/attractions/a1.jpg",
+      "/images/triveni1.webp",
   },
   "laxman-jhula": {
     title: "Laxman Jhula",
@@ -19,7 +19,7 @@ const ATTRACTIONS = {
     distance: "1.2 km",
     category: "Heritage",
     image:
-      "https://www.hotelshivgangarishikesh.com/assets/images/attractions/a4.jpg",
+      "/images/laxman1.webp",
   },
   "beatles-ashram": {
     title: "The Beatles Ashram",
@@ -27,7 +27,7 @@ const ATTRACTIONS = {
     distance: "3.8 km",
     category: "History",
     image:
-      "https://www.hotelshivgangarishikesh.com/assets/images/attractions/a6.jpg",
+      "/images/beatles1.webp",
   },
   "neelkanth-temple": {
     title: "Neelkanth Mahadev Temple",
@@ -35,7 +35,7 @@ const ATTRACTIONS = {
     distance: "32 km",
     category: "Spiritual",
     image:
-      "https://www.hotelshivgangarishikesh.com/assets/images/attractions/a5.jpg",
+      "/images/neelkanth1.webp",
   },
   "parmarth-niketan": {
     title: "Parmarth Niketan Ashram",
@@ -43,7 +43,7 @@ const ATTRACTIONS = {
     distance: "2.1 km",
     category: "Yoga & Spiritual",
     image:
-      "https://wildhawk.in/wp-content/uploads/2019/05/parmarth-niketan-ashram-rishikesh-head-606.jpeg",
+      "/images/parmarth1.webp",
   },
   "tera-manzil": {
     title: "Tera Manzil Temple",
@@ -51,7 +51,7 @@ const ATTRACTIONS = {
     distance: "1.5 km",
     category: "Spiritual",
     image:
-      "https://www.hotelshivgangarishikesh.com/assets/images/attractions/a7.jpg",
+      "/images/teramanzil1.webp",
   },
   "vashishta-gufa": {
     title: "Vashishta Gufa",
@@ -59,7 +59,7 @@ const ATTRACTIONS = {
     distance: "25 km",
     category: "Meditation",
     image:
-      "https://www.hotelshivgangarishikesh.com/assets/images/attractions/a3.jpg",
+      "/images/vashishta1.webp",
   },
   "rajaji-national-park": {
     title: "Rajaji National Park",
@@ -67,7 +67,7 @@ const ATTRACTIONS = {
     distance: "18 km",
     category: "Wildlife",
     image:
-      "https://www.hotelshivgangarishikesh.com/assets/images/attractions/a8.jpg",
+      "/images/nationalpark1.webp",
   },
 };
 

@@ -5,10 +5,10 @@ import Testimonials from "../pages/Homepage/Testimonials";
 import { useSystemSettings } from "../context/SystemSettingsContext";
 
 import aboutHero from "../assets/homepage-images/banner-one.webp";
-import about1 from "../assets/aboutpage/gallery1.jpg";
-import about2 from "../assets/aboutpage/gallery8.jpg";
-import about3 from "../assets/aboutpage/about-1.jpg";
-import about4 from "../assets/aboutpage/about-hero2.jpg";
+import about1 from "../assets/aboutpage/gallery1.webp";
+import about2 from "../assets/aboutpage/gallery8.webp";
+import about3 from "../assets/aboutpage/about-1.webp";
+import about4 from "../assets/aboutpage/about-hero2.webp";
 
 /* ---------------- ANIMATION VARIANTS ---------------- */
 
