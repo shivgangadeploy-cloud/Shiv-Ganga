@@ -39,74 +39,100 @@ export default function About() {
   return (
     <div className="bg-background min-h-screen overflow-x-hidden">
       {/* ================= HERO ================= */}
-      <section className="relative min-h-[55vh] sm:min-h-[70vh] lg:min-h-[90vh] overflow-hidden flex items-center">
-        {/* Parallax BG */}
-        <motion.img
-          initial={{ scale: 1.2 }}
-          animate={{ scale: 1.05 }}
-          transition={{ duration: 2 }}
-          src={aboutHero}
-          alt={property.hotelName}
-          className="absolute inset-0 w-full h-full object-cover opacity-50"
+<section className="relative min-h-[60vh] lg:min-h-[85vh] overflow-hidden bg-slate-900 w-full flex items-center transition-all duration-500">
+
+  {/* Background */}
+  <div className="absolute inset-0 z-0">
+    <motion.img
+      initial={{ scale: 1.2, opacity: 0 }}
+      animate={{ scale: 1.1, opacity: 1 }}
+      transition={{ duration: 1.5 }}
+      src={aboutHero}
+      alt={property.hotelName}
+      className="w-full h-full object-cover blur-[2px] opacity-50 scale-110"
+    />
+
+    <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent" />
+    <div className="absolute inset-0 bg-gradient-to-r from-slate-900/80 to-transparent" />
+  </div>
+
+  {/* Content */}
+  <div className="container mx-auto px-6 h-full relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center py-10 lg:py-0">
+
+    {/* TEXT */}
+    <div className="flex flex-col justify-center text-center lg:text-left lg:items-start max-w-2xl mx-auto lg:mx-0">
+      <motion.div
+        initial={{ y: 30, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.3 }}
+      >
+        <h1 className="text-3xl md:text-4xl lg:text-6xl font-serif text-white tracking-tight leading-tight mb-5 drop-shadow-lg">
+          A Stay Rooted in <br className="hidden lg:block" />
+          <span className="text-accent drop-shadow-2xl">
+            Comfort & Care
+          </span>
+        </h1>
+
+        <div className="w-16 h-1 bg-amber-400 mb-6 mx-auto lg:mx-0 rounded-full" />
+
+        <p className="text-sm md:text-base text-gray-200 font-light leading-relaxed opacity-90 max-w-lg mx-auto lg:mx-0">
+          Hotel {property.hotelName} blends warm hospitality with modern
+          comfort, offering a peaceful stay experience in Rishikesh.
+        </p>
+
+        <div className="mt-6 inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white/10 border border-white/20 text-white text-sm backdrop-blur-sm">
+          <Star size={14} className="text-amber-400 fill-amber-400" />
+          <span>4.1 Rated by Guests</span>
+        </div>
+      </motion.div>
+    </div>
+
+    {/* FLOATING COLLAGE */}
+    <div className="hidden lg:flex relative h-[500px] w-full justify-center items-center">
+
+      <motion.div
+        initial={{ y: -50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.5, duration: 0.8 }}
+        className="absolute top-[10%] right-[15%] w-60 h-40 rounded-xl overflow-hidden border-4 border-white/20 shadow-2xl z-10 rotate-6 backdrop-blur-sm"
+      >
+        <img
+          src={about1}
+          className="w-full h-full object-cover hover:scale-110 transition-transform duration-700"
         />
+      </motion.div>
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+      <motion.div
+        initial={{ x: -50, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ delay: 0.7, duration: 0.8 }}
+        className="absolute top-[35%] left-[10%] w-72 h-48 rounded-xl overflow-hidden border-4 border-white/20 shadow-2xl z-20 -rotate-3 backdrop-blur-sm"
+      >
+        <img
+          src={about2}
+          className="w-full h-full object-cover hover:scale-110 transition-transform duration-700"
+        />
+      </motion.div>
 
-        {/* CONTENT */}
-        <motion.div
-          variants={stagger}
-          initial="hidden"
-          animate="show"
-          className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 grid lg:grid-cols-2 gap-16 items-center"
-        >
-          {/* TEXT */}
-          <motion.div variants={fadeUp} className="text-center lg:text-left">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-serif text-white mb-6">
-              A Stay Rooted in <br className="hidden lg:block" />
-              <span className="text-accent italic">Comfort & Care</span>
-            </h1>
+      <motion.div
+        initial={{ y: 50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.9, duration: 0.8 }}
+        className="absolute bottom-[20%] right-[8%] w-56 h-40 rounded-xl overflow-hidden border-4 border-white/20 shadow-2xl z-30 rotate-3 backdrop-blur-sm"
+      >
+        <img
+          src={about3}
+          className="w-full h-full object-cover hover:scale-110 transition-transform duration-700"
+        />
+      </motion.div>
 
-            <div className="w-14 h-1 bg-amber-400 mx-auto lg:mx-0 mb-6 rounded-full" />
+    </div>
+  </div>
+</section>
 
-            <p className="text-sm sm:text-base text-gray-200 max-w-xl mx-auto lg:mx-0 mb-6">
-              Hotel {property.hotelName} blends warm hospitality with modern
-              comfort, offering a peaceful stay experience in Rishikesh.
-            </p>
-
-            <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white/10 border border-white/20 text-white text-sm">
-              <Star size={14} className="text-amber-400 fill-amber-400" />
-              <span>4.1 Rated by Guests</span>
-            </div>
-          </motion.div>
-
-          {/* FLOATING COLLAGE */}
-          <div className="hidden lg:block relative h-[520px]">
-            {[about1, about2, about3].map((img, i) => (
-              <motion.div
-                key={i}
-                variants={fadeUp}
-                animate="animate"
-                className={`absolute rounded-2xl overflow-hidden shadow-2xl border border-white/20 ${
-                  i === 0
-                    ? "top-[8%] right-[14%] w-60 h-40 rotate-6"
-                    : i === 1
-                      ? "top-[34%] left-[10%] w-72 h-48 -rotate-3"
-                      : "bottom-[18%] right-[8%] w-56 h-40 rotate-3"
-                }`}
-                {...float}
-              >
-                <img
-                  src={img}
-                  className="w-full h-full object-cover hover:scale-110 transition duration-700"
-                />
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-      </section>
 
       {/* ================= BLOCKS ================= */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-24 space-y-28">
+      <section className="max-w-7xl mx-auto px-4 sm:px-4 py-20 space-y-24">
         <Block
           image={about1}
           title="A Refined Retreat in Rishikesh"
@@ -146,7 +172,7 @@ export default function About() {
       </section>
 
       {/* ================= TESTIMONIALS ================= */}
-      <section className="py-16">
+      <section className="py-14">
         <Testimonials />
       </section>
 
