@@ -7,7 +7,7 @@ export function SystemSettingsProvider({ children }) {
     property: {
       hotelName: "Shiv Ganga",
       emails: ["vikrambhardwaj1984@gmail.com","hotelshivganga.rishikesh@gmail.com"],
-      phones: ["+91-9837368384", "8755558384", "0135-2973618"],
+      phones: ["9837368384", "8755558384", "0135-2973618"],
       address: "Shiv Ganga Hotel Badrinath Road Gughtyani Talli Tapovan Rishikesh Uttarakhand India 249192"
     },
     operations: {

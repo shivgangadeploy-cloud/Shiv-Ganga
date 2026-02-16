@@ -121,8 +121,8 @@ export default function Footer() {
               <span>{property.address}</span>
             </li>
 
-            <li className="flex items-center gap-3">
-              <Phone className="text-accent shrink-0" size={18} />
+            <li className="flex items-center gap-3 ">
+              <Phone className=" text-accent shrink-0" size={18} />
               <span>{property.phones?.join(", ")}</span>
             </li>
 

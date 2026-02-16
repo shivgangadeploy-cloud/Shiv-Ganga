@@ -8,7 +8,7 @@ export default function Layout() {
       <Navbar />
 
       {/* Push content below fixed navbar */}
-      <main className="flex-grow pt-28">
+      <main className="flex-grow pt-24">
         <Outlet />
       </main>
 

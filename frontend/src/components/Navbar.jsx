@@ -49,9 +49,9 @@ export default function Navbar() {
             : "bg-white/70 backdrop-blur-md"
         }`}
       >
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-12">
+        <div className="max-w-[1600px] mx-auto px-3 sm:px-5 lg:px-8">
           {/* GRID → prevents overlap */}
-          <div className="grid grid-cols-3 items-center h-[72px] sm:h-20">
+          <div className="grid grid-cols-3 items-center h-[60px] sm:h-[72px]">
             {/* LEFT */}
             <div className="flex items-center gap-4 justify-start">
               <button
@@ -63,7 +63,7 @@ export default function Navbar() {
               </button>
 
               {/* Desktop Left Menu */}
-              <div className="hidden lg:flex items-center gap-10">
+              <div className="hidden lg:flex items-center gap-8">
                 {menuLeft.map((item) => (
                   <NavItem key={item.path} item={item} active={pathname} />
                 ))}
@@ -76,7 +76,7 @@ export default function Navbar() {
                 <img
                   src={logo}
                   alt="Shiv Ganga"
-                  className="h-9 sm:h-11 md:h-12 lg:h-14 object-contain"
+                  className="h-8 sm:h-10 md:h-11 lg:h-12 object-contain"
                 />
               </Link>
             </div>
@@ -84,14 +84,14 @@ export default function Navbar() {
             {/* RIGHT */}
             <div className="flex items-center justify-end gap-6">
               {/* Desktop Right Menu */}
-              <div className="hidden lg:flex items-center gap-10">
+              <div className="hidden lg:flex items-center gap-8">
                 {menuRight.map((item) => (
                   <NavItem key={item.path} item={item} active={pathname} />
                 ))}
 
                 <Link
                   to="/booking"
-                  className="bg-primary hover:bg-accent text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition"
+                  className="bg-primary hover:bg-accent text-white px-5 py-2.5 rounded-xl shadow-lg hover:shadow-xl transition"
                 >
                   Book Now
                 </Link>

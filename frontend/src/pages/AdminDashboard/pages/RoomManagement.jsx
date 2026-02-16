@@ -290,8 +290,6 @@ export default function RoomManagement() {
   };
 
   /* ---------------- SAVE ---------------- */
-  /* ---------------- SAVE ---------------- */
-  /* ---------------- SAVE ---------------- */
   const save = async () => {
     // Calculate priceNum FIRST
     const priceNum = Number(form.price) || 0;
@@ -641,82 +639,106 @@ export default function RoomManagement() {
                         ? "bg-blue-100 text-blue-700 border-blue-200"
                         : "bg-red-100 text-red-700 border-red-200";
                 return (
-                  <tr key={room.id} className="border-t border-gray-200">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100">
-                          <img
-                            src={room.image}
-                            alt={room.name}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div>
-                          <div className="text-sm font-semibold text-primary">
-                            {room.name}
-                          </div>
-                          <div className="text-[11px] text-gray-500 uppercase tracking-widest">
-                            {room.capacity} Guests
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="text-xs text-gray-700">{room.type}</span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="text-sm font-bold text-accent">
-                        ₹ {getRoomPrice(room)}
-                      </div>
-                      <div className="text-[11px] text-gray-500">
-                        CP: ₹ {(getRoomPrice(room) || 0) + 300}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        {IconList.length > 0
-                          ? IconList.map((I, idx) => (
-                              <span
-                                key={idx}
-                                className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-primary/10 text-primary"
-                              >
-                                <I size={14} />
-                              </span>
-                            ))
-                          : (room.amenities || []).slice(0, 4).map((a, idx) => (
-                              <span
-                                key={idx}
-                                className="text-[10px] uppercase tracking-wider px-3 py-1 border border-gray-300 rounded-2xl"
-                              >
-                                {a}
-                              </span>
-                            ))}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`text-[11px] px-2 py-1 border rounded-2xl ${statusClass}`}
-                      >
-                        {room.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex justify-end gap-2">
-                        <button
-                          onClick={() => openEdit(room)}
-                          className="px-3 py-2 text-xs border border-gray-300 rounded-2xl hover:bg-primary hover:text-white cursor-pointer"
-                        >
-                          <Pencil size={14} />
-                        </button>
-                        <button
-                          onClick={() => remove(room.id)}
-                          className="px-3 py-2 text-xs border border-gray-300 rounded-2xl hover:bg-red-500 hover:text-white cursor-pointer"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+                 <tr key={room.id} className="border-t border-gray-200">
+  <td className="px-4 py-3">
+    <div className="flex items-center gap-3">
+      <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100">
+        <img
+          src={room.image}
+          alt={room.name}
+          className="w-full h-full object-cover"
+        />
+      </div>
+      <div>
+        <div className="text-sm font-semibold text-primary">
+          {room.name}
+        </div>
+        <div className="text-[11px] text-gray-500 uppercase tracking-widest">
+          {room.capacity} Guests
+        </div>
+      </div>
+    </div>
+  </td>
+
+  <td className="px-4 py-3">
+    <span className="text-xs text-gray-700">{room.type}</span>
+  </td>
+
+  <td className="px-4 py-3">
+    <div className="text-sm font-bold text-accent">
+      ₹ {getRoomPrice(room)}
+    </div>
+    <div className="text-[11px] text-gray-500">
+      CP: ₹ {(getRoomPrice(room) || 0) + 300}
+    </div>
+  </td>
+
+  <td className="px-4 py-3">
+    <div className="flex items-center gap-2 flex-wrap">
+      {IconList.length > 0
+        ? IconList.map((I, idx) => (
+            <span
+              key={idx}
+              className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-primary/10 text-primary"
+            >
+              <I size={14} />
+            </span>
+          ))
+        : (room.amenities || []).slice(0, 4).map((a, idx) => (
+            <span
+              key={idx}
+              className="text-[10px] uppercase tracking-wider px-3 py-1 border border-gray-300 rounded-2xl"
+            >
+              {a}
+            </span>
+          ))}
+    </div>
+  </td>
+
+  <td className="px-4 py-3">
+    <span
+      className={`text-[11px] px-2 py-1 border rounded-2xl ${statusClass}`}
+    >
+      {room.status}
+    </span>
+  </td>
+
+  {/* 🔥 ACTION COLUMN – FIXED */}
+  <td className="px-4 py-3 align-middle overflow-visible">
+    <div className="flex w-full gap-2 justify-start sm:justify-end flex-wrap">
+      <button
+        onClick={() => openEdit(room)}
+        className="
+          flex items-center justify-center
+          shrink-0
+          min-w-[36px] h-9
+          border border-gray-300
+          rounded-2xl
+          hover:bg-primary hover:text-white
+          cursor-pointer
+        "
+      >
+        <Pencil size={14} />
+      </button>
+
+      <button
+        onClick={() => remove(room.id)}
+        className="
+          flex items-center justify-center
+          shrink-0
+          min-w-[36px] h-9
+          border border-gray-300
+          rounded-2xl
+          hover:bg-red-500 hover:text-white
+          cursor-pointer
+        "
+      >
+        <Trash2 size={14} />
+      </button>
+    </div>
+  </td>
+</tr>
+
                 );
               })}
               {currentRooms.length === 0 && (
@@ -733,7 +755,7 @@ export default function RoomManagement() {
           </table>
         </div>
 
-        {/* MOBILE CARDS */}
+        {/* MOBILE CARDS - FIXED WITH TRASH BUTTON */}
         <div className="sm:hidden bg-gray-50/50 p-4 space-y-3 border-t border-gray-200">
           {currentRooms.map((room) => {
             const IconList = (room.amenities || [])
@@ -795,12 +817,21 @@ export default function RoomManagement() {
                       <div className="font-bold text-accent text-sm">
                         ₹ {getRoomPrice(room)}
                       </div>
-                      <button
-                        onClick={() => openEdit(room)}
-                        className="p-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-primary hover:text-white transition"
-                      >
-                        <Pencil size={14} />
-                      </button>
+                      {/* FIXED: Added both Edit and Delete buttons */}
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => openEdit(room)}
+                          className="p-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-primary hover:text-white transition"
+                        >
+                          <Pencil size={14} />
+                        </button>
+                        <button
+                          onClick={() => remove(room.id)}
+                          className="p-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-red-500 hover:text-white transition"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
