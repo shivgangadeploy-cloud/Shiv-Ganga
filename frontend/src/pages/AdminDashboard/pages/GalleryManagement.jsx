@@ -145,7 +145,8 @@ export default function GalleryManagement() {
 
                   <button
                     onClick={() => deleteImage(img.id)}
-                    className="absolute top-3 right-3 p-2 rounded-full bg-white/90 text-gray-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                    className="absolute top-3 right-3 p-2 rounded-full bg-white/90 text-gray-500 hover:text-red-500 
+                   opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all"
                   >
                     <Trash2 size={16} />
                   </button>
