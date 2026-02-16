@@ -1,6 +1,6 @@
 import { MapPin, Phone, Mail, Send } from "lucide-react";
 import { motion } from "framer-motion";
-import contactHero from "../assets/contact-hero.jpeg";
+import contactHero from "../assets/contact-hero.webp";
 import Seo from "../components/Seo";
 import api from "../api/api";
 import { useState } from "react";

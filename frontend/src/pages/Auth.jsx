@@ -23,17 +23,17 @@ export default function AuthPage() {
 
   const showcaseImages = [
     {
-      url: "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=800&auto=format&fit=crop",
+      url: "/images/room-img2.webp",
       title: "",
       description: ""
     },
     {
-      url: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&auto=format&fit=crop",
+      url: "/images/room-img3.webp",
       title: "",
       description: ""
     },
     {
-      url: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&auto=format&fit=crop",
+      url: "/images/room-img1.webp",
       title: "",
       description: ""
     }

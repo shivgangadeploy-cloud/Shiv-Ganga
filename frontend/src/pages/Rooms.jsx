@@ -46,11 +46,11 @@ const roomsData = [
     fullDescription:
       "Featuring a cozy double bed, stylish interiors, a serene ambiance, flat-screen LED TV, and a modern bathroom perfect for guests who seek luxury that feels effortless.",
     image:
-      "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&auto=format&fit=crop",
+    "/images/room-img1.webp",
     images: [
-      "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&auto=format&fit=crop",
+      "/images/room-img1.webp",
+      "/images/room-img2.webp",
+      "/images/room-img3.webp",
     ],
     amenities: [
       "Comfortable Double Bed",
@@ -85,11 +85,11 @@ const roomsData = [
     fullDescription:
       "With a plush double bed, control your comfort with personalized AC. Ideal for business travelers and families, this room delivers a premium stay with enhanced comfort and privacy.",
     image:
-      "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=800&auto=format&fit=crop",
+      "/images/room-img2.webp",
     images: [
-      "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&auto=format&fit=crop",
+     "/images/room-img2.webp",
+      "/images/room-img3.webp",
+      "/images/room-img1.webp",
     ],
     amenities: [
       "Plush Double Bed",
@@ -125,11 +125,11 @@ const roomsData = [
     fullDescription:
       "Multiple comfortable beds, stay refreshed with individual air conditioning, and an LED TV for entertainment, along with a sitting area for family time.",
     image:
-      "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=800&auto=format&fit=crop",
+     "/images/room-img4.webp",
     images: [
-      "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&auto=format&fit=crop",
+      "/images/room-img4.webp",
+     "/images/room-img2.webp",
+      "/images/room-img3.webp",
     ],
     amenities: [
       "Multiple Comfortable Beds",
@@ -165,11 +165,11 @@ const roomsData = [
     fullDescription:
       "With a well-appointed private bathroom and a cozy sitting area, this room is perfect for family vacations, group travel, or extended stays, providing comfort, privacy and style in one delightful space.",
     image:
-      "https://images.unsplash.com/photo-1731304319707-6168e48e4278?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8aGltYWx5YW4lMjBiYWxjb255JTIwaG90ZWwlMjByb29tfGVufDB8fDB8fHww",
+      "/images/room-img5.webp",
     images: [
-      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=800&auto=format&fit=crop",
+      "/images/room-img3.webp",
+      "/images/room-img2.webp",
+      "/images/room-img4.webp",
     ],
     amenities: [
       "Comfortable Beds for Four",
@@ -205,11 +205,11 @@ const roomsData = [
     fullDescription:
       "Multiple comfortable beds, stay refreshed with individual air conditioning, and an LED TV for entertainment, along with a sitting area for family time.",
     image:
-      "https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=1200&q=80",
+      "/images/room-img6.webp",
     images: [
-      "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&auto=format&fit=crop",
+      "/images/room-img4.webp",
+      "/images/room-img2.webp",
+      "/images/room-img3.webp",
     ],
     amenities: [
       "Multiple Comfortable Beds",
@@ -245,11 +245,11 @@ const roomsData = [
     fullDescription:
       "With a well-appointed private bathroom and a cozy sitting area, this room is perfect for family vacations, group travel, or extended stays, providing comfort, privacy and style in one delightful space.",
     image:
-      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&auto=format&fit=crop",
+      "/images/room-img3.webp",
     images: [
-      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=800&auto=format&fit=crop",
+      "/images/room-img3.webp",
+      "/images/room-img2.webp",
+      "/images/room-img1.webp",
     ],
     amenities: [
       "Comfortable Beds for Four",
@@ -876,7 +876,7 @@ function RoomsList({ onSelectRoom }) {
             initial={{ scale: 1.2, opacity: 0 }}
             animate={{ scale: 1.1, opacity: 1 }}
             transition={{ duration: 1.5 }}
-            src="https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=1920&h=1080&fit=crop"
+            src="/images/room-img7.webp"
             alt="Luxury Hotel Room"
             className="w-full h-full object-cover blur-[2px] opacity-50 scale-110"
           />

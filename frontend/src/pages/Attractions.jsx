@@ -2,6 +2,17 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MapPin, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import attractionHeroImg from '../assets/homepage-images/attraction-hero-img.webp';
+import gangaAartiImg from "../assets/ganga-aarti.webp";
+import beatlesAshramImg from "../assets/beatleashram.webp";
+import jhulaImg from "../assets/Jhulaimg.webp";
+import nationalParkImg from "../assets/nationalpark.webp";
+import neelkanthImg from "../assets/neelkanth.webp";
+import parmarthImg from "../assets/parmarth-niketan.webp";
+import teraManzilImg from "../assets/tera-manjil.webp";
+import vashishtaGufaImg from "../assets/Vashishta_Gufa_Main.webp";
+
+
 
 const attractionsData = [
   {
@@ -10,7 +21,7 @@ const attractionsData = [
     distance: "2.5 km",
     desc: "The most sacred bathing ghat in Rishikesh. Famous for the mesmerizing 'Ganga Aarti' held every evening amidst chanting and oil lamps.",
     tag: "Spiritual",
-    image: "https://www.hotelshivgangarishikesh.com/assets/images/attractions/a1.jpg",
+    image: gangaAartiImg,
   },
   {
     id: "laxman-jhula",
@@ -18,7 +29,7 @@ const attractionsData = [
     distance: "1.2 km",
     desc: "Iconic suspension bridges across the holy river Ganga. Perfect for morning walks, photography, and feeding the fish from the bridge.",
     tag: "Heritage",
-    image: "https://www.hotelshivgangarishikesh.com/assets/images/attractions/a4.jpg",
+    image: jhulaImg,
   },
   {
     id: "beatles-ashram",
@@ -26,7 +37,7 @@ const attractionsData = [
     distance: "3.8 km",
     desc: "Known as Chaurasi Kutia, this eco-friendly sanctuary is where The Beatles studied Transcendental Meditation. Features mesmerizing graffiti.",
     tag: "History",
-    image: "https://www.hotelshivgangarishikesh.com/assets/images/attractions/a6.jpg",
+    image: beatlesAshramImg,
   },
   {
     id: "parmarth-niketan",
@@ -34,7 +45,7 @@ const attractionsData = [
     distance: "2.1 km",
     desc: "One of the largest ashrams in Rishikesh, providing a serene environment with lush gardens and daily spiritual activities.",
     tag: "Yoga",
-    image: "https://wildhawk.in/wp-content/uploads/2019/05/parmarth-niketan-ashram-rishikesh-head-606.jpeg",
+    image: parmarthImg,
   },
   {
     id: "neelkanth-temple",
@@ -42,7 +53,7 @@ const attractionsData = [
     distance: "32 km",
     desc: "Sacred temple dedicated to Lord Shiva situated at a height of 1330 meters. A scenic drive through the mountains.",
     tag: "Pilgrimage",
-    image: "https://www.hotelshivgangarishikesh.com/assets/images/attractions/a5.jpg",
+    image: neelkanthImg,
   },
   {
     id: "tera-manzil",
@@ -50,7 +61,7 @@ const attractionsData = [
     distance: "1.5 km",
     desc: "Also known as Trimbakeshwar Temple, this 13-storey shrine offers panoramic views of the river from the top floors.",
     tag: "Views",
-    image: "https://www.hotelshivgangarishikesh.com/assets/images/attractions/a7.jpg",
+    image: teraManzilImg,
   },
   {
     id: "vashishta-gufa",
@@ -58,7 +69,7 @@ const attractionsData = [
     distance: "25 km",
     desc: "An ancient cave on the banks of the Ganga where Sage Vashishta is said to have meditated. Extremely peaceful.",
     tag: "Meditation",
-    image: "https://www.trawell.in/admin/images/upload/148894129Rishikesh_Vashishta_Gufa_Main.jpg",
+    image: vashishtaGufaImg,
   },
   {
     id: "rajaji-national-park",
@@ -66,7 +77,7 @@ const attractionsData = [
     distance: "18 km",
     desc: "A pristine wildlife reserve known for elephants, tigers, and diverse bird species. Great for jungle safaris.",
     tag: "Wildlife",
-    image: "https://www.rajajinationalpark.co.in/images/123.jpg",
+    image: nationalParkImg,
   },
 ];
 
@@ -97,7 +108,7 @@ const Attractions = () => {
             initial={{ scale: 1.2, opacity: 0 }}
             animate={{ scale: 1.1, opacity: 1 }}
             transition={{ duration: 1.5 }}
-            src="https://i.pinimg.com/1200x/35/07/90/3507901c117d27d09013c1fbf4c5a474.jpg"
+            src={attractionHeroImg}
             alt="Background"
             className="w-full h-full object-cover blur-[2px] opacity-50 scale-110"
           />
