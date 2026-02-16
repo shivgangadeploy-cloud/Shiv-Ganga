@@ -11,7 +11,7 @@ const ATTRACTIONS = {
     distance: "2.5 km",
     category: "Spiritual",
     image:
-      "/images/triveni1.webp",
+      "/images/a1.webp",
   },
   "laxman-jhula": {
     title: "Laxman Jhula",
@@ -19,7 +19,7 @@ const ATTRACTIONS = {
     distance: "1.2 km",
     category: "Heritage",
     image:
-      "/images/laxman1.webp",
+      "/images/jhula3.webp",
   },
   "beatles-ashram": {
     title: "The Beatles Ashram",

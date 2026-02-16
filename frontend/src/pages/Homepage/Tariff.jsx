@@ -760,7 +760,7 @@ const Tariff = () => {
             initial={{ scale: 1.2, opacity: 0 }}
             animate={{ scale: 1.1, opacity: 1 }}
             transition={{ duration: 1.5 }}
-            src="https://i.pinimg.com/1200x/35/07/90/3507901c117d27d09013c1fbf4c5a474.jpg"
+            src="/images/tm4.webp"
             alt="Background"
             className="w-full h-full object-cover blur-[2px] opacity-50 scale-110"
           />

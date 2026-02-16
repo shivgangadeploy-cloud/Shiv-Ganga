@@ -37,7 +37,7 @@ const ACTIVITIES = [
     price: 2500,
     label: "Rs. 2500",
     desc: "Experience the thrill of the Ganges rapids.",
-    img: "https://i.pinimg.com/736x/5b/c0/a7/5bc0a7da9c7f969f63a25a9f46566b62.jpg",
+    img: "/images/rafting.webp",
   },
   {
     id: "bungee",
@@ -45,7 +45,7 @@ const ACTIVITIES = [
     price: 4000,
     label: "Rs. 4000",
     desc: "India's highest bungee jumping platform.",
-    img: "https://i.pinimg.com/1200x/f9/15/a3/f915a356c686516973d6b322fc8974ef.jpg",
+    img: "/images/bjumping.webp",
   },
   {
     id: "aarti",
@@ -53,7 +53,7 @@ const ACTIVITIES = [
     price: 0,
     label: "Free",
     desc: "Spiritual evening ceremony by the river.",
-    img: "https://www.hotelshivgangarishikesh.com/assets/images/attractions/a1.jpg",
+    img: "/images/a1.webp",
   },
   {
     id: "yoga",
@@ -61,7 +61,7 @@ const ACTIVITIES = [
     price: 1500,
     label: "Rs. 1500",
     desc: "Find peace in the Yoga Capital of the World.",
-    img: "https://images.unsplash.com/photo-1545389336-cf090694435e?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80",
+    img: "/images/yoga.webp",
   },
 ];
 

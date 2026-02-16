@@ -35,7 +35,7 @@ const AdditionalService = () => {
         "All equipment is imported and checked daily. The jump is supervised by experienced and licensed instructors.",
       price: 3500,
       oldPrice: 4200,
-      img: "https://i.pinimg.com/1200x/f9/15/a3/f915a356c686516973d6b322fc8974ef.jpg",
+      img: "/images/bjumping.webp",
       bookingActivityId: "bungee",
     },
     {
@@ -60,7 +60,7 @@ const AdditionalService = () => {
         "All bikes are sanitized and checked before every rental. Helmets are mandatory.",
       price: 800,
       oldPrice: 1200,
-      img: "https://i.pinimg.com/736x/c5/dc/2b/c5dc2b365beb0fe3b61e84d12c7ed46a.jpg",
+      img: "/images/bikerenting.webp",
       bookingActivityId: null,
     },
 
@@ -88,7 +88,7 @@ const AdditionalService = () => {
         "International grade rafting equipment and certified river guides ensure maximum safety.",
       price: 1500,
       oldPrice: 2000,
-      img: "https://i.pinimg.com/736x/5b/c0/a7/5bc0a7da9c7f969f63a25a9f46566b62.jpg",
+      img: "/images/rafting.webp",
       bookingActivityId: "rafting",
     },
   ];

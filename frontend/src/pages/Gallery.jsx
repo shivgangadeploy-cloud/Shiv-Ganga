@@ -96,7 +96,8 @@ export default function Gallery() {
         title="Gallery | Shiv Ganga Hotel Rishikesh"
         description="Browse the Shiv Ganga Hotel gallery: rooms, balcony views, local attractions, and activities in Rishikesh."
         path="/gallery"
-        image="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1920&h=1080&fit=crop"
+        
+        image="/images/gallery-hero.webp"
       />
       {/* Hero Section */}
       {/* COMMENTED OUT ORIGINAL HERO SECTION
@@ -142,7 +143,7 @@ export default function Gallery() {
                         initial={{ scale: 1.2, opacity: 0 }}
                         animate={{ scale: 1.1, opacity: 1 }}
                         transition={{ duration: 1.5 }}
-                        src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1920&h=1080&fit=crop"
+                        src="/images/gallery-hero.webp"
                         alt="Background"
                         className="w-full h-full object-cover blur-[2px] opacity-50 scale-110"
                     />
@@ -184,7 +185,7 @@ export default function Gallery() {
                             className="absolute top-[10%] right-[15%] w-60 h-40 rounded-xl overflow-hidden border-4 border-white/20 shadow-2xl z-10 rotate-6 backdrop-blur-sm"
                         >
                             <img
-                                src={allImages[8]?.src || "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb"}
+                                src={allImages[8]?.src || "/images/gallery-hero.webp"}
                                 alt="Gallery Highlight 1"
                                 className="w-full h-full object-cover hover:scale-110 transition-transform duration-700"
                             />
@@ -198,7 +199,7 @@ export default function Gallery() {
                             className="absolute top-[35%] left-[10%] w-72 h-48 rounded-xl overflow-hidden border-4 border-white/20 shadow-2xl z-20 -rotate-3 backdrop-blur-sm"
                         >
                             <img
-                                src={allImages[5]?.src || "https://images.unsplash.com/photo-1559339352-11d035aa65de"}
+                                src={allImages[5]?.src || "/images/galleryimg2.webp"}
                                 alt="Gallery Highlight 2"
                                 className="w-full h-full object-cover hover:scale-110 transition-transform duration-700"
                             />
