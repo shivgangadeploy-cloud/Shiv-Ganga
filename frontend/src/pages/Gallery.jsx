@@ -3,6 +3,7 @@ import { X, ChevronLeft, ChevronRight, ZoomIn } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Seo from "../components/Seo";
 import api from "../api/api";
+import ResponsiveImage from "../components/ResponsiveImage";
 
 export default function Gallery() {
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -139,14 +140,18 @@ export default function Gallery() {
             <section className="relative min-h-[60vh] lg:min-h-[85vh] overflow-hidden bg-slate-900 w-full flex items-center transition-all duration-500">
                 {/* Background Image with Animation */}
                 <div className="absolute inset-0 z-0">
-                    <motion.img
+                    <motion.div
                         initial={{ scale: 1.2, opacity: 0 }}
                         animate={{ scale: 1.1, opacity: 1 }}
                         transition={{ duration: 1.5 }}
-                        src="/images/gallery-hero.webp"
-                        alt="Background"
-                        className="w-full h-full object-cover blur-[2px] opacity-50 scale-110"
-                    />
+                        className="w-full h-full"
+                    >
+                        <ResponsiveImage
+                            src="/images/gallery-hero.webp"
+                            alt="Background"
+                            className="w-full h-full object-cover blur-[2px] opacity-50 scale-110"
+                        />
+                    </motion.div>
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent" />
                     <div className="absolute inset-0 bg-gradient-to-r from-slate-900/80 to-transparent" />
                 </div>
@@ -187,6 +192,7 @@ export default function Gallery() {
                             <img
                                 src={allImages[8]?.src || "/images/gallery-hero.webp"}
                                 alt="Gallery Highlight 1"
+                                loading="lazy"
                                 className="w-full h-full object-cover hover:scale-110 transition-transform duration-700"
                             />
                         </motion.div>
@@ -201,6 +207,7 @@ export default function Gallery() {
                             <img
                                 src={allImages[5]?.src || "/images/galleryimg2.webp"}
                                 alt="Gallery Highlight 2"
+                                loading="lazy"
                                 className="w-full h-full object-cover hover:scale-110 transition-transform duration-700"
                             />
                         </motion.div>
@@ -215,6 +222,7 @@ export default function Gallery() {
                             <img
                                 src={allImages[6]?.src || "https://images.unsplash.com/photo-1566665797739-1674de7a421a"}
                                 alt="Gallery Highlight 3"
+                                loading="lazy"
                                 className="w-full h-full object-cover hover:scale-110 transition-transform duration-700"
                             />
                         </motion.div>
@@ -284,9 +292,10 @@ export default function Gallery() {
                                     onClick={() => openLightbox(index)}
                                     className="group relative overflow-hidden rounded-lg cursor-pointer h-72 shadow-lg hover:shadow-2xl transition-shadow duration-300"
                                 >
-                                    <img 
-                                        src={img.src} 
-                                        alt={`Gallery ${index + 1}`} 
+                                    <img
+                                        src={img.src}
+                                        alt={`Gallery ${index + 1}`}
+                                        loading="lazy"
                                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300">
@@ -338,9 +347,10 @@ export default function Gallery() {
 
                     {/* Current Image */}
                     <div className="max-w-7xl max-h-[90vh] mx-auto px-20">
-                        <img 
+                        <img
                             src={filteredImages[currentImage]?.src}
                             alt={`Gallery ${currentImage + 1}`}
+                            loading="lazy"
                             className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
                         />
                     </div>
@@ -365,9 +375,10 @@ export default function Gallery() {
                                         : 'border-white/30 hover:border-white/60'
                                 }`}
                             >
-                                <img 
-                                    src={img.src} 
+                                <img
+                                    src={img.src}
                                     alt={`Thumbnail ${index + 1}`}
+                                    loading="lazy"
                                     className="w-full h-full object-cover"
                                 />
                             </button>

@@ -1,10 +1,13 @@
 import { MapPin, Phone, Mail, Send } from "lucide-react";
 import { motion } from "framer-motion";
 import contactHero from "../assets/contact-hero.webp";
+import ResponsiveImage from "../components/ResponsiveImage";
 import Seo from "../components/Seo";
 import api from "../api/api";
-import { useState } from "react";
+import { useState, useRef } from "react";
+import Turnstile from "../components/Turnstile";
 export default function Contact() {
+  const turnstileRef = useRef();
   const [formData, setFormData] = useState({
   firstName: "",
   lastName: "",
@@ -32,9 +35,19 @@ const handleSubmit = async (e) => {
   setSuccess("");
 
   try {
+    // Get Turnstile token
+    const captchaToken = turnstileRef.current?.getToken();
+    if (!captchaToken) {
+      setError("Please complete the CAPTCHA verification");
+      return;
+    }
+
     setLoading(true);
 
-    await api.post("/contact", formData);
+    await api.post("/contact", {
+      ...formData,
+      captchaToken
+    });
 
     setSuccess("Your message has been sent successfully 🙏");
 
@@ -45,6 +58,9 @@ const handleSubmit = async (e) => {
       subject: "",
       message: ""
     });
+
+    // Reset Turnstile
+    turnstileRef.current?.reset();
   } catch (err) {
     setError(
       err.response?.data?.message || "Something went wrong. Please try again."
@@ -66,10 +82,13 @@ const handleSubmit = async (e) => {
       {/* ================= HERO ================= */}
       <section className="relative overflow-hidden">
         {/* Background Image */}
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${contactHero})` }}
-        />
+        <div className="absolute inset-0">
+          <ResponsiveImage
+            src={contactHero}
+            alt="Contact background"
+            className="w-full h-full object-cover"
+          />
+        </div>
         <div className="absolute inset-0 bg-black/50" />
 
         {/* Hero text */}
@@ -174,6 +193,11 @@ const handleSubmit = async (e) => {
   placeholder="Tell us about your requirements..."
 />
 
+            </div>
+
+            {/* Cloudflare Turnstile CAPTCHA */}
+            <div className="pt-2">
+              <Turnstile ref={turnstileRef} />
             </div>
 
             <div className="pt-4">

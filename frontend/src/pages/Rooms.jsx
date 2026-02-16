@@ -25,6 +25,7 @@ import {
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import AttractionsList from "./AttractionList";
 import { rooms } from "../data/rooms";
+import ResponsiveImage from "../components/ResponsiveImage";
 
 // Shared rooms data
 const roomsData = [
@@ -435,6 +436,7 @@ function RoomDetail({ roomId, onBack, setSelectedRoomId }) {
           <img
             src={selectedImage}
             alt="Room View"
+            loading="lazy"
             className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           />
@@ -444,7 +446,7 @@ function RoomDetail({ roomId, onBack, setSelectedRoomId }) {
       {/* Hero Section */}
       <div className="relative h-[70vh] lg:h-[80vh] overflow-hidden">
         <div className="absolute inset-0">
-          <img
+          <ResponsiveImage
             src={room.image}
             alt={room.name}
             className="w-full h-full object-cover"

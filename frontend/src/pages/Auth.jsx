@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowLeft, ArrowRight, Shield, User, Mail, Lock, Eye, EyeOff, Phone, Key } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 import api from './axios';
+import ResponsiveImage from "../components/ResponsiveImage";
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -121,7 +122,7 @@ if (data.role === "admin") {
           <div className="relative bg-gradient-to-br from-gray-900 to-gray-800 p-8 lg:p-12 hidden lg:flex flex-col justify-between overflow-hidden">
 
             <div className="absolute inset-0">
-              <img
+              <ResponsiveImage
                 src={showcaseImages[currentImageIndex].url}
                 alt="Hotel Management"
                 className="w-full h-full object-cover opacity-90 transition-all duration-700"
