@@ -98,26 +98,35 @@ export default function GuestManagement() {
   };
 
   // Fetch guest details
-  const fetchGuestDetails = async (guestId) => {
+
+const fetchGuestDetails = async (guestId) => {
     if (!guestId) return;
-    
+
     try {
       setDetailsLoading(true);
       const token = localStorage.getItem("token");
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      
-      const [detailsRes, transactionsRes] = await Promise.all([
+
+      const [detailsRes, transactionsRes, historyRes] = await Promise.all([
         api.get(`/guests/${guestId}/details`, { headers }),
-        api.get(`/guests/${guestId}/transactions`, { headers })
+        api.get(`/guests/${guestId}/transactions`, { headers }),
+        api.get(`/guests/${guestId}/bookings-history`, { headers }),
       ]);
-      
-      if (detailsRes.data?.success && transactionsRes.data?.success) {
-        const guestDetails = guests.find(g => String(g.id) === String(guestId))
+
+      if (
+        detailsRes.data?.success &&
+        transactionsRes.data?.success &&
+        historyRes.data?.success
+      ) {
+        const guestDetails = guests.find(
+          (g) => String(g.id) === String(guestId),
+        );
 
         setActiveGuestDetails({
           ...guestDetails,
           bookingDetails: detailsRes.data.data,
-          transactionDetails: transactionsRes.data.data
+          transactionDetails: transactionsRes.data.data,
+          bookingHistory: historyRes.data.data || [],
         });
       }
     } catch (error) {
@@ -353,10 +362,15 @@ export default function GuestManagement() {
                                 g.status === 'CHECKED_IN' ? 'bg-green-500' : 
                                 g.status === 'CONFIRMED' ? 'bg-blue-500' : 'bg-gray-300'
                               }`} />
-                              <span className={`text-[11px] font-bold uppercase tracking-wider ${
-                                g.status === 'CHECKED_IN' ? 'text-green-600' : 
-                                g.status === 'CONFIRMED' ? 'text-blue-600' : 'text-gray-400'
-                              }`}>
+                              <span
+                                className={`text-[11px] font-bold uppercase tracking-wider ${
+                                  g.status === "CHECKED_IN"
+                                    ? "text-green-600"
+                                    : g.status === "PENDING"
+                                      ? "text-amber-500" // Light orange only for pending
+                                      : "text-gray-400" // All other statuses grey
+                                }`}
+                              >
                                 {formatStatus(g.status)}
                               </span>
                               <ChevronRight size={16} className={`${activeGuestId === g.id ? 'text-primary' : 'text-gray-300'}`} />
@@ -602,6 +616,104 @@ export default function GuestManagement() {
                           </div>
                         </section>
                       )}
+
+                      {/* 3. BOOKING HISTORY (previous & pending first) */}
+                      {activeGuestDetails.bookingHistory &&
+                        activeGuestDetails.bookingHistory.length > 0 && (
+                          <section>
+                            <div className="flex items-center gap-2 mb-4">
+                              <div className="h-1 w-6 bg-indigo-500 rounded-full" />
+                              <h4 className="text-xs font-bold uppercase tracking-widest text-gray-600">
+                                Booking History
+                              </h4>
+                            </div>
+
+                            <div className="space-y-3">
+                              {[...activeGuestDetails.bookingHistory]
+                                .sort((a, b) => {
+                                  const pendingA =
+                                    (a.pendingAmount || 0) > 0 ? 1 : 0;
+                                  const pendingB =
+                                    (b.pendingAmount || 0) > 0 ? 1 : 0;
+                                  if (pendingA !== pendingB) {
+                                    return pendingB - pendingA; // pending on top
+                                  }
+                                  return (
+                                    new Date(
+                                      b.createdAt || b.checkInDate || 0,
+                                    ) -
+                                    new Date(a.createdAt || a.checkInDate || 0)
+                                  );
+                                })
+                                .map((bk) => (
+                                  <div
+                                    key={bk.id}
+                                    className="border border-gray-200 rounded-2xl p-4 bg-gray-50 space-y-2"
+                                  >
+                                    <div className="flex items-center justify-between">
+                                      <div className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+                                        Ref: {bk.bookingReference || "N/A"}
+                                      </div>
+                                      <span
+                                        className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                                          (bk.pendingAmount || 0) > 0
+                                            ? "bg-amber-100 text-amber-700"
+                                            : "bg-emerald-100 text-emerald-700"
+                                        }`}
+                                      >
+                                        {(bk.pendingAmount || 0) > 0
+                                          ? "Pending"
+                                          : "Settled"}
+                                      </span>
+                                    </div>
+
+                                    <div className="text-[11px] text-gray-500">
+                                      {bk.checkInDate
+                                        ? new Date(
+                                            bk.checkInDate,
+                                          ).toLocaleDateString("en-IN", {
+                                            day: "numeric",
+                                            month: "short",
+                                            year: "numeric",
+                                          })
+                                        : "—"}{" "}
+                                      -{" "}
+                                      {bk.checkOutDate
+                                        ? new Date(
+                                            bk.checkOutDate,
+                                          ).toLocaleDateString("en-IN", {
+                                            day: "numeric",
+                                            month: "short",
+                                            year: "numeric",
+                                          })
+                                        : "—"}
+                                    </div>
+
+                                    <div className="flex items-center justify-between text-sm">
+                                      <div className="text-gray-700">
+                                        {bk.room}
+                                      </div>
+                                      <div className="text-right text-xs">
+                                        <div className="font-semibold text-gray-800">
+                                          Total:{" "}
+                                          {formatINR(bk.totalAmount || 0)}
+                                        </div>
+                                        <div className="text-emerald-600">
+                                          Paid: {formatINR(bk.paidAmount || 0)}
+                                        </div>
+                                        {bk.pendingAmount > 0 && (
+                                          <div className="text-red-600">
+                                            Pending:{" "}
+                                            {formatINR(bk.pendingAmount || 0)}
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                            </div>
+                          </section>
+                        )}
 
                       {/* 3. CONTACT INFO */}
                       <section>

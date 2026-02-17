@@ -5,7 +5,8 @@ import {
   getGuestDetails,
   getGuestTransactions,
   exportGuestsToSheet,
-  getGuestPaymentSummary
+  getGuestPaymentSummary,
+  getGuestBookingHistory,
 } from "../controllers/guestDirectory.controller.js";
 
 import { authMiddleware } from "../middlewares/auth.middleware.js";
@@ -39,6 +40,13 @@ router.get(
   authMiddleware,
   roleMiddleware("admin", "receptionist"),
   getGuestTransactions
+);
+
+router.get(
+  "/guests/:id/bookings-history",
+  authMiddleware,
+  roleMiddleware("admin", "receptionist"),
+  getGuestBookingHistory,
 );
 
 router.get(
