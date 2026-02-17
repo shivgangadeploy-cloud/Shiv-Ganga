@@ -26,6 +26,7 @@ import {
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import AttractionsList from "./AttractionList";
 import { rooms } from "../data/rooms";
+import ResponsiveImage from "../components/ResponsiveImage";
 
 // Shared rooms data
 const roomsData = [
@@ -47,11 +48,11 @@ const roomsData = [
     fullDescription:
       "Featuring a cozy double bed, stylish interiors, a serene ambiance, flat-screen LED TV, and a modern bathroom perfect for guests who seek luxury that feels effortless.",
     image:
-      "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&auto=format&fit=crop",
+      "/images/room-img1.webp",
     images: [
-      "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&auto=format&fit=crop",
+      "/images/room-img1.webp",
+      "/images/room-img2.webp",
+      "/images/room-img3.webp",
     ],
     amenities: [
       "Comfortable Double Bed",
@@ -86,11 +87,11 @@ const roomsData = [
     fullDescription:
       "With a plush double bed, control your comfort with personalized AC. Ideal for business travelers and families, this room delivers a premium stay with enhanced comfort and privacy.",
     image:
-      "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=800&auto=format&fit=crop",
+      "/images/room-img2.webp",
     images: [
-      "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&auto=format&fit=crop",
+      "/images/room-img2.webp",
+      "/images/room-img3.webp",
+      "/images/room-img1.webp",
     ],
     amenities: [
       "Plush Double Bed",
@@ -126,11 +127,11 @@ const roomsData = [
     fullDescription:
       "Multiple comfortable beds, stay refreshed with individual air conditioning, and an LED TV for entertainment, along with a sitting area for family time.",
     image:
-      "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=800&auto=format&fit=crop",
+      "/images/room-img4.webp",
     images: [
-      "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&auto=format&fit=crop",
+      "/images/room-img4.webp",
+      "/images/room-img2.webp",
+      "/images/room-img3.webp",
     ],
     amenities: [
       "Multiple Comfortable Beds",
@@ -166,11 +167,11 @@ const roomsData = [
     fullDescription:
       "With a well-appointed private bathroom and a cozy sitting area, this room is perfect for family vacations, group travel, or extended stays, providing comfort, privacy and style in one delightful space.",
     image:
-      "https://images.unsplash.com/photo-1731304319707-6168e48e4278?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8aGltYWx5YW4lMjBiYWxjb255JTIwaG90ZWwlMjByb29tfGVufDB8fDB8fHww",
+      "/images/room-img5.webp",
     images: [
-      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=800&auto=format&fit=crop",
+      "/images/room-img3.webp",
+      "/images/room-img2.webp",
+      "/images/room-img4.webp",
     ],
     amenities: [
       "Comfortable Beds for Four",
@@ -206,11 +207,11 @@ const roomsData = [
     fullDescription:
       "Multiple comfortable beds, stay refreshed with individual air conditioning, and an LED TV for entertainment, along with a sitting area for family time.",
     image:
-      "https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=1200&q=80",
+      "/images/room-img6.webp",
     images: [
-      "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&auto=format&fit=crop",
+      "/images/room-img4.webp",
+      "/images/room-img2.webp",
+      "/images/room-img3.webp",
     ],
     amenities: [
       "Multiple Comfortable Beds",
@@ -246,11 +247,11 @@ const roomsData = [
     fullDescription:
       "With a well-appointed private bathroom and a cozy sitting area, this room is perfect for family vacations, group travel, or extended stays, providing comfort, privacy and style in one delightful space.",
     image:
-      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&auto=format&fit=crop",
+      "/images/room-img3.webp",
     images: [
-      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=800&auto=format&fit=crop",
+      "/images/room-img3.webp",
+      "/images/room-img2.webp",
+      "/images/room-img1.webp",
     ],
     amenities: [
       "Comfortable Beds for Four",
@@ -426,7 +427,7 @@ function RoomDetail({ roomId, onBack, setSelectedRoomId }) {
       {selectedImage && (
         <div
           onClick={() => setSelectedImage(null)}
-          className="fixed inset-0 z-60 flex items-center justify-center bg-black/95 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/95 p-4 backdrop-blur-sm"
         >
           <button
             onClick={() => setSelectedImage(null)}
@@ -437,6 +438,7 @@ function RoomDetail({ roomId, onBack, setSelectedRoomId }) {
           <img
             src={selectedImage}
             alt="Room View"
+            loading="lazy"
             className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           />
@@ -446,13 +448,13 @@ function RoomDetail({ roomId, onBack, setSelectedRoomId }) {
       {/* Hero Section */}
       <div className="relative h-[70vh] lg:h-[80vh] overflow-hidden">
         <div className="absolute inset-0">
-          <img
+          <ResponsiveImage
             src={room.image}
             alt={room.name}
             className="w-full h-full object-cover"
           />
         </div>
-        <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
         <div className="absolute bottom-0 left-0 w-full p-6 md:p-12 lg:p-20 text-white">
           <div className="container mx-auto">
             <button
@@ -617,7 +619,7 @@ function RoomDetail({ roomId, onBack, setSelectedRoomId }) {
                     Click to enlarge
                   </p>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-125">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-[500px]">
                   {room.images.map((img, idx) => (
                     <div
                       key={idx}
@@ -871,7 +873,7 @@ function RoomsList({ onSelectRoom }) {
   };
 
   return (
-    <div className="bg-linear-to-br from-gray-50 via-accent-50/20 to-gray-50 min-h-screen">
+    <div className="bg-gradient-to-br from-gray-50 via-accent-50/20 to-gray-50 min-h-screen">
       {/* HERO SECTION */}
       <section className="relative min-h-[60vh] lg:min-h-[85vh] overflow-hidden bg-slate-900 w-full flex items-center transition-all duration-500">
         {/* Background Image with Animation */}
@@ -880,13 +882,13 @@ function RoomsList({ onSelectRoom }) {
             initial={{ scale: 1.2, opacity: 0 }}
             animate={{ scale: 1.1, opacity: 1 }}
             transition={{ duration: 1.5 }}
-            src="https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=1920&h=1080&fit=crop"
+            src="/images/room-img7.webp"
             alt="Luxury Hotel Room"
             className="w-full h-full object-cover blur-[2px] opacity-50 scale-110"
           />
 
-          <div className="absolute inset-0 bg-linear-to-t from-slate-900 via-slate-900/40 to-transparent" />
-          <div className="absolute inset-0 bg-linear-to-r from-slate-900/80 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-900/80 to-transparent" />
         </div>
 
         <div className="container mx-auto px-6 h-full relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center py-10 lg:py-0">
@@ -919,7 +921,7 @@ function RoomsList({ onSelectRoom }) {
           </div>
 
           {/* Right Side Image Collage */}
-          <div className="hidden lg:flex relative h-125 w-full justify-center items-center">
+          <div className="hidden lg:flex relative h-[500px] w-full justify-center items-center">
             {/* Collage Item 1 - Top Right */}
             <motion.div
               initial={{ y: -50, opacity: 0 }}
@@ -1041,7 +1043,7 @@ function RoomsList({ onSelectRoom }) {
                   alt={room.name}
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />
-                <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
 
                 {room.popular && (
                   <div className="absolute top-4 left-4 bg-accent text-white px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider shadow-lg flex items-center gap-1.5 animate-pulse">
@@ -1081,12 +1083,12 @@ function RoomsList({ onSelectRoom }) {
                   <span className="flex items-center gap-2 text-xs text-gray-700 bg-accent/50 px-3 py-2 rounded-lg font-medium border border-accent">
                     <Maximize size={14} className="text-accent" /> {room.size}
                   </span>
-                  <span className="flex items-center gap-2 text-xs text-gray-700 bg-linear-to-br from-blue-50 to-indigo-50 px-3 py-2 rounded-lg font-medium border border-blue-100">
+                  <span className="flex items-center gap-2 text-xs text-gray-700 bg-gradient-to-br from-blue-50 to-indigo-50 px-3 py-2 rounded-lg font-medium border border-blue-100">
                     <Users size={14} className="text-blue-600" />{" "}
                     {room.occupancy}
                   </span>
                   {room.features && room.features[2] && (
-                    <span className="flex items-center gap-2 text-xs text-gray-700 bg-linear-to-br from-green-50 to-emerald-50 px-3 py-2 rounded-lg font-medium border border-green-100">
+                    <span className="flex items-center gap-2 text-xs text-gray-700 bg-gradient-to-br from-green-50 to-emerald-50 px-3 py-2 rounded-lg font-medium border border-green-100">
                       {(() => {
                         const Icon = room.features[2].icon;
                         return <Icon size={14} className="text-green-600" />;
@@ -1119,7 +1121,7 @@ function RoomsList({ onSelectRoom }) {
         </div>
 
         {/* Hotel Facilities */}
-        <div className="bg-30gradient-to-br from-white to-accent-50/ rounded-3xl p-12 mb-20 shadow-xl">
+        <div className="bg-gradient-to-br from-white to-accent-50 rounded-3xl p-12 mb-20 shadow-xl">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-serif text-gray-800 mb-4">
               World-Class Amenities
@@ -1135,7 +1137,7 @@ function RoomsList({ onSelectRoom }) {
                 className="group bg-white p-6 rounded-xl hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-gray-100"
               >
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-accent rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                  <div className="w-12 h-12 bg-accent rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
                     <facility.icon size={24} className="text-primary" />
                   </div>
                   <div>
