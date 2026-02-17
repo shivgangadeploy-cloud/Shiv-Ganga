@@ -116,7 +116,6 @@ const BookingBar = () => {
                 min={today}
                 onChange={(e) => {
                   setCheckIn(e.target.value);
-
                   // reset checkout if earlier
                   if (checkOut && e.target.value > checkOut) {
                     setCheckOut("");

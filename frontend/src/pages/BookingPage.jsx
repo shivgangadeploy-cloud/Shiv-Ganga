@@ -70,6 +70,7 @@ const ACTIVITIES = [
 
 
 export default function BookingPage() {
+    const today = new Date().toISOString().split("T")[0];
   const navigate = useNavigate(); // ✅ INSIDE component
   const location = useLocation();
   console.log("Razorpay key:", import.meta.env.VITE_RAZORPAY_KEY);
@@ -926,6 +927,7 @@ export default function BookingPage() {
                           type="date"
                           name="checkIn"
                           value={formData.checkIn}
+                          min={today}
                           onChange={handleInputChange}
                           className="w-full pb-3 bg-transparent border-b border-gray-200 focus:border-accent outline-none transition-all pl-8 text-lg text-primary placeholder-transparent"
                         />
@@ -944,6 +946,7 @@ export default function BookingPage() {
                           type="date"
                           name="checkOut"
                           value={formData.checkOut}
+                          min={formData.checkIn || today}
                           onChange={handleInputChange}
                           className="w-full pb-3 bg-transparent border-b border-gray-200 focus:border-accent outline-none transition-all pl-8 text-lg text-primary"
                         />

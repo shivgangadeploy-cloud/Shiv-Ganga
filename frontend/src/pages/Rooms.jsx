@@ -308,6 +308,7 @@ function RoomDetail({ roomId, onBack, setSelectedRoomId }) {
   const [selectedImage, setSelectedImage] = useState(null);
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
+  const today = new Date().toISOString().split("T")[0];
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
 
@@ -701,12 +702,14 @@ function RoomDetail({ roomId, onBack, setSelectedRoomId }) {
                       <input
                         type="date"
                         value={checkIn}
+                        min={today}
                         onChange={(e) => setCheckIn(e.target.value)}
                         className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-1 focus:ring-accent-600 focus:border-accent-600 outline-none text-sm"
                       />
                       <input
                         type="date"
                         value={checkOut}
+                        min={checkIn || today}
                         onChange={(e) => setCheckOut(e.target.value)}
                         className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-1 focus:ring-accent-600 focus:border-accent-600 outline-none text-sm"
                       />
