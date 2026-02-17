@@ -85,7 +85,7 @@ const handleSubmit = async (e) => {
         <div className="absolute inset-0">
           <ResponsiveImage
             src={contactHero}
-            alt="Hotel Shiv Ganga contact background"
+            alt="Contact background"
             className="w-full h-full object-cover"
           />
         </div>

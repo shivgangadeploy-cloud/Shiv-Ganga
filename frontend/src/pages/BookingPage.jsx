@@ -631,7 +631,7 @@ export default function BookingPage() {
         <div className="absolute bottom-0 left-0 w-[320px] h-[320px] md:w-[500px] md:h-[500px] bg-primary/5 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2"></div>
       </div>
       <div className="absolute inset-0">
-        <ResponsiveImage src={bgImage} alt="Hotel Shiv Ganga booking background" className="w-full h-full object-cover" />
+        <ResponsiveImage src={bgImage} alt="Booking background" className="w-full h-full object-cover" />
       </div>
 
       {/* Dark overlay (controls opacity safely) */}
