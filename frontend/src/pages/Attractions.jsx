@@ -148,7 +148,7 @@ const Attractions = () => {
               transition={{ delay: 0.5, duration: 0.8 }}
               className="absolute top-[10%] right-[15%] w-60 h-40 rounded-xl overflow-hidden border-4 border-white/20 shadow-2xl z-10 rotate-6 backdrop-blur-sm"
             >
-              <img src={attractionsData[1].image} alt="Collage 1" className="w-full h-full object-cover hover:scale-110 transition-transform duration-700" />
+              <img src={attractionsData[1].image} alt={attractionsData[1].title || "Hotel Shiv Ganga attraction collage 1"} className="w-full h-full object-cover hover:scale-110 transition-transform duration-700" />
             </motion.div>
 
            
@@ -158,7 +158,7 @@ const Attractions = () => {
               transition={{ delay: 0.7, duration: 0.8 }}
               className="absolute top-[35%] left-[10%] w-72 h-48 rounded-xl overflow-hidden border-4 border-white/20 shadow-2xl z-20 -rotate-3 backdrop-blur-sm"
             >
-              <img src={attractionsData[0].image} alt="Collage 2" className="w-full h-full object-cover hover:scale-110 transition-transform duration-700" />
+              <img src={attractionsData[0].image} alt={attractionsData[0].title || "Hotel Shiv Ganga attraction collage 2"} className="w-full h-full object-cover hover:scale-110 transition-transform duration-700" />
             </motion.div>
 
             
@@ -168,7 +168,7 @@ const Attractions = () => {
               transition={{ delay: 0.9, duration: 0.8 }}
               className="absolute bottom-[20%] right-[8%] w-56 h-40 rounded-xl overflow-hidden border-4 border-white/20 shadow-2xl z-30 rotate-3 backdrop-blur-sm"
             >
-              <img src={attractionsData[3].image} alt="Collage 3" className="w-full h-full object-cover hover:scale-110 transition-transform duration-700" />
+              <img src={attractionsData[3].image} alt={attractionsData[3].title || "Hotel Shiv Ganga attraction collage 3"} className="w-full h-full object-cover hover:scale-110 transition-transform duration-700" />
             </motion.div>
           </div>
           

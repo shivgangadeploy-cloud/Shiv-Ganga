@@ -124,7 +124,7 @@ if (data.role === "admin") {
             <div className="absolute inset-0">
               <ResponsiveImage
                 src={showcaseImages[currentImageIndex].url}
-                alt="Hotel Management"
+                alt={showcaseImages[currentImageIndex].alt || "Hotel Shiv Ganga showcase image"}
                 className="w-full h-full object-cover opacity-90 transition-all duration-700"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/60"></div>

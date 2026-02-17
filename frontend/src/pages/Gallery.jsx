@@ -349,7 +349,7 @@ export default function Gallery() {
                     <div className="max-w-7xl max-h-[90vh] mx-auto px-20">
                         <img
                             src={filteredImages[currentImage]?.src}
-                            alt={`Gallery ${currentImage + 1}`}
+                            alt={filteredImages[currentImage]?.alt || `Gallery ${currentImage + 1}`}
                             loading="lazy"
                             className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
                         />
