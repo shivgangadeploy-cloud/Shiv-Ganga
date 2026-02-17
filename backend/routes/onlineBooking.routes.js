@@ -1,4 +1,7 @@
 import express from "express";
+import rateLimit from "express-rate-limit";
+import { verifyTurnstile } from "../middlewares/turnstile.middleware.js";
+import { validateBookingForm } from "../middlewares/validate-input.middleware.js";
 import {
   createPaymentOrder,
   verifyPayment,
@@ -10,17 +13,28 @@ import {
 
 const router = express.Router();
 
-router.post("/online-booking/create-order", createPaymentOrder);
-router.post("/online-booking/verify", verifyPayment);
-router.post("/online-booking/fake-verify", fakeVerifyPayment);
+// Rate limiting for booking endpoints
+const bookingLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 10,
+  message: "Too many booking attempts, please try again later.",
+});
+
+router.post("/online-booking/create-order", bookingLimiter, verifyTurnstile, validateBookingForm, createPaymentOrder);
+router.post("/online-booking/verify", bookingLimiter, verifyPayment);
+router.post("/online-booking/fake-verify", bookingLimiter, fakeVerifyPayment);
 
 router.post(
   "/online-booking/remaining/create-order",
+  bookingLimiter,
+  verifyTurnstile,
+  validateBookingForm,
   createRemainingPaymentOrder,
 );
-router.post("/online-booking/remaining/verify", verifyRemainingPayment);
+router.post("/online-booking/remaining/verify", bookingLimiter, verifyRemainingPayment);
 router.post(
   "/online-booking/remaining/fake-verify",
+  bookingLimiter,
   fakeVerifyRemainingPayment,
 );
 
@@ -50,24 +64,6 @@ router.post("/online-booking/test-email", async (req, res) => {
 });
 
 export default router;
-
-// import express from "express";
-// import {
-//   createPaymentOrder,
-//   verifyPayment,
-//   fakeVerifyPayment,
-
-//   createRemainingPaymentOrder,
-//   verifyRemainingPayment,
-//   fakeVerifyRemainingPayment
-
-// } from "../controllers/onlineBooking.controller.js";
-
-// const router = express.Router();
-
-// router.post("/online-booking/create-order", createPaymentOrder);
-// router.post("/online-booking/verify", verifyPayment);
-// router.post("/online-booking/fake-verify", fakeVerifyPayment);
 
 // router.post(
 //   "/online-booking/remaining/create-order",

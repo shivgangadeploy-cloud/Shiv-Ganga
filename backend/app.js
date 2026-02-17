@@ -2,6 +2,8 @@ import express from "express"
 import cors from "cors"
 import {fileURLToPath} from "url"
 import helmet from "helmet"
+import compression from "compression"
+import rateLimit from "express-rate-limit"
 import path from "path"
 import { errorMiddleware } from "./middlewares/error.middleware.js";
 import authRoutes from "./routes/auth.routes.js"
@@ -33,7 +35,59 @@ const app = express()
 const __filename = fileURLToPath(import.meta.url)
 const _dirname = path.dirname(__filename)
 
-app.use(helmet());
+// Security: Helmet with enhanced HSTS
+app.use(helmet({
+  hsts: {
+    maxAge: 31536000, // 1 year in seconds
+    includeSubDomains: true,
+    preload: true
+  },
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      scriptSrc: ["'self'", "https://checkout.razorpay.com"],
+      imgSrc: ["'self'", "data:", "https:", "blob:"],
+      connectSrc: ["'self'", "https:"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"]
+    }
+  }
+}));
+
+// Compression middleware for all responses
+app.use(compression());
+
+// Global rate limiting (applies to all routes)
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: "Too many requests from this IP, please try again later.",
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+
+app.use(globalLimiter);
+
+// Tighter rate limiting for sensitive endpoints
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5, // 5 login attempts per 15 minutes
+  message: "Too many login attempts, please try again later.",
+  skipSuccessfulRequests: true, // Don't count successful requests
+});
+
+const contactLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5, // 5 contact submissions per hour per IP
+  message: "Too many contact submissions, please try again later.",
+});
+
+const bookingLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 10, // 10 booking attempts per 5 minutes
+  message: "Too many booking attempts, please try again later.",
+});
+
 app.use(express.json());
 // app.use(cors({
 //   origin: "http://localhost:5173",

@@ -19,6 +19,9 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { FaWhatsapp } from "react-icons/fa";
 import bgImage from "../assets/homepage-images/banner-one.webp";
 import Seo from "../components/Seo";
+import Turnstile from "../components/Turnstile";
+import ResponsiveImage from "../components/ResponsiveImage";
+import api from "../api/api";
 
 const _motion = motion;
 
@@ -65,7 +68,6 @@ const ACTIVITIES = [
   },
 ];
 
-import api from "../api/api";
 
 export default function BookingPage() {
   const navigate = useNavigate(); // ✅ INSIDE component
@@ -124,6 +126,7 @@ export default function BookingPage() {
   const [otpCountdown, setOtpCountdown] = useState(0);
   const [otpError, setOtpError] = useState("");
   const otpTimerRef = useRef(null);
+  const turnstileRef = useRef(null);
   const [availabilityChecked, setAvailabilityChecked] = useState(false);
   const [availableRoomsCount, setAvailableRoomsCount] = useState(null);
   const [showPaymentChoice, setShowPaymentChoice] = useState(false);
@@ -245,6 +248,14 @@ export default function BookingPage() {
   const openRazorpay = async (type = "FULL") => {
     setPaymentError(""); // ✅ Clear previous errors
     try {
+      // ✅ Verify Cloudflare Turnstile before payment
+      const captchaToken = turnstileRef.current?.getToken();
+      if (!captchaToken) {
+        setPaymentError("Please complete the CAPTCHA verification");
+        setShowPaymentChoice(true);
+        return;
+      }
+
       // ✅ Added Razorpay check from version 2
       if (typeof window.Razorpay === "undefined") {
         setPaymentError("Payment gateway not loaded. Please refresh the page.");
@@ -290,6 +301,7 @@ export default function BookingPage() {
         couponCode: appliedCoupon?.code || null,
         amountInPaise, // ✅ Added from version 2
         totalAmount: finalPayableAmount, // ✅ Added from version 2
+        captchaToken // Include Turnstile token
       });
 
       const { order, transactionId, bookingPayload } = res.data;
@@ -617,10 +629,9 @@ export default function BookingPage() {
         <div className="absolute top-0 right-0 w-[320px] h-[320px] md:w-[500px] md:h-[500px] bg-accent/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2"></div>
         <div className="absolute bottom-0 left-0 w-[320px] h-[320px] md:w-[500px] md:h-[500px] bg-primary/5 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2"></div>
       </div>
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(${bgImage})` }}
-      ></div>
+      <div className="absolute inset-0">
+        <ResponsiveImage src={bgImage} alt="Booking background" className="w-full h-full object-cover" />
+      </div>
 
       {/* Dark overlay (controls opacity safely) */}
       <div className="absolute inset-0 bg-primary opacity-80 pointer-events-none"></div>
@@ -853,6 +864,11 @@ export default function BookingPage() {
                     {paymentError}
                   </div>
                 )}
+
+                {/* Cloudflare Turnstile CAPTCHA */}
+                <div className="mb-4 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                  <Turnstile ref={turnstileRef} />
+                </div>
 
                 <button
                   className="w-full bg-primary text-white py-3 rounded-xl mb-3"
@@ -1212,6 +1228,7 @@ export default function BookingPage() {
                             <img
                               src={activity.img}
                               alt={activity.title}
+                              loading="lazy"
                               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                             />
                             <div
