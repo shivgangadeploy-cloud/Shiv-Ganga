@@ -8,8 +8,6 @@ export default function BookingCalendar() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
-  const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 10;
 
   // 1. DATA LINKING: Fetching Bookings from Backend
   useEffect(() => {
@@ -22,7 +20,6 @@ export default function BookingCalendar() {
       const res = await api.get("/admin/bookings");
       if (res.data.success) {
         setBookings(res.data.data);
-        setCurrentPage(1);
       }
     } catch (err) {
       console.error("Fetch error:", err);
@@ -35,48 +32,31 @@ export default function BookingCalendar() {
 
   const filteredBookings = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return bookings
+    const filtered = bookings
       .filter((b) => {
-        const guestName =
-          `${b.user?.firstName} ${b.user?.lastName}`.toLowerCase();
-        return guestName.includes(q) || b.guestId?.toLowerCase().includes(q);
+        const guestName = `${b.user?.firstName || ""} ${b.user?.lastName || ""}`
+          .trim()
+          .toLowerCase();
+        return (
+          guestName.includes(q) || (b.guestId || "").toLowerCase().includes(q)
+        );
       })
       .filter((b) =>
         statusFilter === "All"
           ? true
           : b.paymentStatus === statusFilter.toLowerCase(),
       );
+
+    return filtered.sort((a, b) => {
+      const ta = new Date(
+        a.createdAt || a.updatedAt || a.checkInDate,
+      ).getTime();
+      const tb = new Date(
+        b.createdAt || b.updatedAt || b.checkInDate,
+      ).getTime();
+      return tb - ta; // recent first
+    });
   }, [bookings, search, statusFilter]);
-
-  // Ensure latest bookings are always on top
-  const sortedBookings = useMemo(
-    () =>
-      [...filteredBookings].sort(
-        (a, b) =>
-          new Date(b.createdAt || b.checkInDate || 0) -
-          new Date(a.createdAt || a.checkInDate || 0),
-      ),
-    [filteredBookings],
-  );
-
-  const totalPages = Math.max(
-    1,
-    Math.ceil(sortedBookings.length / ITEMS_PER_PAGE),
-  );
-
-  const paginatedBookings = useMemo(
-    () =>
-      sortedBookings.slice(
-        (currentPage - 1) * ITEMS_PER_PAGE,
-        currentPage * ITEMS_PER_PAGE,
-      ),
-    [sortedBookings, currentPage],
-  );
-
-  // Reset to first page when filters/search change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [search, statusFilter]);
 
   const statusBadgeClass = (status) => {
     if (status === "paid")
@@ -108,7 +88,6 @@ export default function BookingCalendar() {
         <div className="p-4 flex flex-wrap items-center gap-3">
           <div className="flex-1 min-w-[220px] flex items-center gap-2 border border-gray-300 rounded-2xl px-3 py-2">
             <Search size={16} className="text-gray-500" />
-
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -129,7 +108,7 @@ export default function BookingCalendar() {
         </div>
 
         {/* TABLE DATA LINKED TO CONTROLLERS */}
-        <div className="overflow-x-auto">
+        <div className="hidden md:block overflow-x-auto">
           {loading ? (
             <div className="p-10 flex justify-center">
               <Loader2 className="animate-spin text-primary" />
@@ -159,7 +138,7 @@ export default function BookingCalendar() {
                 </tr>
               </thead>
               <tbody>
-                {paginatedBookings.map((b) => (
+                {filteredBookings.map((b) => (
                   <tr
                     key={b._id}
                     className="border-t border-gray-200 hover:bg-gray-50/50"
@@ -204,7 +183,7 @@ export default function BookingCalendar() {
                     </td>
                   </tr>
                 ))}
-                {paginatedBookings.length === 0 && !loading && (
+                {filteredBookings.length === 0 && (
                   <tr>
                     <td
                       colSpan={6}
@@ -219,42 +198,59 @@ export default function BookingCalendar() {
           )}
         </div>
 
-        {/* Pagination */}
-        {!loading && filteredBookings.length > 0 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 text-xs text-gray-600">
-            <span>
-              Page {currentPage} of {totalPages} • {filteredBookings.length}{" "}
-              bookings
-            </span>
+        {/* MOBILE CARDS */}
+        <div className="md:hidden">
+          {loading ? (
+            <div className="p-8 text-center text-gray-500">Loading bookings...</div>
+          ) : filteredBookings.length === 0 ? (
+            <div className="p-8 text-center text-gray-500">No bookings found</div>
+          ) : (
+            <div className="p-3 space-y-3">
+              {filteredBookings.map((b) => (
+                <div key={b._id} className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="text-sm font-bold text-gray-800">
+                        {b.user?.firstName} {b.user?.lastName}
+                      </div>
+                      <div className="text-[10px] text-primary font-bold uppercase tracking-widest">
+                        {b.guestId}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-bold text-accent text-sm">₹ {b.totalAmount}</div>
+                    </div>
+                  </div>
 
-            <div className="flex gap-2">
-              <button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className={`px-3 py-1 rounded-xl border text-xs font-semibold uppercase tracking-widest ${
-                  currentPage === 1
-                    ? "border-gray-200 text-gray-300 cursor-not-allowed"
-                    : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                }`}
-              >
-                Previous
-              </button>
-              <button
-                onClick={() =>
-                  setCurrentPage((p) => Math.min(totalPages, p + 1))
-                }
-                disabled={currentPage === totalPages}
-                className={`px-3 py-1 rounded-xl border text-xs font-semibold uppercase tracking-widest ${
-                  currentPage === totalPages
-                    ? "border-gray-200 text-gray-300 cursor-not-allowed"
-                    : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                }`}
-              >
-                Next
-              </button>
+                  <div className="mt-2 grid grid-cols-2 gap-3">
+                    <div>
+                      <div className="text-[10px] uppercase tracking-widest text-gray-400">Room</div>
+                      <div className="text-sm text-gray-700">{b.room?.roomNumber || "—"}</div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] uppercase tracking-widest text-gray-400">Date</div>
+                      <div className="text-sm text-gray-700">
+                        {new Date(b.checkInDate).toLocaleDateString()}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] uppercase tracking-widest text-gray-400">Payment</div>
+                      <span className={`inline-block text-[11px] px-2 py-1 border rounded-2xl ${statusBadgeClass(b.paymentStatus)}`}>
+                        {b.paymentStatus}
+                      </span>
+                    </div>
+                    <div>
+                      <div className="text-[10px] uppercase tracking-widest text-gray-400">Status</div>
+                      <span className="inline-block text-[11px] px-2 py-1 border rounded-2xl bg-blue-100 text-blue-700 border-blue-200">
+                        {b.bookingStatus}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </Motion.div>
   );
