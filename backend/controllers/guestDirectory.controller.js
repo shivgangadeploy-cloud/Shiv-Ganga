@@ -267,6 +267,37 @@ export const getGuestTransactions = async (req, res, next) => {
   }
 };
 
+export const getGuestBookingHistory = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const bookings = await Booking.find({ user: id })
+      .sort({ createdAt: -1 })
+      .populate("room", "name roomNumber")
+      .lean();
+
+    const data = bookings.map((b) => ({
+      id: b._id.toString(),
+      bookingReference: b.guestId || b._id.toString().slice(-6).toUpperCase(),
+      checkInDate: b.checkInDate,
+      checkOutDate: b.checkOutDate,
+      createdAt: b.createdAt,
+      room: b.room ? `${b.room.roomNumber} • ${b.room.name}` : "Room Not Found",
+      bookingStatus: b.bookingStatus,
+      paymentStatus: b.paymentStatus,
+      totalAmount: b.totalAmount || 0,
+      paidAmount: b.paidAmount || 0,
+      pendingAmount: b.pendingAmount || 0,
+    }));
+
+    res.json({
+      success: true,
+      data,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 export const exportGuestsToSheet = async (req, res, next) => {
   try {
