@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import api from "../api/api";
 import { motion } from "framer-motion";
 import {
   Check,
@@ -47,7 +48,7 @@ const roomsData = [
     fullDescription:
       "Featuring a cozy double bed, stylish interiors, a serene ambiance, flat-screen LED TV, and a modern bathroom perfect for guests who seek luxury that feels effortless.",
     image:
-    "/images/room-img1.webp",
+      "/images/room-img1.webp",
     images: [
       "/images/room-img1.webp",
       "/images/room-img2.webp",
@@ -88,7 +89,7 @@ const roomsData = [
     image:
       "/images/room-img2.webp",
     images: [
-     "/images/room-img2.webp",
+      "/images/room-img2.webp",
       "/images/room-img3.webp",
       "/images/room-img1.webp",
     ],
@@ -126,10 +127,10 @@ const roomsData = [
     fullDescription:
       "Multiple comfortable beds, stay refreshed with individual air conditioning, and an LED TV for entertainment, along with a sitting area for family time.",
     image:
-     "/images/room-img4.webp",
+      "/images/room-img4.webp",
     images: [
       "/images/room-img4.webp",
-     "/images/room-img2.webp",
+      "/images/room-img2.webp",
       "/images/room-img3.webp",
     ],
     amenities: [
@@ -308,6 +309,7 @@ function RoomDetail({ roomId, onBack, setSelectedRoomId }) {
   const [selectedImage, setSelectedImage] = useState(null);
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
+  const today = new Date().toISOString().split("T")[0];
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
 
@@ -702,12 +704,14 @@ function RoomDetail({ roomId, onBack, setSelectedRoomId }) {
                       <input
                         type="date"
                         value={checkIn}
+                        min={today}
                         onChange={(e) => setCheckIn(e.target.value)}
                         className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-1 focus:ring-accent-600 focus:border-accent-600 outline-none text-sm"
                       />
                       <input
                         type="date"
                         value={checkOut}
+                        min={checkIn || today}
                         onChange={(e) => setCheckOut(e.target.value)}
                         className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-1 focus:ring-accent-600 focus:border-accent-600 outline-none text-sm"
                       />
@@ -1117,7 +1121,7 @@ function RoomsList({ onSelectRoom }) {
         </div>
 
         {/* Hotel Facilities */}
-        <div className="bg-30gradient-to-br from-white to-accent-50/ rounded-3xl p-12 mb-20 shadow-xl">
+        <div className="bg-gradient-to-br from-white to-accent-50 rounded-3xl p-12 mb-20 shadow-xl">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-serif text-gray-800 mb-4">
               World-Class Amenities

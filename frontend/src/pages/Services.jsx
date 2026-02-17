@@ -120,7 +120,7 @@ export default function Services() {
                                 className="bg-white rounded-sm overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group"
                             >
                                 <div className="h-48 overflow-hidden relative">
-                                    <img src={item.img} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                                    <img src={item.img} alt={item.title || "Hotel Shiv Ganga service"} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                                     <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 text-xs font-bold uppercase tracking-wider text-primary">
                                         {item.price}
                                     </div>

@@ -70,6 +70,7 @@ const ACTIVITIES = [
 
 
 export default function BookingPage() {
+    const today = new Date().toISOString().split("T")[0];
   const navigate = useNavigate(); // ✅ INSIDE component
   const location = useLocation();
   console.log("Razorpay key:", import.meta.env.VITE_RAZORPAY_KEY);
@@ -630,7 +631,7 @@ export default function BookingPage() {
         <div className="absolute bottom-0 left-0 w-[320px] h-[320px] md:w-[500px] md:h-[500px] bg-primary/5 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2"></div>
       </div>
       <div className="absolute inset-0">
-        <ResponsiveImage src={bgImage} alt="Booking background" className="w-full h-full object-cover" />
+        <ResponsiveImage src={bgImage} alt="Hotel Shiv Ganga booking background" className="w-full h-full object-cover" />
       </div>
 
       {/* Dark overlay (controls opacity safely) */}
@@ -926,6 +927,7 @@ export default function BookingPage() {
                           type="date"
                           name="checkIn"
                           value={formData.checkIn}
+                          min={today}
                           onChange={handleInputChange}
                           className="w-full pb-3 bg-transparent border-b border-gray-200 focus:border-accent outline-none transition-all pl-8 text-lg text-primary placeholder-transparent"
                         />
@@ -944,6 +946,7 @@ export default function BookingPage() {
                           type="date"
                           name="checkOut"
                           value={formData.checkOut}
+                          min={formData.checkIn || today}
                           onChange={handleInputChange}
                           className="w-full pb-3 bg-transparent border-b border-gray-200 focus:border-accent outline-none transition-all pl-8 text-lg text-primary"
                         />
@@ -1029,7 +1032,7 @@ export default function BookingPage() {
                   className="space-y-8 "
                 >
                   <div className="flex justify-between items-center mb-6 pb-4 border-gray-100">
-                    <h2 className="text-3xl font-semibold text-primary">
+                    <h2 className="text-3xl font-semibold text-white">
                       Select Rooms
                     </h2>
                   </div>

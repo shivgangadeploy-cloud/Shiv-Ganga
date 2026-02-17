@@ -483,7 +483,7 @@ const NewBooking = () => {
                     name="checkOut"
                     value={formData.checkOut}
                     onChange={handleInputChange}
-                    min={formData.checkIn}
+                    min={formData.checkIn || getTodayString()}
                     type="date"
                     className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D4AF37] focus:bg-white transition-all text-sm font-bold text-slate-700 cursor-pointer"
                   />

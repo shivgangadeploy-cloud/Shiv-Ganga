@@ -193,7 +193,7 @@ export default function About() {
               whileHover={{ scale: 1.04 }}
               className="h-[300px] sm:h-[380px] md:h-[460px] rounded-3xl overflow-hidden"
             >
-              <img src={about4} className="w-full h-full object-cover" />
+              <img src={about4} alt="Hotel Shiv Ganga room" className="w-full h-full object-cover" />
             </motion.div>
 
             <div className="grid grid-rows-2 gap-6">
@@ -204,7 +204,7 @@ export default function About() {
                     whileHover={{ scale: 1.05 }}
                     className="h-[160px] sm:h-[200px] rounded-2xl overflow-hidden"
                   >
-                    <img src={img} className="w-full h-full object-cover" />
+                    <img src={img} alt={`Hotel Shiv Ganga room collage ${i+1}`} className="w-full h-full object-cover" />
                   </motion.div>
                 ))}
               </div>
@@ -213,7 +213,7 @@ export default function About() {
                 whileHover={{ scale: 1.05 }}
                 className="h-[180px] sm:h-[220px] rounded-2xl overflow-hidden"
               >
-                <img src={about3} className="w-full h-full object-cover" />
+                <img src={about3} alt="Hotel Shiv Ganga image" className="w-full h-full object-cover" />
               </motion.div>
             </div>
           </div>
