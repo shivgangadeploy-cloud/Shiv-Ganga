@@ -288,6 +288,20 @@ export const getAllRooms = async (req, res, next) => {
             }
           }
         }
+      },
+      {
+        $addFields: {
+          bookingDetails: {
+            $cond: [
+              { $ne: ["$activeBooking", null] },
+              {
+                checkInDate: "$activeBooking.checkInDate",
+                checkOutDate: "$activeBooking.checkOutDate",
+              },
+              null
+            ]
+          }
+        }
       }
     ]);
 

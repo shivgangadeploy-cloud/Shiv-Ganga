@@ -261,11 +261,11 @@ export const getReceptionistStatus = async (req, res) => {
     .sort({ createdAt: -1 });
 
   const formatted = receptionists.map((r) => ({
-    name: `${r.firstName} ${r.lastName}`,
-    employeeId: r.employeeId,
-    email: r.email,
-    status: r.isActive ? "Active" : "Inactive",
-    isActive: r.isActive,
+    name: `${r?.firstName} ${r?.lastName}`,
+    employeeId: r?.employeeId,
+    email: r?.email,
+    status: r?.isActive ? "Active" : "Inactive",
+    isActive: r?.isActive,
   }));
 
   res.json({

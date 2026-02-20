@@ -42,16 +42,7 @@ app.use(helmet({
     includeSubDomains: true,
     preload: true
   },
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      scriptSrc: ["'self'", "https://checkout.razorpay.com"],
-      imgSrc: ["'self'", "data:", "https:", "blob:"],
-      connectSrc: ["'self'", "https:"],
-      fontSrc: ["'self'", "https://fonts.gstatic.com"]
-    }
-  }
+  contentSecurityPolicy: false
 }));
 
 // Compression middleware for all responses
@@ -106,15 +97,18 @@ const allowedOrigins = [
 ];
 
 app.use(cors({
-  origin: function (origin, callback) {
-    // allow requests with no origin (Postman, mobile apps)
+  origin: (origin, callback) => {
+
+    console.log("Origin:", origin);
+
     if (!origin) return callback(null, true);
 
     if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
+      return callback(null, true);
     }
+
+    // instead of throwing error:
+    return callback(null, false);
   },
   credentials: true
 }));

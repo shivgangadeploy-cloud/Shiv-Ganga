@@ -52,6 +52,9 @@ const RoomStatus = () => {
         guest: room?.activeBooking?.guestName ?? null,
         bookingId: room?.activeBooking ?? null,
 
+        checkInDate: room?.activeBooking?.checkInDate ?? null,
+        checkOutDate: room?.activeBooking?.checkOutDate ?? null,
+
         issue: room?.issue ?? "General Maintenance",
       })) ?? [];
 
@@ -349,12 +352,14 @@ const RoomStatus = () => {
                   <div className="p-5">
                     <div className="flex justify-between items-start mb-4 relative">
                       <div className="flex items-center gap-3">
-                        <div
-                          className={`size-10 rounded-xl flex items-center justify-center bg-white border border-slate-100 shadow-sm ${config.badgeText}`}
-                        >
-                          <span className="font-black text-lg">
+                        <div className="flex flex-col leading-tight">
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                            Room
+                          </p>
+
+                          <p className="text-2xl font-extrabold text-[#0f172a]">
                             {room.displayId}
-                          </span>
+                          </p>
                         </div>
                         <div>
                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
@@ -379,10 +384,9 @@ const RoomStatus = () => {
                         </button>
 
                         {openMenuId === room.displayId && (
-                          <div className="absolute right-0 top-8 w-44 bg-white rounded-xl shadow-xl border border-slate-100 p-1 z-50 animate-in zoom-in-95 duration-200 room-menu-content">
-                            {/* <div className="absolute right-0 top-8 w-44 bg-white rounded-xl shadow-xl border border-slate-100 p-1 z-50"> */}
+                          <div className="absolute right-0 top-8 w-48 bg-white rounded-2xl shadow-2xl border border-slate-200 p-2 z-50 animate-in zoom-in-95 duration-200 room-menu-content">
 
-                            <p className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase">
+                            <p className="px-3 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                               Actions
                             </p>
 
@@ -390,11 +394,10 @@ const RoomStatus = () => {
                             <button
                               disabled={room.status !== "Booked"}
                               onClick={() => handleCheckIn(room.mongoId)}
-                              title={room.status !== "Booked" ? "Only Booked rooms can be checked in" : "Check in guest"}
-                              className={`w-full px-3 py-2 text-xs font-bold rounded-lg
-                                ${room.status !== "Booked"
-                                  ? "text-gray-400 cursor-not-allowed"
-                                  : "text-emerald-600 hover:bg-emerald-50"
+                              className={`w-full flex items-center gap-2 px-3 py-2.5 text-xs font-semibold rounded-xl transition-all
+      ${room.status !== "Booked"
+                                  ? "text-gray-400 cursor-not-allowed bg-gray-50"
+                                  : "text-emerald-600 hover:bg-emerald-50 active:scale-[0.98]"
                                 }`}
                             >
                               ✅ Check-In
@@ -402,11 +405,11 @@ const RoomStatus = () => {
 
                             {/* CHECK OUT */}
                             <button
-                              disabled={room.status !== "Occupied"}
                               onClick={() => handleCheckOut(room.mongoId)}
-                              className={`w-full px-3 py-2 text-left text-xs font-bold rounded-lg ${room.status !== "Occupied"
-                                ? "text-gray-400 cursor-not-allowed"
-                                : "text-rose-600 hover:bg-rose-50"
+                              className={`w-full flex items-center gap-2 px-3 py-2.5 text-xs font-semibold rounded-xl transition-all
+      ${room.status !== "Occupied"
+                                  ? "text-gray-400 bg-gray-50"
+                                  : "text-rose-600 hover:bg-rose-50 active:scale-[0.98]"
                                 }`}
                             >
                               🚪 Check-Out
@@ -417,12 +420,11 @@ const RoomStatus = () => {
                               onClick={() =>
                                 handleMaintenance(room.mongoId, room.status)
                               }
-                              className="w-full px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-lg"
+                              className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-semibold rounded-xl text-slate-600 hover:bg-slate-100 active:scale-[0.98] transition-all"
                             >
                               🛠 Maintenance
                             </button>
 
-                            {/* </div> */}
                           </div>
                         )}
                       </div>
@@ -444,7 +446,7 @@ const RoomStatus = () => {
                     </div>
 
                     <div className="min-h-[50px]">
-                      {room.status === "Occupied" ? (
+                      {room.status === "Occupied" || room.status === "Booked" ? (
                         <div className="flex items-center gap-3">
                           <div className="size-8 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-bold border-2 border-white shadow-sm">
                             {room.guest ? (
@@ -453,12 +455,21 @@ const RoomStatus = () => {
                               <User size={14} />
                             )}
                           </div>
+
                           <div>
                             <p className="text-sm font-bold text-[#0f172a] leading-tight">
-                              {room.guest || "Guest In-House"}
+                              {room.guest || "Reserved Guest"}
                             </p>
+                            {/* ⭐ ADD BOOKING DATES */}
+                            {room.checkInDate && room.checkOutDate && (
+                              <p className="text-[10px] text-slate-400 font-medium">
+                                {new Date(room.checkInDate).toLocaleDateString()} →{" "}
+                                {new Date(room.checkOutDate).toLocaleDateString()}
+                              </p>
+                            )}
+
                             <p className="text-[10px] text-slate-400 font-medium">
-                              Currently Stayed
+                              {room.status === "Occupied" ? "Currently Stayed" : "Upcoming Booking"}
                             </p>
                           </div>
                         </div>
