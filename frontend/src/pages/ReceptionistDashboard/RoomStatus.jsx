@@ -32,43 +32,37 @@ const RoomStatus = () => {
   // NEW: Fetch function to connect to your room.controller.js
   const fetchRooms = async () => {
     setLoading(true);
+
     try {
-      // We pass the date as a query param to the controller's getAllRooms
-      const response = await api.get(`/room?date=${selectedDate}`);
+      const { data } = await api.get(`/room?date=${selectedDate}`);
 
-      const mappedData = response.data.data.map((room) => {
-        const derived = room.derivedStatus;
-        const status = derived || (
-          room.status === "Maintenance"
-            ? "Maintenance"
-            : room.status === "Occupied"
-              ? "Occupied"
-              : room.activeBooking
-                ? (room.activeBooking?.isCheckedIn ? "Occupied" : "Booked")
-                : "Available"
-        );
-        return {
-          id: room._id,
-          displayId: room.roomNumber,
-          mongoId: room._id,
-          type: room.type || room.name || "Room",
-          price: room.pricePerNight || 0,
-          status,
+      console.log(data.data);
 
-          guest: room.activeBooking?.guestName || null,
-          bookingId: room.activeBooking || null,
-          issue: room.issue || "General Maintenance",
-        };
-      });
+      const mappedData = data?.data?.map((room) => ({
+        id: room?._id,
+        displayId: room?.roomNumber,
+        mongoId: room?._id,
+
+        type: room?.type ?? room?.name ?? "Room",
+        price: room?.pricePerNight ?? 0,
+
+        // ✅ Backend controls status
+        status: room?.derivedStatus ?? "Available",
+
+        guest: room?.activeBooking?.guestName ?? null,
+        bookingId: room?.activeBooking ?? null,
+
+        issue: room?.issue ?? "General Maintenance",
+      })) ?? [];
 
       setRooms(mappedData);
+
     } catch (error) {
       console.error("Fetch error:", error);
     } finally {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     fetchRooms();
   }, [selectedDate]); // Re-fetch when date changes
@@ -329,11 +323,10 @@ const RoomStatus = () => {
                   onClick={() => setFilterStatus(status)}
                   className={`
                   px-5 py-2 rounded-xl text-xs font-bold transition-all uppercase tracking-wide
-                  ${
-                    filterStatus === status
+                  ${filterStatus === status
                       ? "bg-[#0f172a] text-white shadow-md"
                       : "text-slate-500 hover:bg-slate-50 hover:text-[#0f172a]"
-                  }
+                    }
                 `}
                 >
                   {status}
@@ -399,10 +392,9 @@ const RoomStatus = () => {
                               onClick={() => handleCheckIn(room.mongoId)}
                               title={room.status !== "Booked" ? "Only Booked rooms can be checked in" : "Check in guest"}
                               className={`w-full px-3 py-2 text-xs font-bold rounded-lg
-                                ${
-                                  room.status !== "Booked"
-                                    ? "text-gray-400 cursor-not-allowed"
-                                    : "text-emerald-600 hover:bg-emerald-50"
+                                ${room.status !== "Booked"
+                                  ? "text-gray-400 cursor-not-allowed"
+                                  : "text-emerald-600 hover:bg-emerald-50"
                                 }`}
                             >
                               ✅ Check-In
@@ -412,11 +404,10 @@ const RoomStatus = () => {
                             <button
                               disabled={room.status !== "Occupied"}
                               onClick={() => handleCheckOut(room.mongoId)}
-                              className={`w-full px-3 py-2 text-left text-xs font-bold rounded-lg ${
-                                room.status !== "Occupied"
-                                  ? "text-gray-400 cursor-not-allowed"
-                                  : "text-rose-600 hover:bg-rose-50"
-                              }`}
+                              className={`w-full px-3 py-2 text-left text-xs font-bold rounded-lg ${room.status !== "Occupied"
+                                ? "text-gray-400 cursor-not-allowed"
+                                : "text-rose-600 hover:bg-rose-50"
+                                }`}
                             >
                               🚪 Check-Out
                             </button>

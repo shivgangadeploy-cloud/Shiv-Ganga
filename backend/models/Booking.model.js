@@ -145,4 +145,30 @@ const bookingSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+//INDEX (important for lookup)
+bookingSchema.index({ room: 1, checkInDate: 1, checkOutDate: 1 });
+
+
+//PREVENT OVERLAPPING BOOKINGS
+bookingSchema.pre("save", async function (next) {
+
+  //normalize date
+  this.checkInDate.setHours(0, 0, 0, 0);
+  this.checkOutDate.setHours(0, 0, 0, 0);
+
+  const overlapping = await mongoose.model("Booking").findOne({
+    room: this.room,
+    bookingStatus: "confirmed",
+    isCheckedOut: false,
+    checkInDate: { $lt: this.checkOutDate },
+    checkOutDate: { $gt: this.checkInDate },
+    _id: { $ne: this._id }
+  });
+
+  if (overlapping) {
+    return next(new Error("Room already booked for selected dates"));
+  }
+  next();
+});
+
 export default mongoose.model("Booking", bookingSchema);
