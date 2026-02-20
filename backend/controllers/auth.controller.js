@@ -57,18 +57,42 @@ export const registerAdmin = async (req, res, next) => {
 
 export const login = async (req, res, next) => {
   try {
+
+    console.log("===== LOGIN DEBUG START =====");
+
     const { email, password } = req.body;
+
+    console.log("Incoming email:", email);
+    console.log("Incoming password:", password);
 
     let user = await Admin.findOne({ email }).select("+password");
     let role = "admin";
 
+    console.log("Admin found:", user ? true : false);
+
     if (!user) {
       user = await Receptionist.findOne({ email }).select("+password");
       role = "receptionist";
+      console.log("Receptionist found:", user ? true : false);
     }
 
+    // If user exists check password match
+    if (user) {
+      console.log("Stored password hash:", user.password);
+
+      const match = await bcrypt.compare(password, user.password);
+      console.log("Password match result:", match);
+
+      if (!match) {
+        console.log("❌ Password does NOT match");
+      }
+    }
+
+    // Final condition
     if (!user || !(await bcrypt.compare(password, user.password))) {
-  
+
+      console.log("❌ LOGIN FAILED");
+
       if (user) {
         await LoginActivity.create({
           userId: user._id,
@@ -86,6 +110,7 @@ export const login = async (req, res, next) => {
       });
     }
 
+    console.log("✅ LOGIN SUCCESS");
 
     await LoginActivity.create({
       userId: user._id,
@@ -103,7 +128,9 @@ export const login = async (req, res, next) => {
       token,
       role,
     });
+
   } catch (error) {
+    console.log("🔥 LOGIN ERROR:", error);
     next(error);
   }
 };

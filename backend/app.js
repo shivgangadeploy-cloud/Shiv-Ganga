@@ -76,16 +76,7 @@ app.use(helmet({
     includeSubDomains: true,
     preload: true
   },
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      scriptSrc: ["'self'", "https://checkout.razorpay.com"],
-      imgSrc: ["'self'", "data:", "https:", "blob:"],
-      connectSrc: ["'self'", "https:"],
-      fontSrc: ["'self'", "https://fonts.gstatic.com"]
-    }
-  }
+  contentSecurityPolicy: false
 }));
 
 // Compression middleware for all responses

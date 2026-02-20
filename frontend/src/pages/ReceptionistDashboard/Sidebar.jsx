@@ -20,7 +20,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import logo from "../../assets/homepage-images/logo.webp";
+import logo from "../../assets/logo1.webp";
 
 const Sidebar = ({ children }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -311,11 +311,11 @@ const Sidebar = ({ children }) => {
   const DesktopSidebarContent = () => (
     <div className="flex flex-col h-full bg-gradient-to-b from-white to-slate-50/80 text-slate-800 font-sans shadow-[4px_0_30px_-10px_rgba(0,0,0,0.05)] z-50">
       <div className="h-28 flex items-center justify-center border-b border-slate-100/50 px-6">
-        <img
-          src={logo}
-          alt="Shiv Ganga Logo"
-          className="h-24 mt-2 w-auto object-contain transition-transform hover:scale-105 duration-500 drop-shadow-sm"
-        />
+         <img
+                           src={logo}
+                           alt="Shiv Ganga"
+                           className="h-12 sm:h-14 md:h-22 lg:h-24 rounded-2xl mt-4 object-contain"
+                         />
       </div>
 
       <div className="flex-1 px-4 py-6 overflow-hidden flex flex-col">
@@ -488,10 +488,10 @@ const Sidebar = ({ children }) => {
           </button>
           <div className="h-14 w-auto">
             <img
-              src={logo}
-              alt="Logo"
-              className="h-full object-contain drop-shadow-sm"
-            />
+                              src={logo}
+                              alt="Shiv Ganga"
+                              className="h-24 sm:h-10 md:h-14 lg:h-16 rounded-2xl object-contain"
+                            />
           </div>
           <button
             onClick={handleLogout}

@@ -47,8 +47,7 @@ const roomsData = [
       "Experience affordable luxury in our Standard Double Bedroom (Non-AC) at Hotel Shiv Ganga. Designed to offer premium comfort at a reasonable price, this room ensures a refined stay without compromising on elegance.",
     fullDescription:
       "Featuring a cozy double bed, stylish interiors, a serene ambiance, flat-screen LED TV, and a modern bathroom perfect for guests who seek luxury that feels effortless.",
-    image:
-      "/images/room-img1.webp",
+    image: "/images/room-img1.webp",
     images: [
       "/images/room-img1.webp",
       "/images/room-img2.webp",
@@ -86,8 +85,7 @@ const roomsData = [
       "Designed for guests who prefer a more spacious, refined, relaxing experience. With elegant interiors and individual air conditioning, this room offers a noticeable upgrade in comfort and ambiance.",
     fullDescription:
       "With a plush double bed, control your comfort with personalized AC. Ideal for business travelers and families, this room delivers a premium stay with enhanced comfort and privacy.",
-    image:
-      "/images/room-img2.webp",
+    image: "/images/room-img2.webp",
     images: [
       "/images/room-img2.webp",
       "/images/room-img3.webp",
@@ -126,8 +124,7 @@ const roomsData = [
       "Specially designed for families, friends and small groups who need extra space without compromising on budget and comfort. Providing planned interiors and modern amenities, this room ensures space and comfort for everyone.",
     fullDescription:
       "Multiple comfortable beds, stay refreshed with individual air conditioning, and an LED TV for entertainment, along with a sitting area for family time.",
-    image:
-      "/images/room-img4.webp",
+    image: "/images/room-img4.webp",
     images: [
       "/images/room-img4.webp",
       "/images/room-img2.webp",
@@ -166,8 +163,7 @@ const roomsData = [
       "Perfectly tailored for families and larger groups who want space without compromising on comfort and style. Relax on comfortable beds for four, enjoy personalized air conditioning, and unwind with entertainment on a flat screen LED TV.",
     fullDescription:
       "With a well-appointed private bathroom and a cozy sitting area, this room is perfect for family vacations, group travel, or extended stays, providing comfort, privacy and style in one delightful space.",
-    image:
-      "/images/room-img5.webp",
+    image: "/images/room-img5.webp",
     images: [
       "/images/room-img3.webp",
       "/images/room-img2.webp",
@@ -206,8 +202,7 @@ const roomsData = [
       "Specially designed for families, friends and small groups who need extra space without compromising on budget and comfort. Providing planned interiors and modern amenities, this room ensures space and comfort for everyone.",
     fullDescription:
       "Multiple comfortable beds, stay refreshed with individual air conditioning, and an LED TV for entertainment, along with a sitting area for family time.",
-    image:
-      "/images/room-img6.webp",
+    image: "/images/room-img6.webp",
     images: [
       "/images/room-img4.webp",
       "/images/room-img2.webp",
@@ -246,8 +241,7 @@ const roomsData = [
       "Perfectly tailored for families and larger groups who want space without compromising on comfort and style. Relax on comfortable beds for four, enjoy personalized air conditioning, and unwind with entertainment on a flat screen LED TV.",
     fullDescription:
       "With a well-appointed private bathroom and a cozy sitting area, this room is perfect for family vacations, group travel, or extended stays, providing comfort, privacy and style in one delightful space.",
-    image:
-      "/images/room-img3.webp",
+    image: "/images/room-img3.webp",
     images: [
       "/images/room-img3.webp",
       "/images/room-img2.webp",
@@ -310,7 +304,7 @@ function RoomDetail({ roomId, onBack, setSelectedRoomId }) {
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const today = new Date().toISOString().split("T")[0];
-  const [adults, setAdults] = useState(2);
+  const [adults, setAdults] = useState(1);
   const [children, setChildren] = useState(0);
 
   useEffect(() => {
@@ -721,32 +715,37 @@ function RoomDetail({ roomId, onBack, setSelectedRoomId }) {
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                       Adults
                     </label>
-                    <select
-                      value={adults}
-                      onChange={(e) => setAdults(parseInt(e.target.value))}
-                      className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-1 focus:ring-accent-600 focus:border-accent-600 outline-none text-sm"
-                    >
-                      <option value={1}>1 Adult</option>
-                      <option value={2}>2 Adults</option>
-                      <option value={3}>3 Adults</option>
-                      <option value={4}>4 Adults</option>
-                    </select>
+
+                    <div className="flex items-center w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus-within:ring-1 focus-within:ring-accent-600">
+                      <input
+                        type="number"
+                        min={1}
+                        value={adults}
+                        onChange={(e) => setAdults(Number(e.target.value))}
+                        className="w-full bg-transparent outline-none text-sm"
+                      />
+                      <span className="ml-2 text-sm text-gray-600">
+                        Adult{adults > 1 ? "s" : ""}
+                      </span>
+                    </div>
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                       Children
                     </label>
-                    <select
-                      value={children}
-                      onChange={(e) => setChildren(parseInt(e.target.value))}
-                      className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-1 focus:ring-accent-600 focus:border-accent-600 outline-none text-sm"
-                    >
-                      <option value={0}>0 Children</option>
-                      <option value={1}>1 Child</option>
-                      <option value={2}>2 Children</option>
-                      <option value={3}>3 Children</option>
-                      <option value={4}>4 Children</option>
-                    </select>
+
+                    <div className="flex items-center w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus-within:ring-1 focus-within:ring-accent-600">
+                      <input
+                        type="number"
+                        min={0}
+                        value={children}
+                        onChange={(e) => setChildren(Number(e.target.value))}
+                        className="w-full bg-transparent outline-none text-sm"
+                      />
+                      <span className="ml-2 text-sm text-gray-600">
+                        Child{children !== 1 ? "ren" : ""}
+                      </span>
+                    </div>
                   </div>
 
                   <div className="py-6 border-t border-b border-gray-100 space-y-3">
@@ -969,11 +968,10 @@ function RoomsList({ onSelectRoom }) {
 
       <div className="max-w-7xl mx-auto px-6 py-20">
         {/* Filter Tabs */}
-      <div className="mb-16">
-
-  {/* Responsive container */}
-  <div
-    className="
+        <div className="mb-16">
+          {/* Responsive container */}
+          <div
+            className="
       flex gap-4
       overflow-x-auto sm:overflow-visible
       sm:flex-wrap
@@ -981,18 +979,18 @@ function RoomsList({ onSelectRoom }) {
       scrollbar-hide
       pb-2
     "
-  >
-    {[
-      { key: "all", label: "All Rooms", icon: Sparkles },
-      { key: "standard", label: "Standard", icon: Armchair },
-      { key: "deluxe", label: "Deluxe", icon: Star },
-      { key: "triple", label: "Triple", icon: Users },
-      { key: "family", label: "Family", icon: Users },
-    ].map(({ key, label, icon: Icon }) => (
-      <button
-        key={key}
-        onClick={() => handleFilterChange(key)}
-        className={`
+          >
+            {[
+              { key: "all", label: "All Rooms", icon: Sparkles },
+              { key: "standard", label: "Standard", icon: Armchair },
+              { key: "deluxe", label: "Deluxe", icon: Star },
+              { key: "triple", label: "Triple", icon: Users },
+              { key: "family", label: "Family", icon: Users },
+            ].map(({ key, label, icon: Icon }) => (
+              <button
+                key={key}
+                onClick={() => handleFilterChange(key)}
+                className={`
           shrink-0
           flex items-center gap-2
 
@@ -1009,21 +1007,20 @@ function RoomsList({ onSelectRoom }) {
               : "bg-white text-gray-700 border-2 border-gray-200 hover:bg-gray-50 hover:border-accent hover:scale-105"
           }
         `}
-      >
-        <Icon
-          size={16}
-          className={
-            selectedFilter === key
-              ? "animate-pulse"
-              : "group-hover:rotate-12 transition-transform"
-          }
-        />
-        {label}
-      </button>
-    ))}
-  </div>
-
-</div>
+              >
+                <Icon
+                  size={16}
+                  className={
+                    selectedFilter === key
+                      ? "animate-pulse"
+                      : "group-hover:rotate-12 transition-transform"
+                  }
+                />
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
 
         {/* Room Cards Grid */}
         <div

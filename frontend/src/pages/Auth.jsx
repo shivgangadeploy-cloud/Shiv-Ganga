@@ -60,18 +60,18 @@ export default function AuthPage() {
         password: loginPassword,
       });
 
-      
+
       localStorage.setItem("token", data.token);
-localStorage.setItem("role", data.role);
+      localStorage.setItem("role", data.role);
 
-if (data.role === "admin") {
-  navigate("/admin");
-}  else {
-  navigate("/receptionist/dashboard");
-}
+      if (data.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/receptionist/dashboard");
+      }
 
 
-      
+
     } catch (error) {
       alert(
         error.response?.data?.message || "Login failed"
@@ -193,8 +193,8 @@ if (data.role === "admin") {
               <button
                 onClick={() => setIsLogin(true)}
                 className={`flex-1 py-3 rounded-lg font-semibold transition-all duration-300 ${isLogin
-                    ? 'bg-white text-gray-900 shadow-md'
-                    : 'text-gray-600 hover:text-gray-900'
+                  ? 'bg-white text-gray-900 shadow-md'
+                  : 'text-gray-600 hover:text-gray-900'
                   }`}
               >
                 Login
@@ -202,8 +202,8 @@ if (data.role === "admin") {
               <button
                 onClick={() => setIsLogin(false)}
                 className={`flex-1 py-3 rounded-lg font-semibold transition-all duration-300 ${!isLogin
-                    ? 'bg-white text-gray-900 shadow-md'
-                    : 'text-gray-600 hover:text-gray-900'
+                  ? 'bg-white text-gray-900 shadow-md'
+                  : 'text-gray-600 hover:text-gray-900'
                   }`}
               >
                 Sign Up

@@ -138,87 +138,6 @@ export default function RoomManagement() {
         console.error("Failed to fetch rooms", err);
         setError("Failed to load rooms");
         setLoading(false);
-        setRooms(
-          initialRooms
-            .filter((r) => FRONTEND_TYPES.includes(r.type || inferType(r.name)))
-            .map((r, idx) => ({
-              ...r,
-              type: r.type || inferType(r.name),
-              status: r.status || statusList[idx % statusList.length],
-              priceDetails: r.priceDetails ?? {
-                ep:
-                  typeof r.price === "number"
-                    ? r.price
-                    : Number(String(r.price || "").replace(/[^0-9]/g, "")) || 0,
-                cp:
-                  (typeof r.price === "number"
-                    ? r.price
-                    : Number(String(r.price || "").replace(/[^0-9]/g, "")) ||
-                      0) + 300,
-              },
-            })),
-        );
-      }
-    };
-
-    fetchRooms();
-  }, []);
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    const headers = token ? { Authorization: `Bearer ${token}` } : {};
-
-    const fetchRooms = async () => {
-      try {
-        setLoading(true);
-        const { data } = await api.get("/room", { headers });
-        const list = (data?.data || []).map((r, idx) => {
-          const ep =
-            typeof r.pricePerNight === "number"
-              ? r.pricePerNight
-              : Number(String(r.pricePerNight || "").replace(/[^0-9]/g, "")) ||
-                0;
-          return {
-            id: r._id,
-            name: r.name,
-            price: ep,
-            priceDetails: {
-              ep,
-              cp: ep + 300,
-            },
-            capacity: (r.capacityAdults || 0) + (r.capacityChildren || 0) || 2,
-            amenities: r.features || [],
-            image: r.mainImage || initialRooms[0]?.image,
-            type: r.type || inferType(r.name),
-            status: r.status || statusList[idx % statusList.length],
-            description: r.description || "",
-          };
-        });
-        setRooms(list);
-      } catch (err) {
-        console.error("Failed to fetch rooms", err);
-        setError("Failed to load rooms");
-        setLoading(false);
-        setRooms(
-          initialRooms
-            .filter((r) => FRONTEND_TYPES.includes(r.type || inferType(r.name)))
-            .map((r, idx) => ({
-              ...r,
-              type: r.type || inferType(r.name),
-              status: r.status || statusList[idx % statusList.length],
-              priceDetails: r.priceDetails ?? {
-                ep:
-                  typeof r.price === "number"
-                    ? r.price
-                    : Number(String(r.price || "").replace(/[^0-9]/g, "")) || 0,
-                cp:
-                  (typeof r.price === "number"
-                    ? r.price
-                    : Number(String(r.price || "").replace(/[^0-9]/g, "")) ||
-                      0) + 300,
-              },
-            })),
-        );
       }
     };
 
@@ -1144,8 +1063,6 @@ export default function RoomManagement() {
             "
                 >
                   <option>Available</option>
-                  <option>Booked</option>
-                  <option>Occupied</option>
                   <option>Maintenance</option>
                 </select>
               </div>

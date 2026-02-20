@@ -14,7 +14,7 @@ const BookingBar = () => {
 
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
-  const [persons, setPersons] = useState(2);
+  const [persons, setPersons] = useState(1);
   const [children, setChildren] = useState(0);
   const [roomCategoryId, setRoomCategoryId] = useState("");
   // const [activityPersons, setActivityPersons] = useState(0);
@@ -169,31 +169,26 @@ const BookingBar = () => {
                 Persons
               </label>
               <div className="relative">
-                <select
-                  value={persons}
-                  onChange={(e) => setPersons(Number(e.target.value))}
-                  className="
-                    w-full appearance-none
-                    bg-transparent
-                    border-b border-white/30
-                    py-2 sm:py-3
-                    text-lg sm:text-xl
-                    font-serif
-                    text-white
-                    focus:border-accent
-                    outline-none
-                    transition
-                    cursor-pointer
-                    pr-8
-                  "
-                >
-                  {[1, 2, 3, 4, 5, 6].map((n) => (
-                    <option key={n} value={n} className="bg-primary text-white">
-                      {n} Person{n > 1 ? "s" : ""}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-1 top-1/2 -translate-y-1/2 text-white/60 pointer-events-none" />
+               <input
+  type="number"
+  min={1}
+  value={persons}
+  onChange={(e) => setPersons(Number(e.target.value))}
+  placeholder="No. of persons"
+  className="
+    w-full
+    bg-transparent
+    border-b border-white/30
+    py-2 sm:py-3
+    text-lg sm:text-xl
+    font-serif
+    text-white
+    focus:border-accent
+    outline-none
+    transition
+  "
+/>
+                {/* <ChevronDown className="absolute right-1 top-1/2 -translate-y-1/2 text-white/60 pointer-events-none" /> */}
               </div>
             </div>
 
@@ -203,31 +198,26 @@ const BookingBar = () => {
                 Children
               </label>
               <div className="relative">
-                <select
-                  value={children}
-                  onChange={(e) => setChildren(Number(e.target.value))}
-                  className="
-                    w-full appearance-none
-                    bg-transparent
-                    border-b border-white/30
-                    py-2 sm:py-3
-                    text-lg sm:text-xl
-                    font-serif
-                    text-white
-                    focus:border-accent
-                    outline-none
-                    transition
-                    cursor-pointer
-                    pr-8
-                  "
-                >
-                  {[0, 1, 2, 3, 4, 5, 6].map((n) => (
-                    <option key={n} value={n} className="bg-primary text-white">
-                      {n} Child{n > 1 ? "ren" : ""}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-1 top-1/2 -translate-y-1/2 text-white/60 pointer-events-none" />
+                <input
+  type="number"
+  min={0}
+  value={children}
+  onChange={(e) => setChildren(Number(e.target.value))}
+  placeholder="No. of children"
+  className="
+    w-full
+    bg-transparent
+    border-b border-white/30
+    py-2 sm:py-3
+    text-xl sm:text-2xl
+    font-serif
+    text-white
+    focus:border-accent
+    outline-none
+    transition
+  "
+/>
+                {/* <ChevronDown className="absolute right-1 top-1/2 -translate-y-1/2 text-white/60 pointer-events-none" /> */}
               </div>
             </div>
 

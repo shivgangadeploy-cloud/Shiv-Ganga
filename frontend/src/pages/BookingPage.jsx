@@ -964,28 +964,24 @@ export default function BookingPage() {
                         Adults
                       </label>
                       <div className="relative group">
-                        <select
-                          name="adults"
-                          value={formData.adults}
-                          onChange={handleInputChange}
-                          className="w-full pb-3 bg-transparent border-b border-gray-200 focus:border-accent outline-none transition-all pl-8 appearance-none text-lg text-primary cursor-pointer"
-                        >
-                          {[1, 2, 3, 4, 5, 6].map((num) => (
-                            <option key={num} value={num}>
-                              {num} Adult{num > 1 ? "s" : ""}
-                            </option>
-                          ))}
-                        </select>
+                        <input
+  type="number"
+  name="adults"
+  value={formData.adults}
+  onChange={handleInputChange}
+  min={1}
+  className="w-full pb-3 bg-transparent border-b border-gray-200 focus:border-accent outline-none transition-all pl-8 text-lg text-primary"
+/>
                         <Users
                           className="absolute left-0 top-1/2 transform -translate-y-1/2 text-gray-300 group-hover:text-accent transition-colors"
                           size={18}
                         />
-                        <div className="absolute right-0 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                        {/* <div className="absolute right-0 top-1/2 transform -translate-y-1/2 pointer-events-none">
                           <ChevronRight
                             className="rotate-90 text-gray-300"
                             size={14}
                           />
-                        </div>
+                        </div> */}
                       </div>
                     </div>
                     <div className="space-y-4">
@@ -993,28 +989,24 @@ export default function BookingPage() {
                         Children
                       </label>
                       <div className="relative group">
-                        <select
-                          name="children"
-                          value={formData.children}
-                          onChange={handleInputChange}
-                          className="w-full pb-3 bg-transparent border-b border-gray-200 focus:border-accent outline-none transition-all pl-8 appearance-none text-lg text-primary cursor-pointer"
-                        >
-                          {[0, 1, 2, 3, 4].map((num) => (
-                            <option key={num} value={num}>
-                              {num} Child{num !== 1 ? "ren" : ""}
-                            </option>
-                          ))}
-                        </select>
+                        <input
+  type="number"
+  name="children"
+  value={formData.children}
+  onChange={handleInputChange}
+  min={0}
+  className="w-full pb-3 bg-transparent border-b border-gray-200 focus:border-accent outline-none transition-all pl-8 text-lg text-primary"
+/>
                         <Users
                           className="absolute left-0 top-1/2 transform -translate-y-1/2 text-gray-300 group-hover:text-accent transition-colors"
                           size={18}
                         />
-                        <div className="absolute right-0 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                        {/* <div className="absolute right-0 top-1/2 transform -translate-y-1/2 pointer-events-none">
                           <ChevronRight
                             className="rotate-90 text-gray-300"
                             size={14}
                           />
-                        </div>
+                        </div> */}
                       </div>
                     </div>
                   </div>

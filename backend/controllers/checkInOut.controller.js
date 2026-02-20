@@ -1,9 +1,9 @@
 import Booking from "../models/Booking.model.js";
 import Room from "../models/Room.model.js";
 import User from "../models/User.model.js";
-import {sendWhatsAppDocument} from "../services/sendWhatsappDocument.js"
-import {generateInvoicePDFBuffer} from "../services/invoice.service.js"
-import {uploadToCloudinary} from "../services/cloudinary.service.js"
+import { sendWhatsAppDocument } from "../services/sendWhatsappDocument.js"
+import { generateInvoicePDFBuffer } from "../services/invoice.service.js"
+import { uploadToCloudinary } from "../services/cloudinary.service.js"
 import { notifyReceptionistCheckInOut } from "../services/notification.service.js";
 import Razorpay from "razorpay";
 import crypto from "crypto";
@@ -92,62 +92,58 @@ import BookingPolicy from "../models/BookingPolicy.model.js";
 //     next(error);
 //   }
 // };
-export const roomCheckIn = async (req, res) => {
-  const { roomId } = req.params;
+export const roomCheckIn = async (req, res, next) => {
+  try {
+    const { roomId } = req.params;
 
-  const startOfToday = new Date();
-  startOfToday.setHours(0, 0, 0, 0);
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
 
-  const endOfToday = new Date();
-  endOfToday.setHours(23, 59, 59, 999);
+    const endOfToday = new Date();
+    endOfToday.setHours(23, 59, 59, 999);
 
-  const booking = await Booking.findOne({
-    room: roomId,
-    bookingStatus: "confirmed",
-    isCheckedIn: false,
-    checkInDate: {
-      $gte: startOfToday,
-      $lte: endOfToday
+    const booking = await Booking.findOne({
+      room: roomId,
+      bookingStatus: "confirmed",
+      isCheckedIn: false,
+      checkInDate: { $lte: endOfToday },
+      checkOutDate: { $gt: startOfToday }
+    });
+
+    if (!booking) {
+      return res.status(400).json({
+        message: "No valid booking found for today"
+      });
     }
-  });
 
-  if (!booking) {
-    return res.status(400).json({
-      message: "No valid booking found for today"
+    // FULL payment rule
+    if (
+      booking.paymentType === "FULL" &&
+      booking.paymentStatus !== "paid"
+    ) {
+      return res.status(400).json({
+        message: "Full payment required before check-in"
+      });
+    }
+    if (booking.isCheckedIn) {
+      return res.status(400).json({
+        message: "Guest already checked in"
+      });
+    }
+
+    booking.isCheckedIn = true;
+    booking.checkedInAt = new Date();
+    await booking.save();
+
+    res.json({
+      success: true,
+      message: "Guest checked in successfully",
+      booking
     });
+  } catch (error) {
+    next(error);
   }
-
-  // FULL payment rule
-  if (
-    booking.paymentType === "FULL" &&
-    booking.paymentStatus !== "paid"
-  ) {
-    return res.status(400).json({
-      message: "Full payment required before check-in"
-    });
-  }
-if (booking.isCheckedIn) {
-  return res.status(400).json({
-    message: "Guest already checked in"
-  });
-}
-
-  booking.isCheckedIn = true;
-  booking.checkedInAt = new Date();
-  await booking.save();
-
-  await Room.findByIdAndUpdate(roomId, {
-    status: "Occupied"
-  });
-
-  res.json({
-    success: true,
-    message: "Guest checked in successfully",
-    booking
-  });
 };
-
-
 
 export const roomCheckOut = async (req, res, next) => {
   try {
@@ -171,23 +167,22 @@ export const roomCheckOut = async (req, res, next) => {
       });
     }
 
-  if (
-  booking.fine &&
-  booking.fine.amount > 0 &&
-  booking.fine.status === "PENDING"
-) {
-  return res.status(400).json({
-    success: false,
-    message: "Please clear fine before checkout"
-  });
-}
+    if (
+      booking.fine &&
+      booking.fine.amount > 0 &&
+      booking.fine.status === "PENDING"
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Please clear fine before checkout"
+      });
+    }
 
 
     booking.isCheckedIn = false;
     booking.isCheckedOut = true;
     booking.checkedOutAt = new Date();
-
-    room.status = "Available";
+    booking.checkOutDate = new Date();
 
     await booking.save();
     await room.save();
@@ -240,20 +235,19 @@ export const checkOutBooking = async (req, res, next) => {
       });
     }
 
-   if (booking.fine && booking.fine.amount > 0 && booking.fine.status === "PENDING") {
-  return res.status(400).json({
-    success: false,
-    message: "Please clear fine before checkout"
-  });
-}
+    if (booking.fine && booking.fine.amount > 0 && booking.fine.status === "PENDING") {
+      return res.status(400).json({
+        success: false,
+        message: "Please clear fine before checkout"
+      });
+    }
 
-booking.isCheckedIn = false; 
+    booking.isCheckedIn = false;
     booking.isCheckedOut = true;
     booking.checkedOutAt = new Date();
     await booking.save();
 
     const room = await Room.findById(booking.room);
-    room.status = "Available";
     await room.save();
 
     await notifyReceptionistCheckInOut({
@@ -304,20 +298,19 @@ export const cancelBooking = async (req, res, next) => {
       });
     }
 
-booking.bookingStatus = "cancelled";
-await booking.save();
+    booking.bookingStatus = "cancelled";
+    await booking.save();
 
-const room = await Room.findById(booking.room);
-room.status = "Available";
-await room.save();
+    const room = await Room.findById(booking.room);
+    await room.save();
 
 
-await notifyReceptionistCheckInOut({
-  type: "CANCELLED",
-  booking,
-  user: booking.user,
-  room
-});
+    await notifyReceptionistCheckInOut({
+      type: "CANCELLED",
+      booking,
+      user: booking.user,
+      room
+    });
     res.json({
       success: true,
       message: "Booking cancelled successfully",
@@ -337,11 +330,11 @@ export const sendInvoiceToWhatsApp = async (req, res, next) => {
       .populate("room");
 
     if (!booking.user.phoneNumber) {
-  return res.status(400).json({
-    success: false,
-    message: "User phone number not found"
-  });
-}
+      return res.status(400).json({
+        success: false,
+        message: "User phone number not found"
+      });
+    }
 
 
     const pdfBuffer = await generateInvoicePDFBuffer(booking);
