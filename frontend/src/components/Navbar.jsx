@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import logo from "../assets/homepage-images/logo.webp";
+import logo from "../assets/logo1.webp";
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -76,7 +76,7 @@ export default function Navbar() {
                 <img
                   src={logo}
                   alt="Shiv Ganga"
-                  className="h-8 sm:h-10 md:h-11 lg:h-12 object-contain"
+                  className="h-10 sm:h-10 md:h-14 lg:h-16 rounded-2xl object-contain"
                 />
               </Link>
             </div>
@@ -100,9 +100,9 @@ export default function Navbar() {
               {/* Mobile / Tablet Book */}
               <Link
                 to="/booking"
-                className="lg:hidden bg-primary text-white px-4 py-2 rounded-lg shadow-md"
+                className="lg:hidden bg-primary text-white px-4 py-2 rounded-lg shadow-md text-sm hover:bg-accent transition"
               >
-                Book
+                Book Now
               </Link>
             </div>
           </div>
@@ -131,7 +131,7 @@ export default function Navbar() {
               className="fixed top-0 left-0 w-[80%] max-w-sm h-screen bg-white z-50 shadow-2xl p-6 flex flex-col"
             >
               <div className="flex justify-between items-center mb-8">
-                <img src={logo} alt="logo" className="h-10" />
+                <img src={logo} alt="logo" className="h-14 object-contain" />
                 <button onClick={() => setIsOpen(false)}>
                   <X />
                 </button>

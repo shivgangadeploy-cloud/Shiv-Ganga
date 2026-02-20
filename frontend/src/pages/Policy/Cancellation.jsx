@@ -17,9 +17,9 @@ const Cancellation = () => {
           <h1 className="text-4xl md:text-5xl font-serif text-primary mb-8 text-center">
             Cancellation & Refund Policy
           </h1>
-          <p className="text-gray-600 text-center mb-12 italic">
+          {/* <p className="text-gray-600 text-center mb-12 italic">
             Effective Date: {new Date().toLocaleDateString()}
-          </p>
+          </p> */}
 
           <div className="bg-white p-8 md:p-12 rounded-2xl shadow-sm border border-gray-100 space-y-8">
             <section>

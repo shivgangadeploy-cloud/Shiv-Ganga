@@ -20,7 +20,7 @@ import {
   Images,
 } from "lucide-react";
 import { AnimatePresence, motion as Motion } from "framer-motion";
-import logo from "../../assets/homepage-images/logo.webp";
+import logo from "../../assets/logo1.webp";
 import { motion } from "framer-motion";
 import api from "../axios";
 
@@ -219,8 +219,8 @@ Remaining: ₹${booking.pendingAmount || 0}
           {/* TOP */}
           <div className="flex items-center justify-between p-4">
             {!collapsed && (
-              <span className="font-bold text-lg">
-                <img src={logo} alt="logo" className="w-48 h-24" />
+              <span className="font-bold text-lg w-full flex items-center justify-center">
+                <img src={logo} alt="logo" className="h-30 aspect-square rounded-2xl" />
               </span>
             )}
             <button
@@ -567,7 +567,9 @@ Remaining: ₹${booking.pendingAmount || 0}
               >
                 {/* HEADER */}
                 <div className="flex items-center justify-between p-4">
-                  <img src={logo} alt="logo" className="w-40 h-auto" />
+                <span className="font-bold text-lg w-full flex items-center justify-center">
+                <img src={logo} alt="logo" className="h-30 aspect-square rounded-2xl" />
+              </span>
                   <button
                     onClick={() => setMobileOpen(false)}
                     className="p-2 rounded-2xl bg-white/10 hover:bg-white/20 text-primary"

@@ -66,4 +66,15 @@ Email: ${user.email}`;
   });
 };
 
+export const notifyAdminNewSubscriber = async ({ email }) => {
+  const title = "New Newsletter Subscriber";
+  const message = `A new user subscribed to promotional emails: ${email}`;
+
+  await Notification.create({
+    role: "admin",
+    title,
+    message,
+  });
+};
+
 

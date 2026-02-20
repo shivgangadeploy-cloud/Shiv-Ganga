@@ -107,7 +107,7 @@ export default function BookingPage() {
     return {
       checkIn: state.checkIn || "",
       checkOut: state.checkOut || "",
-      adults: state.adults || 2,
+      adults: state.adults || 1,
       children: state.children || 0,
       selectedRooms,
       selectedActivities,
@@ -618,7 +618,7 @@ export default function BookingPage() {
   console.log("Grand total:", grandTotal);
 
   return (
-    <div className="relative min-h-screen bg-background pb-20 pt-6 sm:pt-10 overflow-x-hidden">
+    <div className="min-h-screen bg-background pb-20 pt-10">
       <Seo
         title="Book Your Stay | Shiv Ganga Hotel"
         description="Plan your stay at Shiv Ganga Hotel Rishikesh. Check availability, choose rooms, and confirm your booking."
@@ -626,17 +626,17 @@ export default function BookingPage() {
         image={bgImage}
       />
       {/* Background Elements */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 right-0 w-[320px] h-[320px] md:w-[500px] md:h-[500px] bg-accent/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2"></div>
-        <div className="absolute bottom-0 left-0 w-[320px] h-[320px] md:w-[500px] md:h-[500px] bg-primary/5 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2"></div>
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-accent/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2"></div>
       </div>
-      <div className="absolute inset-0">
-        <ResponsiveImage src={bgImage} alt="Hotel Shiv Ganga booking background" className="w-full h-full object-cover" />
-      </div>
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: `url(${bgImage})` }}
+      ></div>
 
       {/* Dark overlay (controls opacity safely) */}
       <div className="absolute inset-0 bg-primary opacity-80 pointer-events-none"></div>
-      <div className="container mx-auto px-3 sm:px-4 md:px-6 max-w-[100vw] relative z-10">
+      <div className="container mx-auto px-4 relative z-10">
         {/* Header */}
         <div>
           <div className="text-center mb-16">
@@ -1168,7 +1168,28 @@ export default function BookingPage() {
                                 </button>
                                 <button
                                   type="button"
-                                  onClick={() => navigate(`/rooms/${room._id}`)}
+                                  onClick={() => {
+                                    // Map backend room category to marketing room id used on /rooms detail page
+                                    const category = room.category;
+                                    const marketingIdByCategory = {
+                                      "Single Bedroom": "standard-double",
+                                      "Deluxe Double AC": "deluxe-double",
+                                      "Exclusive Triple": "triple-room",
+                                      "Deluxe River View Room": "himalayan-balcony",
+                                      "Grand Family Suite": "grand-family-suite",
+                                      "Single AC Room": "family-four",
+                                    };
+                                    const mappedId =
+                                      marketingIdByCategory[category] || null;
+
+                                    if (mappedId) {
+                                      navigate("/rooms", {
+                                        state: { roomId: mappedId },
+                                      });
+                                    } else {
+                                      navigate("/rooms");
+                                    }
+                                  }}
                                   className="text-xs uppercase tracking-widest font-bold text-gray-400 hover:text-primary transition-colors underline decoration-gray-200 underline-offset-4 hover:decoration-primary"
                                 >
                                   View Details
@@ -1754,7 +1775,7 @@ export default function BookingPage() {
           </div>
 
           {/* Sidebar Summary */}
-          <div className="lg:col-span-1 min-w-0 order-first lg:order-none">
+          <div className="lg:col-span-1 min-w-0 order-last lg:order-none">
             <div className="sticky top-24 lg:top-32 transition-all duration-300">
               <div className="bg-white rounded-2xl shadow-xl border border-primary/20 overflow-hidden">
                 <div className="bg-primary p-4 sm:p-6 text-white">

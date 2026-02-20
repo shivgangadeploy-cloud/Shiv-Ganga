@@ -1,7 +1,26 @@
 import axios from "axios";
 
+const FALLBACK_API = "https://shiv-ganga-3.onrender.com/api";
+let resolvedBaseURL = import.meta.env.VITE_API_BASE_URL || FALLBACK_API;
+
+// Guard against misconfigured baseURL pointing to the frontend origin in production
+if (typeof window !== "undefined") {
+  try {
+    const resolved = new URL(resolvedBaseURL, window.location.origin);
+    const sameOrigin = resolved.origin === window.location.origin;
+    const isLocalhost =
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1";
+    if (sameOrigin && !isLocalhost) {
+      resolvedBaseURL = FALLBACK_API;
+    }
+  } catch {
+    resolvedBaseURL = FALLBACK_API;
+  }
+}
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "https://shiv-ganga-3.onrender.com/api",
+  baseURL: resolvedBaseURL,
   withCredentials: true, // 🔐 default: protected routes
 });
 
@@ -15,7 +34,8 @@ api.interceptors.request.use((config) => {
     "/otp",
     "/room/search",
     "/membership",
-    "/contact"
+    "/contact",
+    "/newsletter"
   ];
 
   const isPublic = publicRoutes.some(route =>

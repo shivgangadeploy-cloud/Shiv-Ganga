@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 
 const Turnstile = React.forwardRef(({ onVerify }, ref) => {
   const containerRef = useRef(null);
+  const widgetIdRef = useRef(null);
   const [isReady, setIsReady] = useState(false);
   const [simToken, setSimToken] = useState(null);
 
@@ -20,9 +21,9 @@ const Turnstile = React.forwardRef(({ onVerify }, ref) => {
     }
 
     return () => {
-      if (containerRef.current && window.turnstile) {
+      if (containerRef.current && window.turnstile && widgetIdRef.current) {
         try {
-          window.turnstile.reset();
+          window.turnstile.reset(widgetIdRef.current);
         } catch (e) {}
       }
     };
@@ -31,7 +32,7 @@ const Turnstile = React.forwardRef(({ onVerify }, ref) => {
   useEffect(() => {
     if (isReady && containerRef.current && window.turnstile && TURNSTILE_SITE_KEY) {
       try {
-        window.turnstile.render(containerRef.current, {
+        widgetIdRef.current = window.turnstile.render(containerRef.current, {
           sitekey: TURNSTILE_SITE_KEY,
           theme: 'light',
           callback: (token) => {
@@ -46,9 +47,9 @@ const Turnstile = React.forwardRef(({ onVerify }, ref) => {
 
   React.useImperativeHandle(ref, () => ({
     getToken: () => {
-      if (TURNSTILE_SITE_KEY && window.turnstile && containerRef.current) {
+      if (TURNSTILE_SITE_KEY && window.turnstile && widgetIdRef.current) {
         try {
-          return window.turnstile.getResponse(containerRef.current);
+          return window.turnstile.getResponse(widgetIdRef.current);
         } catch {
           return null;
         }
@@ -56,9 +57,9 @@ const Turnstile = React.forwardRef(({ onVerify }, ref) => {
       return simToken;
     },
     reset: () => {
-      if (TURNSTILE_SITE_KEY && window.turnstile && containerRef.current) {
+      if (TURNSTILE_SITE_KEY && window.turnstile && widgetIdRef.current) {
         try {
-          window.turnstile.reset(containerRef.current);
+          window.turnstile.reset(widgetIdRef.current);
         } catch {}
       }
       setSimToken(null);
@@ -76,7 +77,8 @@ const Turnstile = React.forwardRef(({ onVerify }, ref) => {
   return (
     <div
       ref={containerRef}
-      className="cf-turnstile flex justify-center my-4"
+      className="cf-turnstile flex justify-center my-4 w-full"
+      style={{ minHeight: 65 }}
     />
   );
 });

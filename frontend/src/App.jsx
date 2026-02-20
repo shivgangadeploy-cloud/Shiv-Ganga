@@ -40,6 +40,7 @@ import AdminCoupons from "./pages/AdminDashboard/pages/DiscountCoupons";
 import Settings from "./pages/ReceptionistDashboard/Settings";
 import GuestDirectory from "./pages/ReceptionistDashboard/GuestDirectory";
 import MyProfile from "./pages/ReceptionistDashboard/MyProfile";
+
 // Added Notification Import
 import Notifications from "./pages/ReceptionistDashboard/Notifications";
 
@@ -53,6 +54,7 @@ import Privacy from "./pages/Policy/Privacy";
 import Cancellation from "./pages/Policy/Cancellation";
 import Terms from "./pages/Policy/Terms";
 import { SystemSettingsProvider } from "./context/SystemSettingsContext";
+import NotFound from "./pages/NotFound";
 
 export default function App() {
   return (
@@ -77,7 +79,7 @@ export default function App() {
             <Route path="cancellationpolicy" element={<Cancellation />} />
             <Route path="terms-of-servicespolicy" element={<Terms />} />
             <Route path="/coupons" element={<AvailableCoupons/>} />
-
+            <Route path="*" element={<NotFound />} />
           </Route>
 
           {/* ================= ADMIN PROTECTED ================= */}
@@ -123,6 +125,7 @@ export default function App() {
 
           {/* ================= MISC ================= */}
           <Route path="/unauthorized" element={<Unauthorized />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
     </SystemSettingsProvider>

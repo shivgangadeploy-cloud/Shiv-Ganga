@@ -11,12 +11,16 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import bgImage from "../assets/homepage-images/banner-two.webp";
 import { useSystemSettings } from "../context/SystemSettingsContext";
+import { useState } from "react";
+import { toast } from "react-hot-toast";
+import api from "../pages/axios";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   const { settings } = useSystemSettings();
   const { property } = settings;
+  const [email, setEmail] = useState("");
 
   return (
     <footer className="relative text-white pt-14 sm:pt-20 md:pt-28 pb-10 overflow-hidden">
@@ -116,24 +120,35 @@ export default function Footer() {
           </h3>
 
           <ul className="space-y-4 text-sm">
-            <li className="flex items-start gap-3">
-              <MapPin className="text-accent shrink-0 mt-1" size={18} />
-              <span>{property.address}</span>
+            {/* Address */}
+            <li className="flex gap-3 items-start">
+              <MapPin
+                className="text-accent mt-1 flex-shrink-0 w-5"
+                size={18}
+              />
+              <span className="leading-relaxed break-words">
+                {property.address}
+              </span>
             </li>
 
-            <li className="flex items-center gap-3 ">
-              <Phone className=" text-accent shrink-0" size={18} />
-              <span>{property.phones?.join(", ")}</span>
+            {/* Phone */}
+            <li className="flex gap-3 items-start">
+              <Phone className="text-accent mt-1 flex-shrink-0 w-5" size={18} />
+              <span className="leading-relaxed break-words">
+                {property.phones?.join(", ")}
+              </span>
             </li>
 
-            <li className="flex items-start gap-3">
-              <Mail className="text-accent shrink-0 mt-1" size={18} />
-              <div className="flex flex-col gap-1">
+            {/* Email */}
+            <li className="flex gap-3 items-start">
+              <Mail className="text-accent mt-1 flex-shrink-0 w-5" size={18} />
+
+              <div className="flex flex-col gap-1 leading-relaxed break-all">
                 {property.emails?.map((email, idx) => (
                   <a
                     key={idx}
                     href={`mailto:${email}`}
-                    className="hover:text-accent transition break-all"
+                    className="hover:text-accent transition"
                   >
                     {email}
                   </a>
@@ -155,7 +170,48 @@ export default function Footer() {
 
           <form
             className="flex flex-col gap-3 max-w-sm"
-            onSubmit={(e) => e.preventDefault()}
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const value = email.trim();
+              const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+              if (!valid) {
+                toast.error("Please enter a valid email.");
+                return;
+              }
+              try {
+                const res = await api.post("/newsletter/subscribe", {
+          email: value,
+        });
+                const data = res?.data;
+                toast.success(
+                  (data && typeof data === "object" && data.message) ||
+                  "Subscribed successfully!"
+                );
+                setEmail("");
+              } catch (err) {
+                let errMsg = "Subscription failed. Please try again.";
+                try {
+                  if (err && typeof err === "object") {
+                    if (!err.response) {
+                      errMsg =
+                        "Unable to reach the server. Please try again in a moment.";
+                    }
+                    // Prefer axios-parsed message if present and safe to read
+                    const data = err.response?.data;
+                    if (data && typeof data === "object" && data.message) {
+                      errMsg = data.message;
+                    } else if (typeof data === "string" && data.trim()) {
+                      errMsg = data;
+                    } else if (err.message) {
+                      errMsg = err.message;
+                    }
+                  }
+                } catch {
+                  // fall back to generic message
+                }
+                toast.error(errMsg);
+              }
+            }}
           >
             <input
               type="email"
@@ -163,9 +219,12 @@ export default function Footer() {
               className="bg-white/10 border border-white/30 px-4 py-3
           rounded-md text-sm text-white placeholder:text-white/60
           focus:outline-none focus:border-accent"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
 
             <button
+              type="submit"
               className="bg-white text-primary hover:bg-accent hover:text-white
           py-3 rounded-md text-xs font-bold uppercase tracking-widest transition"
             >
@@ -189,6 +248,18 @@ export default function Footer() {
       >
         <p>
           © {currentYear} {property.hotelName}. All Rights Reserved.
+        </p>
+
+        <p className="opacity-70">
+          Designed & Developed by{" "}
+          <a
+            href="https://graphura.in"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-accent transition"
+          >
+            Graphura India Private Limited
+          </a>
         </p>
 
         <div className="flex flex-wrap gap-5">
