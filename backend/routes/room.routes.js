@@ -19,7 +19,7 @@ import {
 import { validateBody } from "../middlewares/validate.middleware.js";
 
 const router = express.Router();
-router.get("/room/available", getAvailableRoomsForListing);
+router.post("/room/available", getAvailableRoomsForListing);
 router.get("/room/search", getAvailableRooms);
 router.get("/room", getAllRooms);
 router.get("/room/:id", getRoomById);
