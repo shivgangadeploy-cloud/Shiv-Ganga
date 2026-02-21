@@ -63,14 +63,29 @@ export default function Footer() {
           </p>
 
           <div className="flex gap-3">
-            {[Facebook, Instagram, Twitter].map((Icon, i) => (
+            {[
+              {
+                icon: Facebook,
+                link: "https://www.facebook.com/Graphura.in",
+              },
+              {
+                icon: Instagram,
+                link: "https://www.instagram.com/graphura.in",
+              },
+              {
+                icon: Twitter,
+                link: "https://x.com/Graphura",
+              },
+            ].map(({ icon: Icon, link }, i) => (
               <a
                 key={i}
-                href="#"
+                href={link}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-9 h-9 rounded-full border border-white/40
-            flex items-center justify-center
-            hover:bg-accent hover:border-accent hover:text-primary
-            transition-all duration-300 group"
+        flex items-center justify-center
+        hover:bg-accent hover:border-accent hover:text-primary
+        transition-all duration-300 group"
               >
                 <Icon
                   size={16}
@@ -180,12 +195,12 @@ export default function Footer() {
               }
               try {
                 const res = await api.post("/newsletter/subscribe", {
-          email: value,
-        });
+                  email: value,
+                });
                 const data = res?.data;
                 toast.success(
                   (data && typeof data === "object" && data.message) ||
-                  "Subscribed successfully!"
+                    "Subscribed successfully!",
                 );
                 setEmail("");
               } catch (err) {
