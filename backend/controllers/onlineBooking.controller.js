@@ -1282,67 +1282,57 @@ export const verifyPayment = async (req, res, next) => {
     await session.commitTransaction();
     session.endSession();
 
-    /* ================= EMAIL ================= */
-    const bookingDoc = booking[0];
 
+    // EMAIL & NOTIFICATION (NON BLOCKING)
+    const bookingDoc = booking[0];
     const checkIn = new Date(bookingDoc.checkInDate);
     const checkOut = new Date(bookingDoc.checkOutDate);
     const nights = (checkOut - checkIn) / (1000 * 60 * 60 * 24);
-    /* ================= EMAIL & NOTIFICATION (NON BLOCKING) ================= */
-    try {
-      await notifyReceptionistPaymentCompleted({
-        booking: bookingDoc,
-        user,
-        room,
+    // Notify receptionist
+    notifyReceptionistPaymentCompleted({ booking: bookingDoc, user, room }).catch((err) => {
+      console.error("Receptionist notification failed:", err.message);
+    });
+
+    // Prepare activities for email
+    const normalizeKey = (s) => (s || "").toString().trim().toLowerCase().replace(/\s+/g, " ");
+    const normalizedPriceMap = Object.fromEntries(
+      Object.entries(ADD_ONS_PRICE_MAP || {}).map(([k, v]) => [normalizeKey(k), v]),
+    );
+    const activities = (bookingDoc.addOns || [])
+      .filter((a) => (a?.name || "").toString().trim())
+      .map((a) => {
+        const qty = Math.max(0, Number(a?.quantity || 0));
+        const name = (a?.name || "").toString().trim();
+        const key = normalizeKey(name);
+        const unit =
+          (ADD_ONS_PRICE_MAP && ADD_ONS_PRICE_MAP[name]) ??
+          normalizedPriceMap[key] ??
+          (Number(a?.price || 0) || 0);
+        return {
+          name,
+          quantity: qty,
+          unitPrice: unit,
+          totalPrice: unit * qty,
+        };
       });
 
-      const normalizeKey = (s) =>
-        (s || "").toString().trim().toLowerCase().replace(/\s+/g, " ");
-      const normalizedPriceMap = Object.fromEntries(
-        Object.entries(ADD_ONS_PRICE_MAP || {}).map(([k, v]) => [
-          normalizeKey(k),
-          v,
-        ]),
-      );
-      const activities = (bookingDoc.addOns || [])
-        .filter((a) => (a?.name || "").toString().trim())
-        .map((a) => {
-          const qty = Math.max(0, Number(a?.quantity || 0));
-          const name = (a?.name || "").toString().trim();
-          const key = normalizeKey(name);
-          const unit =
-            (ADD_ONS_PRICE_MAP && ADD_ONS_PRICE_MAP[name]) ??
-            normalizedPriceMap[key] ??
-            (Number(a?.price || 0) || 0);
-          return {
-            name,
-            quantity: qty,
-            unitPrice: unit,
-            totalPrice: unit * qty,
-          };
-        });
-
-      await sendBookingConfirmationMail({
-        name: `${user.firstName} ${user.lastName}`,
-        email: user.email,
-        roomNumber: room.roomNumber,
-        guestId: bookingDoc.guestId,
-        bookingReference: bookingDoc.bookingReference,
-
-        checkInDate: checkIn.toDateString(),
-        checkOutDate: checkOut.toDateString(),
-        nights,
-
-        totalAmount: bookingDoc.totalAmount,
-        paidAmount: bookingDoc.paidAmount,
-        pendingAmount: bookingDoc.pendingAmount,
-
-        coupon: bookingDoc.coupon,
-        activities,
-      });
-    } catch (err) {
-      console.error("Email / Notification failed:", err.message);
-    }
+    sendBookingConfirmationMail({
+      name: `${user.firstName} ${user.lastName}`,
+      email: user.email,
+      roomNumber: room.roomNumber,
+      guestId: bookingDoc.guestId,
+      bookingReference: bookingDoc.bookingReference,
+      checkInDate: checkIn.toDateString(),
+      checkOutDate: checkOut.toDateString(),
+      nights,
+      totalAmount: bookingDoc.totalAmount,
+      paidAmount: bookingDoc.paidAmount,
+      pendingAmount: bookingDoc.pendingAmount,
+      coupon: bookingDoc.coupon,
+      activities,
+    }).catch((err) => {
+      console.error("Booking confirmation email failed:", err.message);
+    });
 
     /* ================= OTP CLEANUP ================= */
     await EmailOTP.deleteMany({ email: user.email });
@@ -1495,60 +1485,54 @@ export const fakeVerifyPayment = async (req, res, next) => {
     await session.commitTransaction();
     session.endSession();
 
-    /* ================= EMAIL ================= */
-    const bookingDoc = booking[0];
 
+    // EMAIL & NOTIFICATION (NON BLOCKING)
+    const bookingDoc = booking[0];
     const checkIn = new Date(bookingDoc.checkInDate);
     const checkOut = new Date(bookingDoc.checkOutDate);
     const nights = (checkOut - checkIn) / (1000 * 60 * 60 * 24);
-
-    await notifyReceptionistPaymentCompleted({
-      booking: bookingDoc,
-      user,
-      room,
+    notifyReceptionistPaymentCompleted({ booking: bookingDoc, user, room }).catch((err) => {
+      console.error("Receptionist notification failed:", err.message);
     });
 
-  const normalizeKey = (s) =>
-    (s || "").toString().trim().toLowerCase().replace(/\s+/g, " ");
-  const normalizedPriceMap = Object.fromEntries(
-    Object.entries(ADD_ONS_PRICE_MAP || {}).map(([k, v]) => [
-      normalizeKey(k),
-      v,
-    ]),
-  );
-  const activities = (bookingDoc.addOns || []).map((a) => {
-    const qty = Math.max(0, Number(a?.quantity || 0));
-    const name = (a?.name || "").toString().trim();
-    const key = normalizeKey(name);
-    const unit =
-      (ADD_ONS_PRICE_MAP && ADD_ONS_PRICE_MAP[name]) ??
-      normalizedPriceMap[key] ??
-      (Number(a?.price || 0) || 0);
-    return {
-      name,
-      quantity: qty,
-      unitPrice: unit,
-      totalPrice: unit * qty,
-    };
-  });
+    const normalizeKey = (s) => (s || "").toString().trim().toLowerCase().replace(/\s+/g, " ");
+    const normalizedPriceMap = Object.fromEntries(
+      Object.entries(ADD_ONS_PRICE_MAP || {}).map(([k, v]) => [normalizeKey(k), v]),
+    );
+    const activities = (bookingDoc.addOns || [])
+      .filter((a) => (a?.name || "").toString().trim())
+      .map((a) => {
+        const qty = Math.max(0, Number(a?.quantity || 0));
+        const name = (a?.name || "").toString().trim();
+        const key = normalizeKey(name);
+        const unit =
+          (ADD_ONS_PRICE_MAP && ADD_ONS_PRICE_MAP[name]) ??
+          normalizedPriceMap[key] ??
+          (Number(a?.price || 0) || 0);
+        return {
+          name,
+          quantity: qty,
+          unitPrice: unit,
+          totalPrice: unit * qty,
+        };
+      });
 
-    await sendBookingConfirmationMail({
+    sendBookingConfirmationMail({
       name: `${user.firstName} ${user.lastName}`,
       email: user.email,
       roomNumber: room.roomNumber,
       guestId: bookingDoc.guestId,
       bookingReference: bookingDoc.bookingReference,
-
       checkInDate: checkIn.toDateString(),
       checkOutDate: checkOut.toDateString(),
       nights,
-
       totalAmount: bookingDoc.totalAmount,
       paidAmount: bookingDoc.paidAmount,
       pendingAmount: bookingDoc.pendingAmount,
-
       coupon: bookingDoc.coupon,
-    activities,
+      activities,
+    }).catch((err) => {
+      console.error("Booking confirmation email failed:", err.message);
     });
 
     res.status(200).json({
