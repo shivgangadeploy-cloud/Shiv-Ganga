@@ -1153,7 +1153,7 @@ export default function BookingPage() {
                               : "border border-gray-100 shadow-sm"
                             }`}
                         >
-                          <div className="flex flex-col md:flex-row h-full">
+                          <div className="flex flex-col md:flex-row h-92">
                             <div className="md:w-2/5 h-64 md:h-auto relative overflow-hidden group rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none">
                               <img
                                 src={room.mainImage}

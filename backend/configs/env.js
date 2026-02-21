@@ -9,6 +9,9 @@ export const config = {
   ADMIN_SECRET_KEY: process.env.ADMIN_SECRET_KEY,
   JWT_SECRET: process.env.JWT_SECRET,
 
+// Captcha
+  TURNSTILE_SECRET_KEY: process.env.TURNSTILE_SECRET_KEY,
+
   // Brevo (Email)
   BREVO_API_KEY: process.env.BREVO_API_KEY,
   BREVO_SENDER_EMAIL: process.env.BREVO_SENDER_EMAIL,

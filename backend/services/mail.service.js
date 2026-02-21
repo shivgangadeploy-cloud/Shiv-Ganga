@@ -572,9 +572,7 @@ export const sendSubscriptionConfirmationMail = async (toEmail) => {
               We value your privacy and send only curated updates. You can unsubscribe at any time by replying to this email.
             </p>
 
-            <div style="margin:20px 0;padding:12px 16px;background:#f1f5f9;border-radius:8px;color:#0f172a;">
-              <strong>Questions?</strong> Reach us at <a href="mailto:${contactEmail}" style="color:#0ea5e9;text-decoration:none;">${contactEmail}</a>.
-            </div>
+            
           </div>
 
           <div style="padding:16px 24px;background:#f8fafc;border-top:1px solid #eef2f7;color:#64748b;font-size:12px;text-align:center;">

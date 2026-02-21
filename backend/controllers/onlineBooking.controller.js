@@ -859,7 +859,7 @@ import { generateBookingReference } from "../utils/generateBookingReference.js";
 import Coupon from "../models/Coupon.model.js";
 import { notifyReceptionistPaymentCompleted } from "../services/notification.service.js";
 import EmailOTP from "../models/EmailOTP.model.js";
-
+import axios from "axios";
 import Membership from "../models/Membership.model.js";
 
 const razorpay = new Razorpay({
@@ -891,7 +891,34 @@ export const createPaymentOrder = async (req, res, next) => {
       phoneNumber,
       specialRequest,
       isMember,
+      captchaToken,
     } = req.body;
+
+
+
+// ================= CAPTCHA VERIFICATION =================
+    if (!captchaToken) {
+      return res.status(400).json({
+        success: false,
+        message: "Please complete the CAPTCHA verification",
+      });
+    }
+
+    const verifyResponse = await axios.post(
+      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+      new URLSearchParams({
+        secret: config.TURNSTILE_SECRET_KEY,
+        response: captchaToken,
+      })
+    );
+
+    if (!verifyResponse.data.success) {
+      return res.status(400).json({
+        success: false,
+        message: "CAPTCHA verification failed",
+      });
+    }
+
 
     const room = await Room.findById(roomId);
     if (!room) {
