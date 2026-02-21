@@ -229,7 +229,6 @@ export const createOfflineBooking = async (req, res, next) => {
 
     const booking = await Booking.create(bookingPayloadData);
 
-    room.status = "Booked";
     await room.save();
 
     await notifyReceptionistPaymentCompleted({ booking, user, room });
@@ -640,7 +639,6 @@ export const verifyOfflinePayment = async (req, res, next) => {
 
     const booking = await Booking.create([bookingData], { session });
 
-    room.status = "Booked";
     await room.save({ session });
 
     transaction.booking = booking[0]._id;
@@ -725,7 +723,6 @@ export const fakeVerifyOfflinePayment = async (req, res, next) => {
       { session },
     );
 
-    room.status = "Booked";
     await room.save({ session });
 
     transaction.booking = booking[0]._id;
