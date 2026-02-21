@@ -407,9 +407,53 @@ export const getAvailableRooms = async (req, res, next) => {
 
 export const getAvailableRoomsForListing = async (req, res, next) => {
   try {
-    const rooms = await Room.find({
-      status: { $ne: "Maintenance" },
-    }).sort({ pricePerNight: 1 });
+    const currentDate = new Date();
+
+    // normalize to avoid time issues
+    currentDate.setHours(0, 0, 0, 0);
+
+    const rooms = await Room.aggregate([
+      {
+        $match: {
+          status: { $ne: "Maintenance" },
+        },
+      },
+      {
+        $lookup: {
+          from: "bookings",
+          let: { roomId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$room", "$$roomId"] },
+                    { $eq: ["$bookingStatus", "confirmed"] },
+                    { $ne: ["$isCheckedOut", true] },
+
+                    // 🔥 CURRENT OCCUPANCY CHECK
+                    { $lte: ["$checkInDate", currentDate] },
+                    { $gt: ["$checkOutDate", currentDate] },
+                  ],
+                },
+              },
+            },
+          ],
+          as: "activeBookings",
+        },
+      },
+
+      // Only keep rooms with ZERO active bookings
+      {
+        $match: {
+          activeBookings: { $size: 0 },
+        },
+      },
+
+      {
+        $sort: { pricePerNight: 1 },
+      },
+    ]);
 
     res.status(200).json({
       success: true,

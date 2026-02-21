@@ -54,12 +54,23 @@ export default function PayrollManagement() {
     activeStaff: 0,
   });
 
+  const now = new Date();
+
+  const CURRENT_MONTH = now.toLocaleString("en-US", {
+    month: "short"
+  }).toUpperCase();
+
+  const CURRENT_YEAR = now.getFullYear();
+
   const fetchStaffPayments = async () => {
     try {
       setLoading(true);
       const [salaryRes, staffRes] = await Promise.all([
         api.get("/staff-salary/staff-list", {
-          params: { month: "FEB", year: 2026 },
+          params: {
+            month: CURRENT_MONTH,
+            year: CURRENT_YEAR
+          }
         }),
         api.get("/staff"),
       ]);
@@ -162,14 +173,14 @@ export default function PayrollManagement() {
   };
 
   // --- PROCESS PAYMENT (CASH) ---
-  const handlePaymentConfirm = async (salaryId, netAmount) => {
+  const handlePaymentConfirm = async (salaryId, netAmount, paymentMethod) => {
     try {
       const token = localStorage.getItem("token");
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
       const response = await api.post(
         "/staff-salary/payout",
-        { salaryId },
+        { salaryId, paymentMethod },
         { headers },
       );
 
@@ -179,14 +190,14 @@ export default function PayrollManagement() {
           prev.map((s) =>
             s.id === salaryId
               ? {
-                  ...s,
-                  status: "Paid",
-                  lastDate: new Date().toLocaleDateString("en-IN", {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                  }),
-                }
+                ...s,
+                status: "Paid",
+                lastDate: new Date().toLocaleDateString("en-IN", {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                }),
+              }
               : s,
           ),
         );
@@ -360,11 +371,10 @@ export default function PayrollManagement() {
               <button
                 key={v}
                 onClick={() => setView(v)}
-                className={`px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${
-                  view === v
-                    ? "bg-white text-primary shadow-sm"
-                    : "text-slate-400"
-                }`}
+                className={`px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${view === v
+                  ? "bg-white text-primary shadow-sm"
+                  : "text-slate-400"
+                  }`}
               >
                 {v}
               </button>
@@ -551,7 +561,7 @@ function PaymentActionModal({ employee, onClose, onConfirm }) {
   const total = employee.net;
 
   const handleSubmit = () => {
-    onConfirm(employee.salaryId, total);
+    onConfirm(employee.salaryId, total, paymentMethod);
   };
 
   return (
@@ -653,11 +663,10 @@ function PaymentActionModal({ employee, onClose, onConfirm }) {
                   key={method}
                   onClick={() => setPaymentMethod(method)}
                   className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest border transition-all
-                   ${
-                     paymentMethod === method
-                       ? "bg-primary text-white border-primary"
-                       : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
-                   }`}
+                   ${paymentMethod === method
+                      ? "bg-primary text-white border-primary"
+                      : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+                    }`}
                 >
                   {method}
                 </button>
