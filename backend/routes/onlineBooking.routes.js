@@ -1,6 +1,6 @@
 import express from "express";
 import rateLimit from "express-rate-limit";
-import { verifyTurnstile } from "../middlewares/turnstile.middleware.js";
+import { verifyCaptcha } from "../middlewares/captcha.middleware.js";
 import { validateBookingForm } from "../middlewares/validate-input.middleware.js";
 import {
   createPaymentOrder,
@@ -16,18 +16,17 @@ const router = express.Router();
 // Rate limiting for booking endpoints
 const bookingLimiter = rateLimit({
   windowMs: 5 * 60 * 1000, // 5 minutes
-  max: 10,
+  max: 100, // Increased for testing/dev
   message: "Too many booking attempts, please try again later.",
 });
 
-router.post("/online-booking/create-order", bookingLimiter, verifyTurnstile, validateBookingForm, createPaymentOrder);
+router.post("/online-booking/create-order", bookingLimiter, validateBookingForm, createPaymentOrder);
 router.post("/online-booking/verify", bookingLimiter, verifyPayment);
 router.post("/online-booking/fake-verify", bookingLimiter, fakeVerifyPayment);
 
 router.post(
   "/online-booking/remaining/create-order",
   bookingLimiter,
-  verifyTurnstile,
   validateBookingForm,
   createRemainingPaymentOrder,
 );

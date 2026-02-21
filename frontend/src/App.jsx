@@ -29,6 +29,7 @@ import SystemSettings from "./pages/AdminDashboard/pages/SystemSettings";
 import SalaryReports from "./pages/AdminDashboard/pages/SalaryReports";
 import GalleryManagement from "./pages/AdminDashboard/pages/GalleryManagement";
 import MembershipManagement from "./pages/AdminDashboard/pages/MembershipManagement";
+import SetBookingPolicy from "./pages/Policy/Booking";
 /* Receptionist */
 import Dashboard from "./pages/ReceptionistDashboard/Dashboard";
 import NewBooking from "./pages/ReceptionistDashboard/NewBooking";
@@ -78,7 +79,7 @@ export default function App() {
             <Route path="privacypolicy" element={<Privacy />} />
             <Route path="cancellationpolicy" element={<Cancellation />} />
             <Route path="terms-of-servicespolicy" element={<Terms />} />
-            <Route path="/coupons" element={<AvailableCoupons/>} />
+            <Route path="/coupons" element={<AvailableCoupons />} />
             <Route path="*" element={<NotFound />} />
           </Route>
 
@@ -93,9 +94,9 @@ export default function App() {
               <Route path="system-settings" element={<SystemSettings />} />
               <Route path="salary-reports" element={<SalaryReports />} />
               <Route path="gallery" element={<GalleryManagement />} />
-              <Route path="memberships" element={<MembershipManagement/>} />
-    <Route path="coupons" element={<AdminCoupons />} />
-
+              <Route path="memberships" element={<MembershipManagement />} />
+              <Route path="coupons" element={<AdminCoupons />} />
+              <Route path="booking-policy" element={<SetBookingPolicy />} />
             </Route>
           </Route>
 
@@ -106,14 +107,14 @@ export default function App() {
             <Route path="/receptionist/billing" element={<PaymentPage />} />
             <Route path="/receptionist/bookinglist" element={<BookingList />} />
             <Route path="/receptionist/rooms" element={<RoomStatus />} />
-             <Route path="/receptionist/coupons/select" element={<AvailableCoupons />} />
+            <Route path="/receptionist/coupons/select" element={<AvailableCoupons />} />
             <Route path="/receptionist/guests" element={<GuestDirectory />} />
             {/* <Route path="/receptionist/coupons" element={<DiscountCoupons />} /> */}
             <Route path="/receptionist/profile" element={<MyProfile />} />
             <Route
-  path="/receptionist/receipt/:bookingId"
-  element={<Receipt />}
-/>
+              path="/receptionist/receipt/:bookingId"
+              element={<Receipt />}
+            />
 
             {/* Added Notifications and Settings Routes */}
             <Route

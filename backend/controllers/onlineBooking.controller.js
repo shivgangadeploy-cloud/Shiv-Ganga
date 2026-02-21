@@ -12,6 +12,7 @@
 // import EmailOTP from "../models/EmailOTP.model.js";
 
 // import Membership from "../models/Membership.model.js";
+import TaxesAndBilling from "../models/TaxesAndBilling.model.js";
 
 // const razorpay = new Razorpay({
 //   key_id: config.RAZORPAY_KEY_ID,
@@ -873,6 +874,8 @@ const ADD_ONS_PRICE_MAP = {
   "Yoga Session": 1500,
 };
 
+const MIN_PARTIAL_PAYMENT_PERCENTAGE = 0.3;
+
 export const createPaymentOrder = async (req, res, next) => {
   try {
     const {
@@ -1028,8 +1031,7 @@ export const createPaymentOrder = async (req, res, next) => {
       });
     }
 
-    const totalAmountForBooking =
-      req.body.totalAmount != null ? Number(req.body.totalAmount) : finalAmount;
+    const totalAmountForBooking = finalAmount;
 
     const amountInPaiseProvided =
       req.body.amountInPaise != null && Number(req.body.amountInPaise) > 0;
@@ -1037,35 +1039,52 @@ export const createPaymentOrder = async (req, res, next) => {
     let payableNow;
     let razorpayAmountPaise;
 
+    // Minimum 30% for partial payments
+    const minPartialAmount = Math.round(finalAmount * MIN_PARTIAL_PAYMENT_PERCENTAGE);
+
     if (amountInPaiseProvided) {
       razorpayAmountPaise = Math.round(Number(req.body.amountInPaise));
       payableNow = razorpayAmountPaise / 100;
+
       if (razorpayAmountPaise < 100) {
         return res.status(400).json({
           success: false,
           message: "Minimum payment amount is ₹1",
         });
       }
-      if (payableNow > totalAmountForBooking * 1.01) {
+
+      if (payableNow > totalAmountForBooking + 5) {
         return res.status(400).json({
           success: false,
           message: "Amount exceeds booking total",
+        });
+      }
+
+      if (paymentType === "PARTIAL" && payableNow < minPartialAmount) {
+        return res.status(400).json({
+          success: false,
+          message: `Minimum partial payment amount is ₹${minPartialAmount} (${Math.round(MIN_PARTIAL_PAYMENT_PERCENTAGE * 100)}% of total)`,
         });
       }
     } else {
       payableNow = finalAmount;
       if (paymentType === "PARTIAL") {
         const requestedPartial = Number(req.body.partialAmount) || 0;
-        const defaultPartial = Math.round(finalAmount * 0.3);
-        payableNow =
-          requestedPartial > 0 ? requestedPartial : defaultPartial;
-        if (
-          payableNow <= 0 ||
-          payableNow > totalAmountForBooking
-        ) {
+        
+        // Use requested partial if valid, otherwise default to minimum 30%
+        payableNow = requestedPartial > 0 ? requestedPartial : minPartialAmount;
+
+        if (payableNow < minPartialAmount) {
           return res.status(400).json({
             success: false,
-            message: "Invalid partial payment amount",
+            message: `Minimum partial payment amount is ₹${minPartialAmount} (${Math.round(MIN_PARTIAL_PAYMENT_PERCENTAGE * 100)}% of total)`,
+          });
+        }
+
+        if (payableNow > totalAmountForBooking) {
+          return res.status(400).json({
+            success: false,
+            message: "Partial payment cannot exceed total amount",
           });
         }
       }
