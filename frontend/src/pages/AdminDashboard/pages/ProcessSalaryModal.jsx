@@ -9,6 +9,13 @@ export default function ProcessSalaryModal({ staff, onClose, onProcessed }) {
   const [basicSalary, setBasicSalary] = useState(0);
   const [allowances, setAllowances] = useState(0);
   const [deductions, setDeductions] = useState(0);
+
+  // helper to enforce non-negative numbers from inputs
+  const clampNumber = (value) => {
+    let n = Number(value);
+    if (isNaN(n) || n < 0) n = 0;
+    return n;
+  };
   const [loading, setLoading] = useState(false);
 
   /* ✅ AUTO FILL BASIC SALARY */
@@ -32,7 +39,7 @@ export default function ProcessSalaryModal({ staff, onClose, onProcessed }) {
         basicSalary,
         allowances,
         deductions,
-        paymentMethod: "CASH"
+        paymentMethod: "CASH",
       });
 
       alert("Salary processed successfully");
@@ -71,9 +78,7 @@ export default function ProcessSalaryModal({ staff, onClose, onProcessed }) {
 
         {/* STAFF INFO */}
         <div className="bg-slate-50 rounded-xl p-4 border">
-          <p className="text-sm font-semibold text-gray-700">
-            {staff.name}
-          </p>
+          <p className="text-sm font-semibold text-gray-700">{staff.name}</p>
           <p className="text-[11px] text-slate-500 uppercase tracking-widest">
             {staff.displayId} • {staff.dept}
           </p>
@@ -90,8 +95,22 @@ export default function ProcessSalaryModal({ staff, onClose, onProcessed }) {
               onChange={(e) => setMonth(e.target.value)}
               className="w-full border rounded-lg px-3 py-2 text-sm mt-1"
             >
-              {["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"]
-                .map(m => <option key={m}>{m}</option>)}
+              {[
+                "JAN",
+                "FEB",
+                "MAR",
+                "APR",
+                "MAY",
+                "JUN",
+                "JUL",
+                "AUG",
+                "SEP",
+                "OCT",
+                "NOV",
+                "DEC",
+              ].map((m) => (
+                <option key={m}>{m}</option>
+              ))}
             </select>
           </div>
 
@@ -116,8 +135,9 @@ export default function ProcessSalaryModal({ staff, onClose, onProcessed }) {
             </label>
             <input
               type="number"
+              min={0}
               value={basicSalary}
-              onChange={(e) => setBasicSalary(e.target.value)}
+              onChange={(e) => setBasicSalary(clampNumber(e.target.value))}
               className="w-full border rounded-lg px-3 py-2 text-sm mt-1"
             />
           </div>
@@ -128,8 +148,9 @@ export default function ProcessSalaryModal({ staff, onClose, onProcessed }) {
             </label>
             <input
               type="number"
+              min={0}
               value={allowances}
-              onChange={(e) => setAllowances(e.target.value)}
+              onChange={(e) => setAllowances(clampNumber(e.target.value))}
               className="w-full border rounded-lg px-3 py-2 text-sm mt-1"
             />
           </div>
@@ -140,8 +161,9 @@ export default function ProcessSalaryModal({ staff, onClose, onProcessed }) {
             </label>
             <input
               type="number"
+              min={0}
               value={deductions}
-              onChange={(e) => setDeductions(e.target.value)}
+              onChange={(e) => setDeductions(clampNumber(e.target.value))}
               className="w-full border rounded-lg px-3 py-2 text-sm mt-1"
             />
           </div>
@@ -153,7 +175,7 @@ export default function ProcessSalaryModal({ staff, onClose, onProcessed }) {
             Net Payable
           </p>
           <p className="text-2xl font-black text-primary mt-1 flex justify-center items-center gap-1">
-            <IndianRupee size={18} /> {netPayable.toLocaleString()}
+            <IndianRupee size={18} /> {Math.max(0, netPayable).toLocaleString()}
           </p>
         </div>
 
