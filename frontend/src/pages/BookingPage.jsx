@@ -692,19 +692,11 @@ export default function BookingPage() {
       setOtpError("Invalid or expired OTP");
     }
   };
-
-  // ================= CHECK EXISTING MEMBERSHIP =================
-
   // Removed noisy console logs
 
   return (
     <div className="min-h-screen bg-background pb-20 pt-10">
       {/* Turnstile CAPTCHA for payment step */}
-      {showPaymentChoice && (
-        <div className="flex justify-center my-4">
-          <Turnstile ref={turnstileRef} onVerify={handleCaptchaVerify} />
-        </div>
-      )}
       <Seo
         title="Book Your Stay | Shiv Ganga Hotel"
         description="Plan your stay at Shiv Ganga Hotel Rishikesh. Check availability, choose rooms, and confirm your booking."
