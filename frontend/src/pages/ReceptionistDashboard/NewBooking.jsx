@@ -153,23 +153,18 @@ const NewBooking = () => {
   };
 
   const updateActivityCount = (activity, delta) => {
-    const totalGuests = Math.max(1, Number(adults) + Number(children));
-
     setSelectedActivities((prev) => {
       const existing = prev.find((a) => a.id === activity.id);
 
       if (existing) {
         let currentCount = Number(existing.count);
-        if (isNaN(currentCount)) currentCount = 1;
+        if (isNaN(currentCount) || currentCount < 1) currentCount = 1;
 
         const newCount = currentCount + delta;
 
         if (newCount <= 0) {
+          // remove if it drops to zero or below
           return prev.filter((a) => a.id !== activity.id);
-        }
-
-        if (newCount > totalGuests) {
-          return prev;
         }
 
         return prev.map((a) =>
