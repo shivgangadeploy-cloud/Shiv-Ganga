@@ -22,6 +22,7 @@ import Seo from "../components/Seo";
 import Turnstile from "../components/Turnstile";
 import ResponsiveImage from "../components/ResponsiveImage";
 import api from "../api/api";
+import { rooms as fallbackRooms } from "../data/rooms";
 
 const _motion = motion;
 
@@ -68,18 +69,28 @@ const ACTIVITIES = [
   },
 ];
 
-
 export default function BookingPage() {
+    // Cloudflare Turnstile CAPTCHA
+    const turnstileRef = useRef(null);
+    const handleCaptchaVerify = (token) => {
+      setCaptchaToken(token);
+      setPaymentError("");
+    };
   const today = new Date().toISOString().split("T")[0];
   const navigate = useNavigate(); // ✅ INSIDE component
   const location = useLocation();
   console.log("Razorpay key:", import.meta.env.VITE_RAZORPAY_KEY);
   const appliedCoupon = location.state?.appliedCoupon;
 
-  const [rooms, setRooms] = useState(location.state?.rooms || []);
+  // restore various pieces from bookingDraft when navigating back from coupons
+  const draft = location.state?.bookingDraft || {};
+
+  const [rooms, setRooms] = useState(
+    location.state?.rooms || draft.rooms || [],
+  );
   const [loadingRooms, setLoadingRooms] = useState(false);
   const [showMembershipPopup, setShowMembershipPopup] = useState(false);
-  const [isMember, setIsMember] = useState(false);
+  const [isMember, setIsMember] = useState(draft.isMember || false);
   const [membershipDiscount, setMembershipDiscount] = useState(0);
 
   const [currentStep, setCurrentStep] = useState(() => {
@@ -94,6 +105,11 @@ export default function BookingPage() {
 
   const [formData, setFormData] = useState(() => {
     const state = location.state || {};
+    const draftForm = draft.formData || {};
+
+    // if draft form data exists, use it directly
+    if (Object.keys(draftForm).length) return draftForm;
+
     const selectedRooms = state.room
       ? [{ ...state.room, quantity: 1, plan: "ep" }]
       : [];
@@ -118,13 +134,14 @@ export default function BookingPage() {
       specialRequests: state.specialRequests || "",
     };
   });
+
   const [membershipType, setMembershipType] = useState("PERCENT");
 
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpVerified, setOtpVerified] = useState(false);
+  const [otpSent, setOtpSent] = useState(draft.otpSent || false);
+  const [otpVerified, setOtpVerified] = useState(draft.otpVerified || false);
   const [otpInput, setOtpInput] = useState("");
   const [otpSecret, setOtpSecret] = useState("");
-  const [otpCountdown, setOtpCountdown] = useState(0);
+  const [otpCountdown, setOtpCountdown] = useState(draft.otpCountdown || 0);
   const [otpError, setOtpError] = useState("");
   const otpTimerRef = useRef(null);
   const [availabilityChecked, setAvailabilityChecked] = useState(false);
@@ -196,6 +213,10 @@ export default function BookingPage() {
         alert("Please select check-in and check-out dates");
         return;
       }
+      if (new Date(formData.checkOut) <= new Date(formData.checkIn)) {
+        alert("Checkout must be after check-in");
+        return;
+      }
 
       try {
         setLoadingRooms(true);
@@ -219,7 +240,35 @@ export default function BookingPage() {
         nextStep();
       } catch (error) {
         setLoadingRooms(false);
-        alert("Failed to check availability");
+        const totalGuests = Number(formData.adults) + Number(formData.children);
+        const localRooms = (fallbackRooms || []).filter(
+          (r) => (r.capacity || 2) >= totalGuests,
+        );
+        if (localRooms.length > 0) {
+          setRooms(
+            localRooms.map((r) => ({
+              ...r,
+              _id: r.id,
+              pricePerNight:
+                typeof r.price === "number"
+                  ? r.price
+                  : Number(String(r.price).replace(/[^0-9]/g, "")),
+              plan: "ep",
+              priceDetails: {
+                ep: Number(String(r.price).replace(/[^0-9]/g, "")),
+              },
+              mainImage: r.image,
+            })),
+          );
+          setAvailabilityChecked(true);
+          setAvailableRoomsCount(localRooms.length);
+          alert(
+            "Network issue while checking availability. Showing sample rooms.",
+          );
+          nextStep();
+        } else {
+          alert("Failed to check availability");
+        }
       }
       return;
     }
@@ -272,7 +321,9 @@ export default function BookingPage() {
 
       // ✅ Added amount validation from version 2
       if (payableAmount < 1) {
-        setPaymentError("Minimum payment amount is ₹1. Please pay full amount.");
+        setPaymentError(
+          "Minimum payment amount is ₹1. Please pay full amount.",
+        );
         setShowPaymentChoice(true);
         return;
       }
@@ -301,7 +352,7 @@ export default function BookingPage() {
         couponCode: appliedCoupon?.code || null,
         amountInPaise, // ✅ Added from version 2
         totalAmount: finalPayableAmount, // ✅ Added from version 2
-        captchaToken // Include Turnstile token
+        captchaToken, // Include Turnstile token
       });
 
       const { order, transactionId, bookingPayload } = res.data;
@@ -325,13 +376,18 @@ export default function BookingPage() {
             });
             // ✅ Added verification check from version 2
             if (!verifyRes.data?.success) {
-              setPaymentError(verifyRes.data?.message || "Payment verification failed");
+              setPaymentError(
+                verifyRes.data?.message || "Payment verification failed",
+              );
               setShowPaymentChoice(true);
               return;
             }
           } catch (e) {
             // ✅ Added error handling from version 2
-            const msg = e.response?.data?.message || e.message || "Payment verification failed. Please contact support.";
+            const msg =
+              e.response?.data?.message ||
+              e.message ||
+              "Payment verification failed. Please contact support.";
             setPaymentError(msg);
             setShowPaymentChoice(true);
             return;
@@ -351,13 +407,18 @@ export default function BookingPage() {
       const rzp = new window.Razorpay(options);
       // ✅ Added payment.failed handler from version 2
       rzp.on("payment.failed", function (response) {
-        setPaymentError(response.error?.description || "Payment failed. Please try again.");
+        setPaymentError(
+          response.error?.description || "Payment failed. Please try again.",
+        );
         setShowPaymentChoice(true);
       });
       rzp.open();
     } catch (err) {
       // ✅ Added detailed error message from version 2
-      const msg = err.response?.data?.message || err.message || "Unable to start payment. Please try again.";
+      const msg =
+        err.response?.data?.message ||
+        err.message ||
+        "Unable to start payment. Please try again.";
       setPaymentError(msg);
       setShowPaymentChoice(true);
     }
@@ -444,12 +505,24 @@ export default function BookingPage() {
     });
   };
   const setActivityQuantity = (id, qty) => {
-    setFormData((prev) => ({
-      ...prev,
-      selectedActivities: prev.selectedActivities.map((a) =>
-        a.id === id ? { ...a, quantity: Math.max(1, Number(qty) || 1) } : a,
-      ),
-    }));
+    qty = Number(qty) || 0;
+    setFormData((prev) => {
+      if (qty <= 0) {
+        // remove the activity completely when quantity zero or negative
+        return {
+          ...prev,
+          selectedActivities: prev.selectedActivities.filter(
+            (a) => a.id !== id,
+          ),
+        };
+      }
+      return {
+        ...prev,
+        selectedActivities: prev.selectedActivities.map((a) =>
+          a.id === id ? { ...a, quantity: qty } : a,
+        ),
+      };
+    });
   };
 
   const handleSubmit = (e) => {
@@ -464,6 +537,14 @@ export default function BookingPage() {
   const parsePrice = (p) => {
     if (!p || p === "Free") return 0;
     return Number(p.replace(/[^0-9.-]+/g, ""));
+  };
+
+  const formatDateDisplay = (val) => {
+    if (!val) return "-";
+    const s = String(val);
+    const parts = s.split("-");
+    if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    return s;
   };
 
   const nights = Math.round(
@@ -611,13 +692,11 @@ export default function BookingPage() {
       setOtpError("Invalid or expired OTP");
     }
   };
-
-  // ================= CHECK EXISTING MEMBERSHIP =================
-
-  console.log("Grand total:", grandTotal);
+  // Removed noisy console logs
 
   return (
     <div className="min-h-screen bg-background pb-20 pt-10">
+      {/* Turnstile CAPTCHA for payment step */}
       <Seo
         title="Book Your Stay | Shiv Ganga Hotel"
         description="Plan your stay at Shiv Ganga Hotel Rishikesh. Check availability, choose rooms, and confirm your booking."
@@ -661,7 +740,6 @@ export default function BookingPage() {
         {/* Progress Bar */}
         <div className="w-full mb-14 sm:mb-20">
           <div className="relative max-w-5xl mx-auto px-2 sm:px-4">
-
             {/* Background line */}
             <div className="absolute top-5 sm:top-1/2 left-0 w-full h-[1px] bg-white/40 -z-10 sm:-translate-y-1/2" />
 
@@ -674,7 +752,6 @@ export default function BookingPage() {
             />
 
             <div className="flex justify-between items-start sm:items-center w-full">
-
               {steps.map((step) => {
                 const isActive = currentStep >= step.id;
                 const isCurrent = currentStep === step.id;
@@ -723,7 +800,6 @@ export default function BookingPage() {
                   </div>
                 );
               })}
-
             </div>
           </div>
         </div>
@@ -1165,8 +1241,10 @@ export default function BookingPage() {
                                       "Single Bedroom": "standard-double",
                                       "Deluxe Double AC": "deluxe-double",
                                       "Exclusive Triple": "triple-room",
-                                      "Deluxe River View Room": "himalayan-balcony",
-                                      "Grand Family Suite": "grand-family-suite",
+                                      "Deluxe River View Room":
+                                        "himalayan-balcony",
+                                      "Grand Family Suite":
+                                        "grand-family-suite",
                                       "Single AC Room": "family-four",
                                     };
                                     const mappedId =
@@ -1300,7 +1378,7 @@ export default function BookingPage() {
                                         )?.quantity || 1;
                                       setActivityQuantity(
                                         activity.id,
-                                        Math.max(1, current - 1),
+                                        current - 1,
                                       );
                                     }}
                                     className="size-9 rounded-lg border border-gray-200 text-gray-600 hover:border-accent hover:text-accent transition justify-center items-center flex"
@@ -1308,12 +1386,12 @@ export default function BookingPage() {
                                     <Minus size={16} />
                                   </button>
                                   <input
-                                    // type="number"
-                                    min={1}
+                                    type="number"
+                                    min={0}
                                     value={
                                       formData.selectedActivities.find(
                                         (a) => a.id === activity.id,
-                                      )?.quantity || 1
+                                      )?.quantity || 0
                                     }
                                     onChange={(e) => {
                                       e.stopPropagation();
@@ -1396,10 +1474,11 @@ export default function BookingPage() {
                       }
                       disabled={!canApplyCoupon}
                       className={`px-5 py-2 border rounded-xl font-bold text-sm transition
-             ${canApplyCoupon
-                          ? "border-accent text-accent hover:bg-accent hover:text-primary"
-                          : "border-gray-300 text-gray-400 cursor-not-allowed opacity-60"
-                        }`}
+             ${
+               canApplyCoupon
+                 ? "border-primary text-white bg-primary hover:text-primary hover:bg-accent"
+                 : "border-gray-300 text-gray-400 cursor-not-allowed opacity-60"
+             }`}
                     >
                       Apply Coupon
                     </button>
@@ -1550,7 +1629,11 @@ export default function BookingPage() {
                   className="w-full max-w-3xl overflow-x-hidden bg-white rounded-2xl shadow-2xl shadow-gray-200/50 border border-white/20 p-4 sm:p-6 md:p-8 lg:p-16 text-center mx-auto"
                 >
                   <div className="w-20 h-20 sm:w-24 sm:h-24 bg-accent/30 rounded-full flex items-center justify-center mx-auto mb-6 sm:mb-8 animate-in fade-in zoom-in duration-700">
-                    <Check size={40} className="sm:w-12 sm:h-12 text-accent" strokeWidth={1} />
+                    <Check
+                      size={40}
+                      className="sm:w-12 sm:h-12 text-accent"
+                      strokeWidth={1}
+                    />
                   </div>
                   <span className="text-accent text-xs uppercase tracking-[0.4em] font-medium block mb-3 sm:mb-4">
                     Success
@@ -1684,7 +1767,12 @@ export default function BookingPage() {
                         {/* COUPON DISCOUNT - ADD THIS IF MISSING */}
                         {couponDiscountAmount > 0 && (
                           <div className="flex justify-between text-sm text-green-600">
-                            <span>Coupon Discount {appliedCoupon?.code ? `(${appliedCoupon.code})` : ''}</span>
+                            <span>
+                              Coupon Discount{" "}
+                              {appliedCoupon?.code
+                                ? `(${appliedCoupon.code})`
+                                : ""}
+                            </span>
                             <span>- Rs. {couponDiscountAmount}</span>
                           </div>
                         )}
@@ -1711,9 +1799,7 @@ export default function BookingPage() {
                               </span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-600">
-                                Paid Now
-                              </span>
+                              <span className="text-gray-600">Paid Now</span>
                               <span className="font-semibold text-primary">
                                 Rs. {paidAmount}
                               </span>
@@ -1764,7 +1850,9 @@ export default function BookingPage() {
             <div className="sticky top-24 lg:top-32 transition-all duration-300">
               <div className="bg-white rounded-2xl shadow-xl border border-primary/20 overflow-hidden">
                 <div className="bg-primary p-4 sm:p-6 text-white">
-                  <h3 className="text-lg sm:text-xl font-semibold">Booking Summary</h3>
+                  <h3 className="text-lg sm:text-xl font-semibold">
+                    Booking Summary
+                  </h3>
                 </div>
                 <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
                   {formData.selectedRooms.length > 0 ? (
@@ -1868,13 +1956,13 @@ export default function BookingPage() {
                     <div className="flex justify-between">
                       <span className="text-gray-500">Check-In</span>
                       <span className="font-medium text-primary">
-                        {formData.checkIn || "-"}
+                        {formatDateDisplay(formData.checkIn)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Check-Out</span>
                       <span className="font-medium text-primary">
-                        {formData.checkOut || "-"}
+                        {formatDateDisplay(formData.checkOut)}
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -2002,4 +2090,3 @@ export default function BookingPage() {
     </div>
   );
 }
-

@@ -89,12 +89,15 @@ export default function PayrollManagement() {
           byEmp.get(s.employeeId) ||
           byName.get(s.name) ||
           null;
+        const clamp = (n) => Math.max(0, Number(n) || 0);
+
         const mergedBasic =
           baseline &&
-            baseline.basicSalary !== undefined &&
-            baseline.basicSalary !== null
-            ? Number(baseline.basicSalary)
-            : Number(s.basicSalary) || 0;
+          baseline.basicSalary !== undefined &&
+          baseline.basicSalary !== null
+            ? clamp(baseline.basicSalary)
+            : clamp(s.basicSalary);
+
         return {
           id: s.salaryId || s._id,
           staffId: s._id,
@@ -103,9 +106,9 @@ export default function PayrollManagement() {
           dept: s.role,
           deptLabel: s.role.replace("_", " ").toUpperCase(),
           base: mergedBasic,
-          bonus: Number(s.allowances) || 0,
-          deductions: Number(s.deductions) || 0,
-          net: Number(s.totalPayable) || 0,
+          bonus: clamp(s.allowances),
+          deductions: clamp(s.deductions),
+          net: clamp(s.totalPayable),
           status: s.salaryStatus === "PAID" ? "Paid" : "Pending",
           salaryId: s.salaryId || null,
         };
@@ -623,21 +626,21 @@ function PaymentActionModal({ employee, onClose, onConfirm }) {
             <div className="flex justify-between">
               <span className="text-sm text-slate-600">Basic Salary</span>
               <span className="font-semibold">
-                ₹{employee.base.toLocaleString()}
+                ₹{Math.max(0, employee.base).toLocaleString()}
               </span>
             </div>
 
             <div className="flex justify-between">
               <span className="text-sm text-slate-600">Allowances</span>
               <span className="font-semibold text-emerald-600">
-                + ₹{employee.bonus.toLocaleString()}
+                + ₹{Math.max(0, employee.bonus).toLocaleString()}
               </span>
             </div>
 
             <div className="flex justify-between">
               <span className="text-sm text-slate-600">Deductions</span>
               <span className="font-semibold text-red-600">
-                - ₹{employee.deductions.toLocaleString()}
+                - ₹{Math.max(0, employee.deductions).toLocaleString()}
               </span>
             </div>
 

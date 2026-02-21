@@ -9,7 +9,7 @@ const AvailableCoupons = () => {
   // yaha se aayega
   const mode = location.state?.mode || "public";
   const amount = location.state?.amount || 0;
-const bookingDraft = location.state?.bookingDraft;
+  const bookingDraft = location.state?.bookingDraft || {}; // preserve booking form data when returning
 
   const [coupons, setCoupons] = useState([]);
   const [error, setError] = useState("");
@@ -21,9 +21,7 @@ const bookingDraft = location.state?.bookingDraft;
   const fetchCoupons = async () => {
     try {
       const url =
-        mode === "receptionist"
-          ? "/receptionist/coupon"
-          : "/public/coupon";
+        mode === "receptionist" ? "/receptionist/coupon" : "/public/coupon";
 
       const res = await api.get(url);
       setCoupons(res.data.data || []);
@@ -41,23 +39,17 @@ const bookingDraft = location.state?.bookingDraft;
 
       const res = await api.post(url, { code, amount });
 
-const redirectPath =
-  mode === "receptionist"
-    ? "/receptionist/new-booking"
-    : "/booking";
+      const redirectPath =
+        mode === "receptionist" ? "/receptionist/new-booking" : "/booking";
 
-navigate(redirectPath, {
-  replace: true,
-  state: {
-    appliedCoupon: res.data.coupon,
-    bookingDraft,
-    fromCoupon: true     // 🔥 FLAG
-  }
-});
-
-
-
-
+      navigate(redirectPath, {
+        replace: true,
+        state: {
+          appliedCoupon: res.data.coupon,
+          bookingDraft,
+          fromCoupon: true, // 🔥 FLAG
+        },
+      });
     } catch (err) {
       alert(err.response?.data?.message || "Invalid coupon");
     }
@@ -69,16 +61,43 @@ navigate(redirectPath, {
 
       {error && <p className="text-red-500">{error}</p>}
 
-      {coupons.map(c => (
+      {/* show placeholder if no coupons available */}
+      {coupons.length === 0 && !error && (
+        <div className="border rounded-xl p-6 mb-4 text-center min-h-[500px] flex flex-col items-center justify-center">
+          <p className="text-lg font-semibold mb-3">No coupons here</p>
+          <p className="text-sm text-slate-500 mb-4">
+            There are currently no coupons available for your booking.
+          </p>
+          <button
+            onClick={() => {
+              // navigate back to booking page retaining draft state
+              const redirectPath =
+                mode === "receptionist"
+                  ? "/receptionist/new-booking"
+                  : "/booking";
+              navigate(redirectPath, {
+                replace: true,
+                state: {
+                  bookingDraft, // keep original object under bookingDraft key
+                  fromCoupon: true, // flag so page restores values
+                },
+              });
+            }}
+            className="px-5 py-2 border rounded-lg font-semibold text-sm bg-gray-100 hover:bg-gray-200"
+          >
+            Back
+          </button>
+        </div>
+      )}
+
+      {coupons.map((c) => (
         <div
           key={c._id}
           className="border rounded-xl p-4 mb-3 flex justify-between items-center"
         >
           <div>
             <p className="font-mono font-bold">{c.code}</p>
-            <p className="text-sm text-slate-500">
-              {c.discountPercent}% OFF
-            </p>
+            <p className="text-sm text-slate-500">{c.discountPercent}% OFF</p>
           </div>
 
           <button

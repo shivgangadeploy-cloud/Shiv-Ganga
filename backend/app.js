@@ -32,6 +32,8 @@ import otpRoutes from "./routes/otp.routes.js"
 import "./cron/coupon.cron.js";
 import membershipRoutes from "./routes/membership.routes.js";
 import newsletterRoutes from "./routes/newsletter.routes.js"
+import captchaRoutes from "./routes/captcha.routes.js";
+
 const app = express()
 const __filename = fileURLToPath(import.meta.url)
 const _dirname = path.dirname(__filename)
@@ -86,7 +88,7 @@ app.use(compression());
 // Global rate limiting (applies to all routes)
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  max: 1000, // limit each IP to 1000 requests per windowMs
   handler: (req, res) => {
     res.status(429).json({
       success: false,
@@ -144,6 +146,7 @@ app.use("/api", staffReportRoutes);
 app.use("/api", guestRoutes);
 app.use("/api", receptionistDashboardRoutes);
 app.use("/api", offlineBookingRoutes);
+app.use("/api", onlineBookingRoutes);
 app.use("/api", operationalBookingRoutes);
 app.use("/api", receptionistProfileRoutes);
 app.use("/api", couponRoutes);

@@ -12,6 +12,7 @@
 // import EmailOTP from "../models/EmailOTP.model.js";
 
 // import Membership from "../models/Membership.model.js";
+import TaxesAndBilling from "../models/TaxesAndBilling.model.js";
 
 // const razorpay = new Razorpay({
 //   key_id: config.RAZORPAY_KEY_ID,
@@ -873,6 +874,8 @@ const ADD_ONS_PRICE_MAP = {
   "Yoga Session": 1500,
 };
 
+const MIN_PARTIAL_PAYMENT_PERCENTAGE = 0.3;
+
 export const createPaymentOrder = async (req, res, next) => {
   try {
     const {
@@ -1028,8 +1031,7 @@ export const createPaymentOrder = async (req, res, next) => {
       });
     }
 
-    const totalAmountForBooking =
-      req.body.totalAmount != null ? Number(req.body.totalAmount) : finalAmount;
+    const totalAmountForBooking = finalAmount;
 
     const amountInPaiseProvided =
       req.body.amountInPaise != null && Number(req.body.amountInPaise) > 0;
@@ -1037,35 +1039,52 @@ export const createPaymentOrder = async (req, res, next) => {
     let payableNow;
     let razorpayAmountPaise;
 
+    // Minimum 30% for partial payments
+    const minPartialAmount = Math.round(finalAmount * MIN_PARTIAL_PAYMENT_PERCENTAGE);
+
     if (amountInPaiseProvided) {
       razorpayAmountPaise = Math.round(Number(req.body.amountInPaise));
       payableNow = razorpayAmountPaise / 100;
+
       if (razorpayAmountPaise < 100) {
         return res.status(400).json({
           success: false,
           message: "Minimum payment amount is ₹1",
         });
       }
-      if (payableNow > totalAmountForBooking * 1.01) {
+
+      if (payableNow > totalAmountForBooking + 5) {
         return res.status(400).json({
           success: false,
           message: "Amount exceeds booking total",
+        });
+      }
+
+      if (paymentType === "PARTIAL" && payableNow < minPartialAmount) {
+        return res.status(400).json({
+          success: false,
+          message: `Minimum partial payment amount is ₹${minPartialAmount} (${Math.round(MIN_PARTIAL_PAYMENT_PERCENTAGE * 100)}% of total)`,
         });
       }
     } else {
       payableNow = finalAmount;
       if (paymentType === "PARTIAL") {
         const requestedPartial = Number(req.body.partialAmount) || 0;
-        const defaultPartial = Math.round(finalAmount * 0.3);
-        payableNow =
-          requestedPartial > 0 ? requestedPartial : defaultPartial;
-        if (
-          payableNow <= 0 ||
-          payableNow > totalAmountForBooking
-        ) {
+        
+        // Use requested partial if valid, otherwise default to minimum 30%
+        payableNow = requestedPartial > 0 ? requestedPartial : minPartialAmount;
+
+        if (payableNow < minPartialAmount) {
           return res.status(400).json({
             success: false,
-            message: "Invalid partial payment amount",
+            message: `Minimum partial payment amount is ₹${minPartialAmount} (${Math.round(MIN_PARTIAL_PAYMENT_PERCENTAGE * 100)}% of total)`,
+          });
+        }
+
+        if (payableNow > totalAmountForBooking) {
+          return res.status(400).json({
+            success: false,
+            message: "Partial payment cannot exceed total amount",
           });
         }
       }
@@ -1263,67 +1282,57 @@ export const verifyPayment = async (req, res, next) => {
     await session.commitTransaction();
     session.endSession();
 
-    /* ================= EMAIL ================= */
-    const bookingDoc = booking[0];
 
+    // EMAIL & NOTIFICATION (NON BLOCKING)
+    const bookingDoc = booking[0];
     const checkIn = new Date(bookingDoc.checkInDate);
     const checkOut = new Date(bookingDoc.checkOutDate);
     const nights = (checkOut - checkIn) / (1000 * 60 * 60 * 24);
-    /* ================= EMAIL & NOTIFICATION (NON BLOCKING) ================= */
-    try {
-      await notifyReceptionistPaymentCompleted({
-        booking: bookingDoc,
-        user,
-        room,
+    // Notify receptionist
+    notifyReceptionistPaymentCompleted({ booking: bookingDoc, user, room }).catch((err) => {
+      console.error("Receptionist notification failed:", err.message);
+    });
+
+    // Prepare activities for email
+    const normalizeKey = (s) => (s || "").toString().trim().toLowerCase().replace(/\s+/g, " ");
+    const normalizedPriceMap = Object.fromEntries(
+      Object.entries(ADD_ONS_PRICE_MAP || {}).map(([k, v]) => [normalizeKey(k), v]),
+    );
+    const activities = (bookingDoc.addOns || [])
+      .filter((a) => (a?.name || "").toString().trim())
+      .map((a) => {
+        const qty = Math.max(0, Number(a?.quantity || 0));
+        const name = (a?.name || "").toString().trim();
+        const key = normalizeKey(name);
+        const unit =
+          (ADD_ONS_PRICE_MAP && ADD_ONS_PRICE_MAP[name]) ??
+          normalizedPriceMap[key] ??
+          (Number(a?.price || 0) || 0);
+        return {
+          name,
+          quantity: qty,
+          unitPrice: unit,
+          totalPrice: unit * qty,
+        };
       });
 
-      const normalizeKey = (s) =>
-        (s || "").toString().trim().toLowerCase().replace(/\s+/g, " ");
-      const normalizedPriceMap = Object.fromEntries(
-        Object.entries(ADD_ONS_PRICE_MAP || {}).map(([k, v]) => [
-          normalizeKey(k),
-          v,
-        ]),
-      );
-      const activities = (bookingDoc.addOns || [])
-        .filter((a) => (a?.name || "").toString().trim())
-        .map((a) => {
-          const qty = Math.max(0, Number(a?.quantity || 0));
-          const name = (a?.name || "").toString().trim();
-          const key = normalizeKey(name);
-          const unit =
-            (ADD_ONS_PRICE_MAP && ADD_ONS_PRICE_MAP[name]) ??
-            normalizedPriceMap[key] ??
-            (Number(a?.price || 0) || 0);
-          return {
-            name,
-            quantity: qty,
-            unitPrice: unit,
-            totalPrice: unit * qty,
-          };
-        });
-
-      await sendBookingConfirmationMail({
-        name: `${user.firstName} ${user.lastName}`,
-        email: user.email,
-        roomNumber: room.roomNumber,
-        guestId: bookingDoc.guestId,
-        bookingReference: bookingDoc.bookingReference,
-
-        checkInDate: checkIn.toDateString(),
-        checkOutDate: checkOut.toDateString(),
-        nights,
-
-        totalAmount: bookingDoc.totalAmount,
-        paidAmount: bookingDoc.paidAmount,
-        pendingAmount: bookingDoc.pendingAmount,
-
-        coupon: bookingDoc.coupon,
-        activities,
-      });
-    } catch (err) {
-      console.error("Email / Notification failed:", err.message);
-    }
+    sendBookingConfirmationMail({
+      name: `${user.firstName} ${user.lastName}`,
+      email: user.email,
+      roomNumber: room.roomNumber,
+      guestId: bookingDoc.guestId,
+      bookingReference: bookingDoc.bookingReference,
+      checkInDate: checkIn.toDateString(),
+      checkOutDate: checkOut.toDateString(),
+      nights,
+      totalAmount: bookingDoc.totalAmount,
+      paidAmount: bookingDoc.paidAmount,
+      pendingAmount: bookingDoc.pendingAmount,
+      coupon: bookingDoc.coupon,
+      activities,
+    }).catch((err) => {
+      console.error("Booking confirmation email failed:", err.message);
+    });
 
     /* ================= OTP CLEANUP ================= */
     await EmailOTP.deleteMany({ email: user.email });
@@ -1476,60 +1485,54 @@ export const fakeVerifyPayment = async (req, res, next) => {
     await session.commitTransaction();
     session.endSession();
 
-    /* ================= EMAIL ================= */
-    const bookingDoc = booking[0];
 
+    // EMAIL & NOTIFICATION (NON BLOCKING)
+    const bookingDoc = booking[0];
     const checkIn = new Date(bookingDoc.checkInDate);
     const checkOut = new Date(bookingDoc.checkOutDate);
     const nights = (checkOut - checkIn) / (1000 * 60 * 60 * 24);
-
-    await notifyReceptionistPaymentCompleted({
-      booking: bookingDoc,
-      user,
-      room,
+    notifyReceptionistPaymentCompleted({ booking: bookingDoc, user, room }).catch((err) => {
+      console.error("Receptionist notification failed:", err.message);
     });
 
-  const normalizeKey = (s) =>
-    (s || "").toString().trim().toLowerCase().replace(/\s+/g, " ");
-  const normalizedPriceMap = Object.fromEntries(
-    Object.entries(ADD_ONS_PRICE_MAP || {}).map(([k, v]) => [
-      normalizeKey(k),
-      v,
-    ]),
-  );
-  const activities = (bookingDoc.addOns || []).map((a) => {
-    const qty = Math.max(0, Number(a?.quantity || 0));
-    const name = (a?.name || "").toString().trim();
-    const key = normalizeKey(name);
-    const unit =
-      (ADD_ONS_PRICE_MAP && ADD_ONS_PRICE_MAP[name]) ??
-      normalizedPriceMap[key] ??
-      (Number(a?.price || 0) || 0);
-    return {
-      name,
-      quantity: qty,
-      unitPrice: unit,
-      totalPrice: unit * qty,
-    };
-  });
+    const normalizeKey = (s) => (s || "").toString().trim().toLowerCase().replace(/\s+/g, " ");
+    const normalizedPriceMap = Object.fromEntries(
+      Object.entries(ADD_ONS_PRICE_MAP || {}).map(([k, v]) => [normalizeKey(k), v]),
+    );
+    const activities = (bookingDoc.addOns || [])
+      .filter((a) => (a?.name || "").toString().trim())
+      .map((a) => {
+        const qty = Math.max(0, Number(a?.quantity || 0));
+        const name = (a?.name || "").toString().trim();
+        const key = normalizeKey(name);
+        const unit =
+          (ADD_ONS_PRICE_MAP && ADD_ONS_PRICE_MAP[name]) ??
+          normalizedPriceMap[key] ??
+          (Number(a?.price || 0) || 0);
+        return {
+          name,
+          quantity: qty,
+          unitPrice: unit,
+          totalPrice: unit * qty,
+        };
+      });
 
-    await sendBookingConfirmationMail({
+    sendBookingConfirmationMail({
       name: `${user.firstName} ${user.lastName}`,
       email: user.email,
       roomNumber: room.roomNumber,
       guestId: bookingDoc.guestId,
       bookingReference: bookingDoc.bookingReference,
-
       checkInDate: checkIn.toDateString(),
       checkOutDate: checkOut.toDateString(),
       nights,
-
       totalAmount: bookingDoc.totalAmount,
       paidAmount: bookingDoc.paidAmount,
       pendingAmount: bookingDoc.pendingAmount,
-
       coupon: bookingDoc.coupon,
-    activities,
+      activities,
+    }).catch((err) => {
+      console.error("Booking confirmation email failed:", err.message);
     });
 
     res.status(200).json({
