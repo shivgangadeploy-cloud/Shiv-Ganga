@@ -84,13 +84,13 @@ export const sendBookingConfirmationMail = async ({
   console.log("💳 Paid Amount:", paidAmount);
   console.log("⏳ Pending Amount:", pendingAmount);
   console.log("🎟️ Coupon:", JSON.stringify(coupon, null, 2));
-  
+
   // CRITICAL: Log the raw activities data
   console.log("\n🔍 RAW ACTIVITIES DATA:");
   console.log("Type of activities:", typeof activities);
   console.log("Is Array?", Array.isArray(activities));
   console.log("Activities value:", JSON.stringify(activities, null, 2));
-  
+
   if (activities) {
     console.log("Activities keys:", Object.keys(activities));
     if (Array.isArray(activities)) {
@@ -98,7 +98,10 @@ export const sendBookingConfirmationMail = async ({
       activities.forEach((item, index) => {
         console.log(`\nActivity ${index}:`, JSON.stringify(item, null, 2));
         console.log(`Activity ${index} type:`, typeof item);
-        console.log(`Activity ${index} keys:`, item ? Object.keys(item) : 'No keys');
+        console.log(
+          `Activity ${index} keys:`,
+          item ? Object.keys(item) : "No keys",
+        );
       });
     }
   }
@@ -112,7 +115,8 @@ export const sendBookingConfirmationMail = async ({
       : config.BREVO_SENDER_EMAIL;
 
   const primaryPhone =
-    Array.isArray(system.systemPhoneNumbers) && system.systemPhoneNumbers.length > 0
+    Array.isArray(system.systemPhoneNumbers) &&
+    system.systemPhoneNumbers.length > 0
       ? system.systemPhoneNumbers[0]
       : "N/A";
 
@@ -127,7 +131,7 @@ export const sendBookingConfirmationMail = async ({
   // Normalize key: lowercase + single space
   const normalizeActivityKey = (s) =>
     (s || "").toString().trim().toLowerCase().replace(/\s+/g, " ");
-  
+
   const NORMALIZED_PRICE_MAP = Object.fromEntries(
     Object.entries(PRICE_MAP).map(([k, v]) => [normalizeActivityKey(k), v]),
   );
@@ -143,133 +147,136 @@ export const sendBookingConfirmationMail = async ({
   // Process activities with comprehensive data extraction
   let safeActivities = [];
   let activitiesTotal = 0;
-  
+
   console.log("\n🔄 Processing activities...");
-  
+
   // Check if activities exists and is an array
   if (activities && Array.isArray(activities) && activities.length > 0) {
     console.log(`✅ Found ${activities.length} activities to process`);
-    
-    safeActivities = activities.map((a, index) => {
-      console.log(`\n--- Processing Activity ${index + 1} ---`);
-      console.log("Raw activity data:", a);
-      
-      if (!a) {
-        console.log("⚠️ Activity is null or undefined");
-        return null;
-      }
-      
-      // Try multiple possible property names for each field
-      
-      // 1. Extract name
-      const activityName = 
-        a?.activityName || 
-        a?.name || 
-        a?.title || 
-        a?.activity || 
-        a?.description ||
-        a?.itemName ||
-        a?.serviceName ||
-        "Unknown Activity";
-      console.log("Extracted name:", activityName);
-      
-      // 2. Extract quantity
-      const quantity = Number(
-        a?.quantity || 
-        a?.qty || 
-        a?.count || 
-        a?.numberOfPeople ||
-        a?.pax ||
-        a?.participants ||
-        1
-      );
-      console.log("Extracted quantity:", quantity);
-      
-      // 3. Extract unit price (try multiple fields)
-      let unitPrice = 0;
-      
-      // Try various price fields
-      const priceCandidates = [
-        a?.unitPrice,
-        a?.price,
-        a?.rate,
-        a?.unit_price,
-        a?.amount,
-        a?.cost,
-        a?.charges,
-        a?.fee
-      ];
-      
-      for (const candidate of priceCandidates) {
-        const num = Number(candidate);
-        if (!isNaN(num) && num > 0) {
-          unitPrice = num;
-          break;
-        }
-      }
-      
-      // If still zero, try the price map
-      if (unitPrice === 0 && activityName) {
-        const lookupKey = normalizeActivityKey(activityName);
-        unitPrice = NORMALIZED_PRICE_MAP[lookupKey] || 0;
-        console.log(`Using price map for ${activityName}: ${unitPrice}`);
-      }
-      console.log("Extracted unit price:", unitPrice);
-      
-      // 4. Extract total price
-      let totalPrice = 0;
-      
-      const totalCandidates = [
-        a?.totalPrice,
-        a?.total,
-        a?.total_amount,
-        a?.amount,
-        a?.totalCost,
-        a?.grandTotal,
-        a?.subtotal
-      ];
-      
-      for (const candidate of totalCandidates) {
-        const num = Number(candidate);
-        if (!isNaN(num) && num > 0) {
-          totalPrice = num;
-          break;
-        }
-      }
-      
-      // If total price is still zero but we have quantity and unit price, calculate it
-      if (totalPrice === 0 && quantity > 0 && unitPrice > 0) {
-        totalPrice = quantity * unitPrice;
-        console.log(`Calculated total price: ${quantity} × ${unitPrice} = ${totalPrice}`);
-      }
-      
-      console.log("Final total price:", totalPrice);
 
-      const processedActivity = {
-        name: activityName.toString().trim(),
-        quantity: isNaN(quantity) ? 1 : quantity,
-        unitPrice: isNaN(unitPrice) ? 0 : unitPrice,
-        totalPrice: isNaN(totalPrice) ? 0 : totalPrice,
-        // Keep original data for reference
-        originalData: a
-      };
-      
-      console.log("✅ Processed activity:", processedActivity);
-      return processedActivity;
-    }).filter(activity => activity !== null); // Remove null activities
-    
-    console.log(`\n📊 Successfully processed ${safeActivities.length} activities`);
-    
-    // Calculate activities total
-    activitiesTotal = safeActivities.reduce(
-      (sum, a) => {
-        const total = Number(a.totalPrice || 0);
-        console.log(`Adding to sum: ${a.name} = ${total}`);
-        return sum + total;
-      },
-      0,
+    safeActivities = activities
+      .map((a, index) => {
+        console.log(`\n--- Processing Activity ${index + 1} ---`);
+        console.log("Raw activity data:", a);
+
+        if (!a) {
+          console.log("⚠️ Activity is null or undefined");
+          return null;
+        }
+
+        // Try multiple possible property names for each field
+
+        // 1. Extract name
+        const activityName =
+          a?.activityName ||
+          a?.name ||
+          a?.title ||
+          a?.activity ||
+          a?.description ||
+          a?.itemName ||
+          a?.serviceName ||
+          "Unknown Activity";
+        console.log("Extracted name:", activityName);
+
+        // 2. Extract quantity
+        const quantity = Number(
+          a?.quantity ||
+            a?.qty ||
+            a?.count ||
+            a?.numberOfPeople ||
+            a?.pax ||
+            a?.participants ||
+            1,
+        );
+        console.log("Extracted quantity:", quantity);
+
+        // 3. Extract unit price (try multiple fields)
+        let unitPrice = 0;
+
+        // Try various price fields
+        const priceCandidates = [
+          a?.unitPrice,
+          a?.price,
+          a?.rate,
+          a?.unit_price,
+          a?.amount,
+          a?.cost,
+          a?.charges,
+          a?.fee,
+        ];
+
+        for (const candidate of priceCandidates) {
+          const num = Number(candidate);
+          if (!isNaN(num) && num > 0) {
+            unitPrice = num;
+            break;
+          }
+        }
+
+        // If still zero, try the price map
+        if (unitPrice === 0 && activityName) {
+          const lookupKey = normalizeActivityKey(activityName);
+          unitPrice = NORMALIZED_PRICE_MAP[lookupKey] || 0;
+          console.log(`Using price map for ${activityName}: ${unitPrice}`);
+        }
+        console.log("Extracted unit price:", unitPrice);
+
+        // 4. Extract total price
+        let totalPrice = 0;
+
+        const totalCandidates = [
+          a?.totalPrice,
+          a?.total,
+          a?.total_amount,
+          a?.amount,
+          a?.totalCost,
+          a?.grandTotal,
+          a?.subtotal,
+        ];
+
+        for (const candidate of totalCandidates) {
+          const num = Number(candidate);
+          if (!isNaN(num) && num > 0) {
+            totalPrice = num;
+            break;
+          }
+        }
+
+        // If total price is still zero but we have quantity and unit price, calculate it
+        if (totalPrice === 0 && quantity > 0 && unitPrice > 0) {
+          totalPrice = quantity * unitPrice;
+          console.log(
+            `Calculated total price: ${quantity} × ${unitPrice} = ${totalPrice}`,
+          );
+        }
+
+        console.log("Final total price:", totalPrice);
+
+        const processedActivity = {
+          name: activityName.toString().trim(),
+          quantity: isNaN(quantity) ? 1 : quantity,
+          unitPrice: isNaN(unitPrice) ? 0 : unitPrice,
+          totalPrice: isNaN(totalPrice) ? 0 : totalPrice,
+          // Keep original data for reference
+          originalData: a,
+        };
+
+        console.log("✅ Processed activity:", processedActivity);
+        return processedActivity;
+      })
+      .filter((activity) => activity !== null); // Remove null activities
+
+    console.log(
+      `\n📊 Successfully processed ${safeActivities.length} activities`,
     );
-    
+
+    // Calculate activities total
+    activitiesTotal = safeActivities.reduce((sum, a) => {
+      const total = Number(a.totalPrice || 0);
+      console.log(`Adding to sum: ${a.name} = ${total}`);
+      return sum + total;
+    }, 0);
+
     console.log("💰 Activities Total calculated:", activitiesTotal);
   } else {
     console.log("⚠️ No activities found or activities is not an array");
@@ -282,23 +289,24 @@ export const sendBookingConfirmationMail = async ({
   // Format currency function
   const formatINR = (n) => {
     const num = Number(n || 0);
-    return num.toLocaleString("en-IN", { 
-      minimumFractionDigits: 2, 
-      maximumFractionDigits: 2 
+    return num.toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     });
-  }
+  };
 
   // Calculate all amounts
   const roomCharges = Number(totalAmount || 0);
   const finalActivitiesTotal = Number(activitiesTotal || 0);
   const grandTotal = roomCharges + finalActivitiesTotal;
   const finalPaidAmount = Number(paidAmount || 0);
-  
+
   // Calculate pending amount (grand total minus paid amount)
   // If pendingAmount is provided, use it, otherwise calculate
-  const finalPendingAmount = pendingAmount !== undefined 
-    ? Number(pendingAmount) 
-    : Math.max(0, grandTotal - finalPaidAmount);
+  const finalPendingAmount =
+    pendingAmount !== undefined
+      ? Number(pendingAmount)
+      : Math.max(0, grandTotal - finalPaidAmount);
 
   console.log("\n📊 FINAL CALCULATIONS:");
   console.log("Room Charges:", roomCharges);
@@ -308,8 +316,8 @@ export const sendBookingConfirmationMail = async ({
   console.log("Pending Amount:", finalPendingAmount);
 
   // Build the email HTML
-  let activitiesHTML = '';
-  
+  let activitiesHTML = "";
+
   if (safeActivities.length > 0) {
     activitiesHTML = `
       <hr/>
@@ -332,7 +340,7 @@ export const sendBookingConfirmationMail = async ({
                 <td style="padding:10px; text-align:center;">${a.quantity}</td>
                 <td style="padding:10px; text-align:right;">${formatINR(a.unitPrice)}</td>
                 <td style="padding:10px; text-align:right;">${formatINR(a.totalPrice)}</td>
-              </tr>`
+              </tr>`,
             )
             .join("")}
           <tr style="background-color:#f2f2f2; font-weight:bold;">
@@ -397,7 +405,7 @@ export const sendBookingConfirmationMail = async ({
   // Send the email
   try {
     console.log("\n📧 Sending email...");
-    
+
     await transactionalEmailApi.sendTransacEmail({
       sender: {
         email: config.BREVO_SENDER_EMAIL,
@@ -411,8 +419,8 @@ export const sendBookingConfirmationMail = async ({
 
             <div style="text-align:center; margin-bottom:20px;">
   ${
-  system.logo
-    ? `<img 
+    system.logo
+      ? `<img 
         src="${system.logo}" 
         alt="${system.systemHotelName}" 
         style="
@@ -423,8 +431,8 @@ export const sendBookingConfirmationMail = async ({
           background:#ffffff;
         " 
       />`
-    : ""
-}
+      : ""
+  }
               <h2 style="margin:10px 0; color:#333;">${system.systemHotelName}</h2>
               <p style="color:#666;">Booking Confirmation & Receipt</p>
             </div>
@@ -475,14 +483,13 @@ export const sendBookingConfirmationMail = async ({
         </div>
       `,
     });
-    
+
     console.log("✅ Email sent successfully!");
-    
   } catch (error) {
     console.error("❌ Error sending email:", error);
     throw error;
   }
-  
+
   console.log("========== EMAIL PROCESSING COMPLETE ==========\n");
 };
 
