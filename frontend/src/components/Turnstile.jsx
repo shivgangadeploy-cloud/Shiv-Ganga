@@ -19,31 +19,29 @@ const Turnstile = React.forwardRef(({ onVerify }, ref) => {
     } else if (window.turnstile) {
       setIsReady(true);
     }
-
-    return () => {
-      if (containerRef.current && window.turnstile && widgetIdRef.current) {
-        try {
-          window.turnstile.reset(widgetIdRef.current);
-        } catch (e) {}
-      }
-    };
   }, [TURNSTILE_SITE_KEY]);
 
   useEffect(() => {
-    if (isReady && containerRef.current && window.turnstile && TURNSTILE_SITE_KEY) {
-      try {
-        widgetIdRef.current = window.turnstile.render(containerRef.current, {
-          sitekey: TURNSTILE_SITE_KEY,
-          theme: 'light',
-          callback: (token) => {
-            if (onVerify) onVerify(token);
-          },
-        });
-      } catch (error) {
-        console.error('Error rendering Turnstile:', error);
+    if (
+      isReady &&
+      containerRef.current &&
+      window.turnstile &&
+      TURNSTILE_SITE_KEY &&
+      !widgetIdRef.current
+    ){
+        try {
+          widgetIdRef.current = window.turnstile.render(containerRef.current, {
+            sitekey: TURNSTILE_SITE_KEY,
+            theme: 'light',
+            callback: (token) => {
+              if (onVerify) onVerify(token);
+            },
+          });
+        } catch (error) {
+          console.error('Error rendering Turnstile:', error);
+        }
       }
-    }
-  }, [isReady, TURNSTILE_SITE_KEY, onVerify]);
+    }, [isReady, TURNSTILE_SITE_KEY]);
 
   React.useImperativeHandle(ref, () => ({
     getToken: () => {
@@ -60,7 +58,7 @@ const Turnstile = React.forwardRef(({ onVerify }, ref) => {
       if (TURNSTILE_SITE_KEY && window.turnstile && widgetIdRef.current) {
         try {
           window.turnstile.reset(widgetIdRef.current);
-        } catch {}
+        } catch { }
       }
       setSimToken(null);
     },

@@ -7,10 +7,19 @@ export const payStaffSalary = async (req, res, next) => {
   let payoutTxn;
 
   try {
-    const { salaryId } = req.body;
+    const { salaryId, paymentMethod } = req.body;
 
-    const salary = await StaffSalary.findById(salaryId)
-      .populate("receptionist");
+    if (!paymentMethod) {
+      return res.status(400).json({
+        success: false,
+        message: "Payment method is required"
+      });
+    }
+
+    const salary = await StaffSalary.findOne({
+      _id: salaryId,
+      status: { $ne: "PAID" }
+    }).populate("receptionist");
 
     if (!salary) {
       return res.status(404).json({
@@ -29,7 +38,7 @@ export const payStaffSalary = async (req, res, next) => {
     const receptionist = salary.receptionist;
 
     if (
-      salary.paymentMethod !== "CASH" &&
+      paymentMethod !== "CASH" &&
       !receptionist.razorpayFundAccountId
     ) {
       return res.status(400).json({
@@ -42,15 +51,15 @@ export const payStaffSalary = async (req, res, next) => {
       receptionist: receptionist._id,
       salary: salary._id,
       amount: salary.totalPayable,
-      method: salary.paymentMethod,
+      method: paymentMethod,
       paymentGateway:
-        salary.paymentMethod === "CASH" ? "MANUAL" : "RAZORPAY",
+        paymentMethod === "CASH" ? "MANUAL" : "RAZORPAY",
       status: "PENDING"
     });
 
     let razorpayPayout = null;
 
-    if (salary.paymentMethod === "CASH") {
+    if (paymentMethod === "CASH") {
       razorpayPayout = {
         id: "manual_" + Date.now(),
         status: "processed"
@@ -61,7 +70,7 @@ export const payStaffSalary = async (req, res, next) => {
         fund_account_id: receptionist.razorpayFundAccountId,
         amount: salary.totalPayable * 100,
         currency: "INR",
-        mode: salary.paymentMethod === "UPI" ? "UPI" : "IMPS",
+        mode: paymentMethod === "UPI" ? "UPI" : "IMPS",
         purpose: "salary",
         queue_if_low_balance: true,
         reference_id: salary._id.toString(),
@@ -71,7 +80,7 @@ export const payStaffSalary = async (req, res, next) => {
 
     payoutTxn.status =
       razorpayPayout.status === "processed" ||
-      razorpayPayout.status === "queued"
+        razorpayPayout.status === "queued"
         ? "SUCCESS"
         : "FAILED";
 
@@ -79,9 +88,14 @@ export const payStaffSalary = async (req, res, next) => {
     payoutTxn.razorpayResponse = razorpayPayout;
     await payoutTxn.save();
 
-    salary.status = "PAID";
-    salary.paidAt = new Date();
-    await salary.save();
+    if (payoutTxn.status === "SUCCESS") {
+
+      salary.paymentMethod = paymentMethod;
+      salary.status = "PAID";
+      salary.paidAt = new Date();
+
+      await salary.save();
+    }
 
     res.status(200).json({
       success: true,
@@ -112,7 +126,7 @@ export const processStaffSalary = async (req, res, next) => {
       paymentMethod
     } = req.body;
 
-    
+
     if (!month || !year) {
       return res.status(400).json({
         success: false,
@@ -129,24 +143,24 @@ export const processStaffSalary = async (req, res, next) => {
     }
 
     const finalBasicSalary =
-  basicSalary !== undefined
-    ? Number(basicSalary)
-    : receptionist.basicSalary;
+      basicSalary !== undefined
+        ? Number(basicSalary)
+        : receptionist.basicSalary;
 
- const totalPayable =
-  finalBasicSalary + Number(allowances) - Number(deductions);
+    const totalPayable =
+      finalBasicSalary + Number(allowances) - Number(deductions);
 
-const salary = await StaffSalary.create({
-  receptionist: receptionistId,
-  month,
-  year,
-  basicSalary: finalBasicSalary,
-  allowances,
-  deductions,
-  totalPayable,
-  paymentMethod,
-  status: "PENDING"
-});
+    const salary = await StaffSalary.create({
+      receptionist: receptionistId,
+      month,
+      year,
+      basicSalary: finalBasicSalary,
+      allowances,
+      deductions,
+      totalPayable,
+      paymentMethod,
+      status: "PENDING"
+    });
 
 
     res.status(201).json({
@@ -232,27 +246,27 @@ export const getAllStaffWithSalaryStatus = async (req, res, next) => {
     });
 
     // 4️⃣ merge staff + salary
-const result = staffList.map((staff) => {
-  const salary = salaryMap[staff._id.toString()];
+    const result = staffList.map((staff) => {
+      const salary = salaryMap[staff._id.toString()];
 
-  return {
-    _id: staff._id,
-    name: `${staff.firstName} ${staff.lastName}`,
-    employeeId: staff.employeeId,
-    role: staff.role,
-    email: staff.email,
-    phoneNumber: staff.phoneNumber,
+      return {
+        _id: staff._id,
+        name: `${staff.firstName} ${staff.lastName}`,
+        employeeId: staff.employeeId,
+        role: staff.role,
+        email: staff.email,
+        phoneNumber: staff.phoneNumber,
 
-    salaryStatus: salary ? salary.status : "PENDING",
+        salaryStatus: salary ? salary.status : "PENDING",
 
-    basicSalary: salary?.basicSalary ?? staff.basicSalary,
-    allowances: salary?.allowances || 0,
-    deductions: salary?.deductions || 0,
-    totalPayable: salary?.totalPayable || staff.basicSalary || 0,
+        basicSalary: salary?.basicSalary ?? staff.basicSalary,
+        allowances: salary?.allowances || 0,
+        deductions: salary?.deductions || 0,
+        totalPayable: salary?.totalPayable || staff.basicSalary || 0,
 
-    salaryId: salary?._id || null
-  };
-});
+        salaryId: salary?._id || null
+      };
+    });
 
     res.status(200).json({
       success: true,
