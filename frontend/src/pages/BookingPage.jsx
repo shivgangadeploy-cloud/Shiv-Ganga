@@ -70,6 +70,12 @@ const ACTIVITIES = [
 ];
 
 export default function BookingPage() {
+    // Cloudflare Turnstile CAPTCHA
+    const turnstileRef = useRef(null);
+    const handleCaptchaVerify = (token) => {
+      setCaptchaToken(token);
+      setPaymentError("");
+    };
   const today = new Date().toISOString().split("T")[0];
   const navigate = useNavigate(); // ✅ INSIDE component
   const location = useLocation();
@@ -499,12 +505,24 @@ export default function BookingPage() {
     });
   };
   const setActivityQuantity = (id, qty) => {
-    setFormData((prev) => ({
-      ...prev,
-      selectedActivities: prev.selectedActivities.map((a) =>
-        a.id === id ? { ...a, quantity: Math.max(1, Number(qty) || 1) } : a,
-      ),
-    }));
+    qty = Number(qty) || 0;
+    setFormData((prev) => {
+      if (qty <= 0) {
+        // remove the activity completely when quantity zero or negative
+        return {
+          ...prev,
+          selectedActivities: prev.selectedActivities.filter(
+            (a) => a.id !== id,
+          ),
+        };
+      }
+      return {
+        ...prev,
+        selectedActivities: prev.selectedActivities.map((a) =>
+          a.id === id ? { ...a, quantity: qty } : a,
+        ),
+      };
+    });
   };
 
   const handleSubmit = (e) => {
@@ -681,6 +699,12 @@ export default function BookingPage() {
 
   return (
     <div className="min-h-screen bg-background pb-20 pt-10">
+      {/* Turnstile CAPTCHA for payment step */}
+      {showPaymentChoice && (
+        <div className="flex justify-center my-4">
+          <Turnstile ref={turnstileRef} onVerify={handleCaptchaVerify} />
+        </div>
+      )}
       <Seo
         title="Book Your Stay | Shiv Ganga Hotel"
         description="Plan your stay at Shiv Ganga Hotel Rishikesh. Check availability, choose rooms, and confirm your booking."
@@ -1362,7 +1386,7 @@ export default function BookingPage() {
                                         )?.quantity || 1;
                                       setActivityQuantity(
                                         activity.id,
-                                        Math.max(1, current - 1),
+                                        current - 1,
                                       );
                                     }}
                                     className="size-9 rounded-lg border border-gray-200 text-gray-600 hover:border-accent hover:text-accent transition justify-center items-center flex"
@@ -1370,12 +1394,12 @@ export default function BookingPage() {
                                     <Minus size={16} />
                                   </button>
                                   <input
-                                    // type="number"
-                                    min={1}
+                                    type="number"
+                                    min={0}
                                     value={
                                       formData.selectedActivities.find(
                                         (a) => a.id === activity.id,
-                                      )?.quantity || 1
+                                      )?.quantity || 0
                                     }
                                     onChange={(e) => {
                                       e.stopPropagation();

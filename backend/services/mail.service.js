@@ -50,12 +50,7 @@ export const sendReceptionistCredentialsMail = async ({
         <li>Temporary Password: ${password}</li>
       </ul>
       <p>Please change your password after first login.</p>
-      <p>
-        Login URL:<br/>
-        <a href="${config.CLIENT_URL}/auth/login">
-          ${config.CLIENT_URL}/auth/login
-        </a>
-      </p>
+      
       <p>Regards,<br/>ShivGanga Hotel</p>
     `,
   });
@@ -453,14 +448,25 @@ export const sendBookingConfirmationMail = async ({
               ${paymentHTML}
             </div>
 
-            <div style="background-color:#e3f2fd; padding:15px; border-radius:5px; margin:20px 0;">
-              <h3 style="margin-top:0; color:#333;">Need Assistance?</h3>
-              <p style="margin:5px 0;">
-                <b>Phone:</b> ${primaryPhone}<br/>
-                <b>Email:</b> ${primaryEmail}<br/>
-                <b>Address:</b> ${system.systemAddress}
-              </p>
-            </div>
+          <div style="background-color:#e3f2fd; padding:16px; border-radius:6px; margin:20px 0; font-family:Arial, sans-serif;">
+  <h3 style="margin:0 0 12px 0; color:#333;">Need Assistance?</h3>
+
+  <table cellpadding="0" cellspacing="0" style="width:100%; color:#333; font-size:14px;">
+    <tr>
+      <td style="padding:4px 0; width:90px;"><b>Phone</b></td>
+      <td style="padding:4px 0;">: ${primaryPhone}</td>
+    </tr>
+    <tr>
+      <td style="padding:4px 0;"><b>Email</b></td>
+      <td style="padding:4px 0;">: ${primaryEmail}</td>
+    </tr>
+    <tr>
+      <td style="padding:4px 0; vertical-align:top;"><b>Address</b></td>
+      <td style="padding:4px 0;">: ${system.systemAddress}</td>
+    </tr>
+  </table>
+</div>
+            
 
             <p style="margin-top:30px; color:#666; font-size:14px; text-align:center;">
               This is an automated email. Please do not reply to this message.
