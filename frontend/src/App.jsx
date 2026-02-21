@@ -56,6 +56,7 @@ import Cancellation from "./pages/Policy/Cancellation";
 import Terms from "./pages/Policy/Terms";
 import { SystemSettingsProvider } from "./context/SystemSettingsContext";
 import NotFound from "./pages/NotFound";
+import TaxesBillingPage from "./pages/Policy/TaxesAndBilling";
 
 export default function App() {
   return (
@@ -97,6 +98,7 @@ export default function App() {
               <Route path="memberships" element={<MembershipManagement />} />
               <Route path="coupons" element={<AdminCoupons />} />
               <Route path="booking-policy" element={<SetBookingPolicy />} />
+              <Route path="taxes-billing" element={<TaxesBillingPage />} />
             </Route>
           </Route>
 
