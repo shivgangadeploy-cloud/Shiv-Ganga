@@ -140,7 +140,7 @@ export const getRecentActivities = async (req, res, next) => {
     })
       .sort({ updatedAt: -1 })
       .limit(10)
-      .populate("room", "name roomNumber")
+      .populate("rooms.room", "name roomNumber")
       .populate("user", "firstName lastName");
 
     const activities = bookings.map((b) => {
@@ -180,7 +180,7 @@ export const getLatestBookings = async (req, res, next) => {
       .sort({ createdAt: -1 })
       .limit(10)
       .populate("user", "firstName lastName")
-      .populate("room", "roomNumber name");
+      .populate("rooms.room", "roomNumber name");
 
     res.json({
       success: true,
@@ -234,7 +234,7 @@ export const getGuestDetails = async (req, res, next) => {
       user: guest._id,
       bookingStatus: { $in: ["confirmed", "cancelled"] },
     })
-      .populate("room", "name roomNumber")
+      .populate("rooms.room", "name roomNumber")
       .sort({ checkInDate: -1 });
 
     const totalVisits = bookings.length;
@@ -282,7 +282,7 @@ export const getInHouseGuests = async (req, res, next) => {
       checkOutDate: { $gt: today },
     })
       .populate("user", "firstName lastName email")
-      .populate("room", "roomNumber name");
+      .populate("rooms.room", "roomNumber name");
 
     res.json({
       success: true,
@@ -337,7 +337,7 @@ export const updateBooking = async (req, res) => {
     if (amount != null && !isNaN(Number(amount))) booking.totalAmount = Number(amount);
 
     await booking.save();
-    await booking.populate("user room");
+    await booking.populate("user rooms.room");
 
     res.json({
       success: true,

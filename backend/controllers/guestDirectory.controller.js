@@ -192,7 +192,7 @@ export const getGuestDetails = async (req, res, next) => {
       bookingStatus: { $in: ["confirmed", "pending"] },
     })
       .sort({ createdAt: -1 })
-      .populate("room", "name roomNumber")
+      .populate("rooms.room", "name roomNumber")
       .lean();
 
     if (!booking) {
@@ -273,7 +273,7 @@ export const getGuestBookingHistory = async (req, res, next) => {
 
     const bookings = await Booking.find({ user: id })
       .sort({ createdAt: -1 })
-      .populate("room", "name roomNumber")
+      .populate("rooms.room", "name roomNumber")
       .lean();
 
     const data = bookings.map((b) => ({

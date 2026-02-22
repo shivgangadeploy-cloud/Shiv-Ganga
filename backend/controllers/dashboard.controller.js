@@ -168,7 +168,7 @@ export const getRecentActivities = async (req, res) => {
   const bookings = await Booking.find({ bookingStatus: "confirmed" })
     .sort({ updatedAt: -1 })
     .limit(10)
-    .populate("room", "name roomNumber")
+    .populate("rooms.room", "name roomNumber")
     .populate("user", "firstName lastName");
 
   let activities = [];
@@ -344,7 +344,7 @@ export const getAdminRecentBookings = async (req, res, next) => {
       .sort({ createdAt: -1 })
       .limit(10)
       .populate("user", "firstName lastName")
-      .populate("room", "name roomNumber")
+      .populate("rooms.room", "name roomNumber")
       .lean();
 
     const formatted = bookings.map((b) => ({
