@@ -268,10 +268,6 @@ export const getRoomStatusSummary = async (req, res) => {
       status: "Available",
     });
 
-    const bookedRooms = await Room.countDocuments({
-      status: "Booked",
-    });
-
     const occupiedRooms = await Room.countDocuments({
       status: "Occupied",
     });
