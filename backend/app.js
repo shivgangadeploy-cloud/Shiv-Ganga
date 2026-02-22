@@ -74,12 +74,28 @@ app.options(/.*/, cors(corsOptions));
 // Security: Helmet with enhanced HSTS
 app.use(helmet({
   hsts: {
-    maxAge: 31536000, // 1 year in seconds
+    maxAge: 31536000,
     includeSubDomains: true,
     preload: true
   },
-  contentSecurityPolicy: false
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'none'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://challenges.cloudflare.com"],
+      scriptSrcAttr: ["'none'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "blob:", "data:"],
+      connectSrc: ["'self'", "https://challenges.cloudflare.com"],
+      frameSrc: ["'self'", "blob:", "https://challenges.cloudflare.com"],  // ← key fix
+      childSrc: ["'self'", "blob:", "https://challenges.cloudflare.com"],  // ← key fix
+      workerSrc: ["blob:"],
+      formAction: ["'self'"],
+      baseUri: ["'self'"],
+      // NO sandbox directive here
+    }
+  }
 }));
+
 
 // Compression middleware for all responses
 app.use(compression());
