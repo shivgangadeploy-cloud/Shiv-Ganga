@@ -205,7 +205,7 @@ export const getAllRooms = async (req, res, next) => {
               $match: {
                 $expr: {
                   $and: [
-                    { $eq: ["$room", "$$roomId"] },
+                    { $in: ["$$roomId", "$rooms.room"] },
                     { $eq: ["$bookingStatus", "confirmed"] },
                     { $lte: ["$checkInDate", endOfDay] },
                     { $gt: ["$checkOutDate", startOfDay] },
@@ -387,7 +387,7 @@ export const getAvailableRooms = async (req, res, next) => {
       isCheckedOut: { $ne: true },
       checkInDate: { $lt: checkOut },
       checkOutDate: { $gt: checkIn },
-    }).distinct("room");
+    }).distinct("rooms.room");
 
     if (bookedRoomIds.length > 0) {
       roomFilters._id = { $nin: bookedRoomIds };
@@ -437,7 +437,7 @@ export const getAvailableRoomsForListing = async (req, res, next) => {
               $match: {
                 $expr: {
                   $and: [
-                    { $eq: ["$room", "$$roomId"] },
+                    { $in: ["$$roomId", "$rooms.room"] },
                     { $eq: ["$bookingStatus", "confirmed"] },
                     { $ne: ["$isCheckedOut", true] },
 

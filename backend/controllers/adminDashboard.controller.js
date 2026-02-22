@@ -242,7 +242,7 @@ export const getRecentActivities = async (req, res) => {
 
 export const exportBookings = async (req, res, next) => {
   try {
-    const bookings = await Booking.find().populate("user").populate("room");
+    const bookings = await Booking.find().populate("user").populate("rooms.room");
 
     await exportBookingsToSheet(bookings);
 

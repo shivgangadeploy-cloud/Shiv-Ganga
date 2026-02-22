@@ -31,7 +31,7 @@ const ADD_ONS_PRICE_MAP = {
 export const createPaymentOrder = async (req, res, next) => {
   try {
     const {
-      roomId,
+      rooms,
       checkInDate,
       checkOutDate,
       adults,
@@ -78,11 +78,46 @@ export const createPaymentOrder = async (req, res, next) => {
     }
 
 
-    const room = await Room.findById(roomId);
-    if (!room) {
-      return res.status(404).json({
-        success: false,
-        message: "Room not found",
+    const roomDetails = [];
+
+    for (const r of rooms) {
+
+      const room = await Room.findById(r.roomId);
+
+      if (!room) {
+        return res.status(404).json({
+          success: false,
+          message: `Room not found: ${r.roomId}`,
+        });
+      }
+
+      if (room.status === "Maintenance") {
+        return res.status(400).json({
+          success: false,
+          message: `Room ${room.roomNumber} under maintenance`,
+        });
+      }
+
+      const overlappingBooking = await Booking.findOne({
+        "rooms.room": r.roomId,
+        bookingStatus: "confirmed",
+        isCheckedOut: { $ne: true },
+        checkInDate: { $lt: new Date(checkOutDate) },
+        checkOutDate: { $gt: new Date(checkInDate) },
+      });
+
+      if (overlappingBooking) {
+        return res.status(400).json({
+          success: false,
+          message: `Room ${room.roomNumber} already booked`,
+        });
+      }
+
+      roomDetails.push({
+        roomId: room._id,
+        roomNumber: room.roomNumber,
+        quantity: r.quantity,
+        plan: r.plan
       });
     }
 
@@ -97,34 +132,12 @@ export const createPaymentOrder = async (req, res, next) => {
       });
     }
 
-    if (room.status === "Maintenance") {
-      return res.status(400).json({
-        success: false,
-        message: "Room is under maintenance",
-      });
-    }
-
     // if (room.status === "Booked" || room.status === "Occupied") {
     //   return res.status(400).json({
     //     success: false,
     //     message: "Room is not available"
     //   });
     // }
-
-    const overlappingBooking = await Booking.findOne({
-      room: room._id,
-      bookingStatus: "confirmed",
-      isCheckedOut: { $ne: true },
-      checkInDate: { $lt: checkOut },
-      checkOutDate: { $gt: checkIn },
-    });
-
-    if (overlappingBooking) {
-      return res.status(400).json({
-        success: false,
-        message: "Room already booked for selected dates",
-      });
-    }
 
     const bypassEmailVerification = req.body.bypassEmailVerification === true;
     if (!bypassEmailVerification) {
@@ -140,21 +153,22 @@ export const createPaymentOrder = async (req, res, next) => {
         });
       }
     }
+    // const selectedPlan = req.body.plan || "ep";
 
-    const nights = (checkOut - checkIn) / (1000 * 60 * 60 * 24);
+    // const nights = (checkOut - checkIn) / (1000 * 60 * 60 * 24);
 
-    const planPrice =
-      room.priceDetails?.[selectedPlan] || room.pricePerNight;
+    // const planPrice =
+    //   room.priceDetails?.[selectedPlan] || room.pricePerNight;
 
-    const roomAmount = nights * planPrice;
+    // const roomAmount = nights * planPrice;
 
-    const addOnsAmount = (addOns || []).reduce((sum, item) => {
-      const price = ADD_ONS_PRICE_MAP[item.name] || 0;
-      const qty = Number(item.quantity) || 1;
-      return sum + price * qty;
-    }, 0);
+    // const addOnsAmount = (addOns || []).reduce((sum, item) => {
+    //   const price = ADD_ONS_PRICE_MAP[item.name] || 0;
+    //   const qty = Number(item.quantity) || 1;
+    //   return sum + price * qty;
+    // }, 0);
 
-    const totalAmount = roomAmount + addOnsAmount;
+    // const totalAmount = roomAmount + addOnsAmount;
 
     const paymentType = req.body.paymentType || "FULL";
 
@@ -187,7 +201,7 @@ export const createPaymentOrder = async (req, res, next) => {
           message: "Coupon expired",
         });
       }
-      discountAmount = Math.round((totalAmount * coupon.discountPercent) / 100);
+      discountAmount = Math.round((frontendFinalAmount * coupon.discountPercent) / 100);
 
       appliedCoupon = {
         code: coupon.code,
@@ -205,7 +219,7 @@ export const createPaymentOrder = async (req, res, next) => {
       if (membership) {
         if (membership.discountType === "PERCENT") {
           membershipDiscountAmount =
-            (totalAmount * membership.discountValue) / 100;
+            (frontendFinalAmount * membership.discountValue) / 100;
         } else if (membership.discountType === "FLAT") {
           membershipDiscountAmount = membership.discountValue;
         }
@@ -289,7 +303,6 @@ export const createPaymentOrder = async (req, res, next) => {
     // }
     let payableNow;
     let razorpayAmountPaise;
-    const selectedPlan = req.body.plan || "ep";
 
     // Minimum 30% for partial payments
     const FIXED_PARTIAL_AMOUNT = 1000; // ₹1000 fixed partial
@@ -346,13 +359,12 @@ export const createPaymentOrder = async (req, res, next) => {
       order,
       transactionId: transaction._id,
       bookingPayload: {
-        roomId,
+        rooms: roomDetails,
         checkInDate,
         checkOutDate,
         adults,
         children,
         addOns,
-        roomNumber: room.roomNumber,
         coupon: appliedCoupon,
       },
     });
@@ -408,19 +420,46 @@ export const verifyPayment = async (req, res, next) => {
 
     /* ================= USER & ROOM ================= */
     const user = await User.findById(transaction.user).session(session);
-    const room = await Room.findById(bookingPayload.roomId).session(session);
 
-    if (!user || !room) {
-      throw new Error("User or Room not found");
+    const rooms = bookingPayload.rooms || [];
+    const roomDocs = [];
+
+    for (const r of rooms) {
+
+      const room = await Room.findById(r.roomId).session(session);
+
+      if (!room) {
+        throw new Error(`Room not found ${r.roomId}`);
+      }
+
+      roomDocs.push(room);
     }
 
-    const overlapping = await Booking.findOne({
-      room: room._id,
-      bookingStatus: "confirmed",
-      isCheckedOut: { $ne: true },
-      checkInDate: { $lt: bookingPayload.checkOutDate },
-      checkOutDate: { $gt: bookingPayload.checkInDate },
-    }).session(session);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // const overlapping = await Booking.findOne({
+    //   room: room._id,
+    //   bookingStatus: "confirmed",
+    //   isCheckedOut: { $ne: true },
+    //   checkInDate: { $lt: bookingPayload.checkOutDate },
+    //   checkOutDate: { $gt: bookingPayload.checkInDate },
+    // }).session(session);
+
+    for (const r of rooms) {
+      const overlapping = await Booking.findOne({
+        "rooms.room": r.roomId,
+        bookingStatus: "confirmed",
+        isCheckedOut: { $ne: true },
+        checkInDate: { $lt: bookingPayload.checkOutDate },
+        checkOutDate: { $gt: bookingPayload.checkInDate },
+      }).session(session);
+
+      if (overlapping) {
+        throw new Error(`Room already booked: ${r.roomId}`);
+      }
+    }
 
     /* ================= MARK TRANSACTION SUCCESS ================= */
     transaction.status = "SUCCESS";
@@ -435,7 +474,11 @@ export const verifyPayment = async (req, res, next) => {
     /* ================= CREATE BOOKING ================= */
     const bookingPayloadData = {
       guestId: generateGuestId(),
-      room: room._id,
+      rooms: rooms.map(r => ({
+        room: r.roomId,
+        quantity: r.quantity || 1,
+        plan: r.plan || "ep"
+      })),
       user: user._id,
       membershipDiscount: transaction.membershipDiscount || 0,
 
@@ -445,7 +488,6 @@ export const verifyPayment = async (req, res, next) => {
       children: bookingPayload.children,
 
       addOns: bookingPayload.addOns || [],
-      quantity: bookingPayload.quantity || 1,
 
       totalAmount: transaction.amount,
       paymentType: transaction.paymentType,
@@ -480,11 +522,6 @@ export const verifyPayment = async (req, res, next) => {
     const booking = await Booking.create([bookingPayloadData], { session });
 
     /* ================= UPDATE ROOM STATUS ================= */
-    await Room.findByIdAndUpdate(
-      room._id,
-      { status: "Booked" },
-      { session }
-    );
 
     transaction.booking = booking[0]._id;
     await transaction.save({ session });
@@ -500,7 +537,7 @@ export const verifyPayment = async (req, res, next) => {
     const checkOut = new Date(bookingDoc.checkOutDate);
     const nights = (checkOut - checkIn) / (1000 * 60 * 60 * 24);
     // Notify receptionist
-    notifyReceptionistPaymentCompleted({ booking: bookingDoc, user, room }).catch((err) => {
+    notifyReceptionistPaymentCompleted({ booking: bookingDoc, user, rooms: roomDocs }).catch((err) => {
       console.error("Receptionist notification failed:", err.message);
     });
 
@@ -530,7 +567,7 @@ export const verifyPayment = async (req, res, next) => {
     sendBookingConfirmationMail({
       name: `${user.firstName} ${user.lastName}`,
       email: user.email,
-      roomNumber: room.roomNumber,
+      roomNumber: roomDocs.map(r => r.roomNumber).join(", "),
       guestId: bookingDoc.guestId,
       bookingReference: bookingDoc.bookingReference,
       checkInDate: checkIn.toDateString(),
@@ -599,7 +636,7 @@ export const fakeVerifyPayment = async (req, res, next) => {
 
     /* ================= PAYLOAD VALIDATION ================= */
     if (
-      !bookingPayload?.roomId ||
+      !bookingPayload?.rooms ||
       !bookingPayload?.checkInDate ||
       !bookingPayload?.checkOutDate
     ) {
@@ -608,23 +645,31 @@ export const fakeVerifyPayment = async (req, res, next) => {
 
     /* ================= USER & ROOM ================= */
     const user = await User.findById(transaction.user).session(session);
-    const room = await Room.findById(bookingPayload.roomId).session(session);
 
-    if (!user || !room) {
-      throw new Error("User or Room not found");
+    const rooms = bookingPayload.rooms || [];
+    const roomDocs = [];
+
+    for (const r of rooms) {
+      const room = await Room.findById(r.roomId).session(session);
+      if (!room) throw new Error(`Room not found ${r.roomId}`);
+      const overlapping = await Booking.findOne({
+        "rooms.room": room._id,
+        bookingStatus: "confirmed",
+        isCheckedOut: { $ne: true },
+        checkInDate: { $lt: bookingPayload.checkOutDate },
+        checkOutDate: { $gt: bookingPayload.checkInDate },
+      }).session(session);
+
+      if (overlapping) {
+        throw new Error("Room already booked for selected dates");
+      }
+      roomDocs.push(room);
     }
 
-    const overlapping = await Booking.findOne({
-      room: room._id,
-      bookingStatus: "confirmed",
-      isCheckedOut: { $ne: true },
-      checkInDate: { $lt: bookingPayload.checkOutDate },
-      checkOutDate: { $gt: bookingPayload.checkInDate },
-    }).session(session);
-
-    if (overlapping) {
-      throw new Error("Room already booked for selected dates");
+    if (!user) {
+      throw new Error("User not found");
     }
+
 
     /* ================= MARK TRANSACTION SUCCESS ================= */
     transaction.status = "SUCCESS";
@@ -639,7 +684,11 @@ export const fakeVerifyPayment = async (req, res, next) => {
     /* ================= CREATE BOOKING ================= */
     const bookingPayloadData = {
       guestId: generateGuestId(),
-      room: room._id,
+      rooms: bookingPayload.rooms.map(r => ({
+        room: r.roomId,
+        quantity: r.quantity || 1,
+        plan: r.plan || "ep"
+      })),
       user: user._id,
 
       checkInDate: bookingPayload.checkInDate,
@@ -648,7 +697,6 @@ export const fakeVerifyPayment = async (req, res, next) => {
       children: bookingPayload.children,
 
       addOns: bookingPayload.addOns || [],
-      quantity: bookingPayload.quantity || 1,
 
       totalAmount: transaction.amount,
       paymentType: transaction.paymentType,
@@ -683,11 +731,6 @@ export const fakeVerifyPayment = async (req, res, next) => {
     const booking = await Booking.create([bookingPayloadData], { session });
 
     /* ================= UPDATE ROOM STATUS ================= */
-    await Room.findByIdAndUpdate(
-      room._id,
-      { status: "Booked" },
-      { session }
-    );
 
     transaction.booking = booking[0]._id;
     await transaction.save({ session });
@@ -702,7 +745,7 @@ export const fakeVerifyPayment = async (req, res, next) => {
     const checkIn = new Date(bookingDoc.checkInDate);
     const checkOut = new Date(bookingDoc.checkOutDate);
     const nights = (checkOut - checkIn) / (1000 * 60 * 60 * 24);
-    notifyReceptionistPaymentCompleted({ booking: bookingDoc, user, room }).catch((err) => {
+    notifyReceptionistPaymentCompleted({ booking: bookingDoc, user, rooms: roomDocs }).catch((err) => {
       console.error("Receptionist notification failed:", err.message);
     });
 
@@ -731,7 +774,7 @@ export const fakeVerifyPayment = async (req, res, next) => {
     sendBookingConfirmationMail({
       name: `${user.firstName} ${user.lastName}`,
       email: user.email,
-      roomNumber: room.roomNumber,
+      roomNumber: roomDocs.map(r => r.roomNumber).join(", "),
       guestId: bookingDoc.guestId,
       bookingReference: bookingDoc.bookingReference,
       checkInDate: checkIn.toDateString(),
@@ -770,7 +813,10 @@ export const createRemainingPaymentOrder = async (req, res, next) => {
     const { bookingId } = req.body;
 
     /* ================= BOOKING ================= */
-    const booking = await Booking.findById(bookingId).populate("user room");
+    const booking = await Booking.findById(bookingId)
+      .populate("user")
+      .populate("rooms.room");
+
     if (!booking) {
       return res.status(404).json({
         success: false,
@@ -887,12 +933,14 @@ export const verifyRemainingPayment = async (req, res, next) => {
     session.endSession();
 
     const user = await User.findById(booking.user);
-    const room = await Room.findById(booking.room);
+    const roomDocs = await Room.find({
+      _id: { $in: booking.rooms.map(r => r.room) }
+    });
 
     await notifyReceptionistPaymentCompleted({
       booking,
       user,
-      room,
+      rooms: roomDocs,
     });
 
     res.status(200).json({
@@ -963,12 +1011,14 @@ export const fakeVerifyRemainingPayment = async (req, res, next) => {
     session.endSession();
 
     const user = await User.findById(booking.user);
-    const room = await Room.findById(booking.room);
+    const roomDocs = await Room.find({
+      _id: { $in: booking.rooms.map(r => r.room) }
+    });
 
     await notifyReceptionistPaymentCompleted({
       booking,
       user,
-      room,
+      rooms: roomDocs,
     });
 
     res.status(200).json({
