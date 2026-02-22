@@ -176,11 +176,7 @@ const NewBooking = () => {
       }
     };
     fetchRooms();
-<<<<<<< Updated upstream
-  }, []);
-=======
   }, [formData.checkIn, formData.checkOut]); // refetch when dates change
->>>>>>> Stashed changes
 
   const availableRooms = rooms;
 
