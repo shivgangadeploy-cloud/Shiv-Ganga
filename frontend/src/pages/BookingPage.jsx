@@ -1,5 +1,4 @@
 // Debug: log the sitekey value and type at module load
-console.log('VITE_TURNSTILE_SITE_KEY:', import.meta.env.VITE_TURNSTILE_SITE_KEY, typeof import.meta.env.VITE_TURNSTILE_SITE_KEY);
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -81,7 +80,6 @@ export default function BookingPage() {
   const today = new Date().toISOString().split("T")[0];
   const navigate = useNavigate(); // ✅ INSIDE component
   const location = useLocation();
-  console.log("Razorpay key:", import.meta.env.VITE_RAZORPAY_KEY);
   const appliedCoupon = location.state?.appliedCoupon;
 
   // restore various pieces from bookingDraft when navigating back from coupons
@@ -421,6 +419,7 @@ export default function BookingPage() {
         err.response?.data?.message ||
         err.message ||
         "Unable to start payment. Please try again.";
+        console.log(err);
       setPaymentError(msg);
       setShowPaymentChoice(true);
     }
@@ -953,7 +952,6 @@ export default function BookingPage() {
                 <div className="mb-4 bg-gray-50 p-3 rounded-lg border border-gray-200">
                   <Turnstile
                     onVerify={(token) => {
-                      console.log("Captcha verified:", token);
                       setCaptchaToken(token);
                     }}
                   />

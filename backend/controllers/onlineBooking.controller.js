@@ -1,5 +1,4 @@
 
-
 import Razorpay from "razorpay";
 import crypto from "crypto";
 import Room from "../models/Room.model.js";
@@ -61,9 +60,14 @@ export const createPaymentOrder = async (req, res, next) => {
     const verifyResponse = await axios.post(
       "https://challenges.cloudflare.com/turnstile/v0/siteverify",
       new URLSearchParams({
-        secret: config.TURNSTILE_SECRET_KEY,
+        secret: process.env.TURNSTILE_SECRET_KEY,
         response: captchaToken,
-      })
+      }),
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      }
     );
 
     if (!verifyResponse.data.success) {
@@ -252,7 +256,7 @@ export const createPaymentOrder = async (req, res, next) => {
       payableNow = finalAmount;
       if (paymentType === "PARTIAL") {
         const requestedPartial = Number(req.body.partialAmount) || 0;
-        
+
         // Use requested partial if valid, otherwise default to minimum 30%
         payableNow = requestedPartial > 0 ? requestedPartial : minPartialAmount;
 
