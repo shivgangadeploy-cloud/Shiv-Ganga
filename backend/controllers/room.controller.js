@@ -205,7 +205,7 @@ export const getAllRooms = async (req, res, next) => {
               $match: {
                 $expr: {
                   $and: [
-                    { $eq: ["$room", "$$roomId"] },
+                    { $in: ["$$roomId", "$rooms.room"] },
                     { $eq: ["$bookingStatus", "confirmed"] },
                     { $lte: ["$checkInDate", endOfDay] },
                     { $gt: ["$checkOutDate", startOfDay] },
@@ -387,7 +387,7 @@ export const getAvailableRooms = async (req, res, next) => {
       isCheckedOut: { $ne: true },
       checkInDate: { $lt: checkOut },
       checkOutDate: { $gt: checkIn },
-    }).distinct("room");
+    }).distinct("rooms.room");
 
     if (bookedRoomIds.length > 0) {
       roomFilters._id = { $nin: bookedRoomIds };
@@ -407,10 +407,20 @@ export const getAvailableRooms = async (req, res, next) => {
 
 export const getAvailableRoomsForListing = async (req, res, next) => {
   try {
-    const currentDate = new Date();
+    const { checkInDate, checkOutDate } = req.body;
 
-    // normalize to avoid time issues
-    currentDate.setHours(0, 0, 0, 0);
+    if (!checkInDate || !checkOutDate) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide check-in and check-out dates",
+      });
+    }
+
+    const checkIn = new Date(checkInDate);
+    const checkOut = new Date(checkOutDate);
+
+    checkIn.setHours(0, 0, 0, 0);
+    checkOut.setHours(0, 0, 0, 0);
 
     const rooms = await Room.aggregate([
       {
@@ -427,26 +437,26 @@ export const getAvailableRoomsForListing = async (req, res, next) => {
               $match: {
                 $expr: {
                   $and: [
-                    { $eq: ["$room", "$$roomId"] },
+                    { $in: ["$$roomId", "$rooms.room"] },
                     { $eq: ["$bookingStatus", "confirmed"] },
                     { $ne: ["$isCheckedOut", true] },
 
-                    // 🔥 CURRENT OCCUPANCY CHECK
-                    { $lte: ["$checkInDate", currentDate] },
-                    { $gt: ["$checkOutDate", currentDate] },
+                    // 🔥 OVERLAP CHECK
+                    { $lt: ["$checkInDate", checkOut] },
+                    { $gt: ["$checkOutDate", checkIn] },
                   ],
                 },
               },
             },
           ],
-          as: "activeBookings",
+          as: "overlappingBookings",
         },
       },
 
-      // Only keep rooms with ZERO active bookings
+      // Keep rooms with ZERO overlapping bookings
       {
         $match: {
-          activeBookings: { $size: 0 },
+          overlappingBookings: { $size: 0 },
         },
       },
 

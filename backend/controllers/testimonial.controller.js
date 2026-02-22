@@ -8,7 +8,7 @@ export const createTestimonial = async (req, res, next) => {
     const { bookingId, rating, message } = req.body;
 
     const booking = await Booking.findById(bookingId)
-      .populate("room")
+      .populate("rooms.room")
       .populate("user");
 
     if (!booking) {
@@ -60,7 +60,7 @@ export const getApprovedTestimonials = async (req, res, next) => {
   try {
     const testimonials = await Testimonial.find({ isApproved: true })
       .sort({ createdAt: -1 })
-      .populate("room", "name");
+      .populate("rooms.room", "name");
 
     res.status(200).json({
       success: true,
@@ -136,7 +136,7 @@ export const getTestimonialsByRoom = async (req, res, next) => {
       isApproved: true
     })
       .sort({ createdAt: -1 })
-      .populate("room", "name");
+      .populate("rooms.room", "name");
 
     res.status(200).json({
       success: true,

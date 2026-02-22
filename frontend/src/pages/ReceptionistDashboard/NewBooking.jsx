@@ -55,6 +55,14 @@ const ACTIVITIES = [
   },
 ];
 
+const API = axios.create({
+  baseURL: "https://shiv-ganga-3.onrender.com/api",
+});
+
+// const API = axios.create({
+//   baseURL: "http://localhost:5001/api",
+// });
+
 const NewBooking = () => {
   const [rooms, setRooms] = useState([]);
   const [roomsLoading, setRoomsLoading] = useState(true);
@@ -74,10 +82,6 @@ const NewBooking = () => {
   const [extraMattresses, setExtraMattresses] = useState(0);
   const [selectedRoomIds, setSelectedRoomIds] = useState([]);
   const [selectedActivities, setSelectedActivities] = useState([]);
-
-  const API = axios.create({
-    baseURL: "https://shiv-ganga-3.onrender.com/api",
-  });
 
   API.interceptors.request.use((req) => {
     const token = localStorage.getItem("token");
@@ -106,7 +110,12 @@ const NewBooking = () => {
     const fetchRooms = async () => {
       try {
         setRoomsLoading(true);
-        const res = await API.get("/room/available");
+
+        const res = await API.post("/room/available", {
+          checkInDate: formData.checkIn,
+          checkOutDate: formData.checkOut,
+        });
+
         if (res.data.success) {
           setRooms(res.data.data);
         }
@@ -116,8 +125,9 @@ const NewBooking = () => {
         setRoomsLoading(false);
       }
     };
+
     fetchRooms();
-  }, []);
+  }, [formData.checkIn, formData.checkOut]); // 🔥 refetch when dates change
 
   const availableRooms = rooms;
 
@@ -589,10 +599,9 @@ const NewBooking = () => {
                       onClick={() => toggleRoomSelection(room._id)}
                       className={`
                         relative rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 group flex flex-col
-                        ${
-                          isSelected
-                            ? "ring-2 ring-[#D4AF37] shadow-xl shadow-[#D4AF37]/10 scale-[1.01]"
-                            : "border border-slate-100 shadow-sm hover:shadow-lg hover:border-[#D4AF37]/50 bg-white"
+                        ${isSelected
+                          ? "ring-2 ring-[#D4AF37] shadow-xl shadow-[#D4AF37]/10 scale-[1.01]"
+                          : "border border-slate-100 shadow-sm hover:shadow-lg hover:border-[#D4AF37]/50 bg-white"
                         }
                       `}
                     >
@@ -653,11 +662,10 @@ const NewBooking = () => {
 
                           <button
                             className={`px-4 py-2 rounded-lg text-xs font-bold uppercase transition-colors
-                            ${
-                              isSelected
+                            ${isSelected
                                 ? "bg-[#0f172a] text-white"
                                 : "bg-slate-50 text-slate-600 group-hover:bg-[#D4AF37] group-hover:text-[#0f172a]"
-                            }`}
+                              }`}
                           >
                             {isSelected ? "Selected" : "Select"}
                           </button>
@@ -930,10 +938,9 @@ const NewBooking = () => {
                         key={activity.id}
                         className={`
                           relative rounded-2xl overflow-hidden transition-all duration-300 group flex flex-col h-full bg-white
-                          ${
-                            isSelected
-                              ? "ring-2 ring-[#D4AF37] shadow-xl shadow-[#D4AF37]/10 scale-[1.01]"
-                              : "border border-slate-100 shadow-sm hover:shadow-lg hover:border-[#D4AF37]/50"
+                          ${isSelected
+                            ? "ring-2 ring-[#D4AF37] shadow-xl shadow-[#D4AF37]/10 scale-[1.01]"
+                            : "border border-slate-100 shadow-sm hover:shadow-lg hover:border-[#D4AF37]/50"
                           }
                         `}
                       >

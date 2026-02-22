@@ -158,7 +158,7 @@ export const roomCheckOut = async (req, res, next) => {
       room: roomId,
       isCheckedIn: true,
       isCheckedOut: false
-    }).populate("user room");
+    }).populate("user rooms.room");
 
     if (!booking) {
       return res.status(400).json({
@@ -211,7 +211,7 @@ export const checkOutBooking = async (req, res, next) => {
 
     const booking = await Booking.findById(bookingId)
       .populate("user", "firstName lastName email phoneNumber")
-      .populate("room", "roomNumber name");
+      .populate("rooms.room", "roomNumber name");
 
     if (!booking) {
       return res.status(404).json({
@@ -274,7 +274,7 @@ export const cancelBooking = async (req, res, next) => {
     const { bookingId } = req.params;
 
     const booking = await Booking.findById(bookingId)
-      .populate("room", "roomNumber")
+      .populate("rooms.room", "roomNumber")
       .populate("user", "firstName lastName email phoneNumber");
 
     if (!booking) {
@@ -327,7 +327,7 @@ export const sendInvoiceToWhatsApp = async (req, res, next) => {
   try {
     const booking = await Booking.findById(req.params.bookingId)
       .populate("user")
-      .populate("room");
+      .populate("rooms.room");
 
     if (!booking.user.phoneNumber) {
       return res.status(400).json({

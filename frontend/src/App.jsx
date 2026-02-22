@@ -57,6 +57,7 @@ import Terms from "./pages/Policy/Terms";
 import { SystemSettingsProvider } from "./context/SystemSettingsContext";
 import NotFound from "./pages/NotFound";
 import TaxesBillingPage from "./pages/Policy/TaxesAndBilling";
+import SystemMailSettings from "./pages/MailSettings";
 
 export default function App() {
   return (
@@ -99,6 +100,7 @@ export default function App() {
               <Route path="coupons" element={<AdminCoupons />} />
               <Route path="booking-policy" element={<SetBookingPolicy />} />
               <Route path="taxes-billing" element={<TaxesBillingPage />} />
+              <Route path="mail-settings" element={<SystemMailSettings />} />
             </Route>
           </Route>
 

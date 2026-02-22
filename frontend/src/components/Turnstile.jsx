@@ -6,10 +6,10 @@ const Turnstile = React.forwardRef(({ onVerify }, ref) => {
   const [isReady, setIsReady] = useState(false);
   const [simToken, setSimToken] = useState(null);
 
-  const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || '';
+  const TURNSTILE_SITE_KEY = String(import.meta.env.VITE_TURNSTILE_SITE_KEY ?? "");
 
   useEffect(() => {
-    if (!window.turnstile && TURNSTILE_SITE_KEY) {
+    if (!document.querySelector('script[src*="turnstile"]') && TURNSTILE_SITE_KEY) {
       const script = document.createElement('script');
       script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
       script.async = true;

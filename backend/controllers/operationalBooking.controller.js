@@ -154,7 +154,7 @@ export const getReceptionistBookings = async (req, res, next) => {
 
     const bookings = await Booking.find(filter)
       .populate("user", "firstName lastName")
-      .populate("room", "roomNumber name")
+      .populate("rooms.room", "roomNumber name")
       .sort({ checkInDate: 1 });
 
     res.json({
