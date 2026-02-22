@@ -158,8 +158,8 @@ export default function BookingPage() {
     window.open(
       `https://wa.me/${formData.phone}?text=${encodeURIComponent(
         "Thank you for booking with Shiv Ganga Hotel. Your booking reference is " +
-        bookingReference +
-        ". We look forward to hosting you!",
+          bookingReference +
+          ". We look forward to hosting you!",
       )}`,
     );
   };
@@ -331,10 +331,10 @@ export default function BookingPage() {
       // const amountInPaise = Math.round(payableAmount * 100); // ✅ Added from version 2
 
       const res = await api.post("/online-booking/create-order", {
-        rooms: formData.selectedRooms.map(room => ({
+        rooms: formData.selectedRooms.map((room) => ({
           roomId: room._id,
           quantity: Number(room.quantity) || 1,
-          plan: room.plan || "ep"
+          plan: room.plan || "ep",
         })),
         plan: formData.selectedRooms[0].plan || "ep",
         checkInDate: formData.checkIn,
@@ -430,6 +430,7 @@ export default function BookingPage() {
       setShowPaymentChoice(true);
     }
   };
+
 
   const canNext =
     (currentStep === 1 && true) ||

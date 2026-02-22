@@ -82,6 +82,7 @@ const NewBooking = () => {
   const [extraMattresses, setExtraMattresses] = useState(0);
   const [selectedRoomIds, setSelectedRoomIds] = useState([]);
   const [selectedActivities, setSelectedActivities] = useState([]);
+  const [isRestored, setIsRestored] = useState(false); //Added
 
   API.interceptors.request.use((req) => {
     const token = localStorage.getItem("token");
@@ -105,6 +106,53 @@ const NewBooking = () => {
   const appliedCoupon = location.state?.appliedCoupon;
   const bookingDraft = location.state?.bookingDraft;
 
+  // Restore draft from localStorage on first load
+  useEffect(() => {
+    const savedDraft = localStorage.getItem("receptionistBookingDraft");
+
+    if (savedDraft) {
+      const draft = JSON.parse(savedDraft);
+
+      if (draft.formData) setFormData(draft.formData);
+      if (draft.selectedRoomIds) setSelectedRoomIds(draft.selectedRoomIds);
+      if (draft.adults !== undefined) setAdults(draft.adults);
+      if (draft.children !== undefined) setChildren(draft.children);
+      if (draft.extraMattresses !== undefined)
+        setExtraMattresses(draft.extraMattresses);
+      if (draft.selectedActivities)
+        setSelectedActivities(draft.selectedActivities);
+    }
+
+    setIsRestored(true);   // VERY IMPORTANT
+  }, []);
+
+  // Auto-save draft whenever booking data changes
+  useEffect(() => {
+    if (!isRestored) return;   // 👈 STOP early overwrite
+
+    const draft = {
+      formData,
+      selectedRoomIds,
+      adults,
+      children,
+      extraMattresses,
+      selectedActivities,
+    };
+
+    localStorage.setItem(
+      "receptionistBookingDraft",
+      JSON.stringify(draft)
+    );
+  }, [
+    isRestored,
+    formData,
+    selectedRoomIds,
+    adults,
+    children,
+    extraMattresses,
+    selectedActivities,
+  ]);
+
   // Fetch Rooms
   useEffect(() => {
     const fetchRooms = async () => {
@@ -127,7 +175,7 @@ const NewBooking = () => {
     };
 
     fetchRooms();
-  }, [formData.checkIn, formData.checkOut]); // 🔥 refetch when dates change
+  }, [formData.checkIn, formData.checkOut]); // refetch when dates change
 
   const availableRooms = rooms;
 
