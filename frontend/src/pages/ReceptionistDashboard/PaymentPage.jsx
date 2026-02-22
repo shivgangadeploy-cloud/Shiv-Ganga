@@ -237,6 +237,7 @@ const PaymentPage = () => {
       console.log("Sending Cash Payment Payload:", payload);
 
       const res = await API.post("/offline-booking/cash", payload);
+      localStorage.removeItem("receptionistBookingDraft"); //Added
       navigate(`/receptionist/receipt/${res.data.data._id}`);
     } catch (err) {
       console.error("Cash booking error:", err);
@@ -341,6 +342,7 @@ const PaymentPage = () => {
             const bookingId = data?.booking?._id || data?.data?.booking?._id;
 
             if (data?.success && bookingId) {
+              localStorage.removeItem("receptionistBookingDraft");
               navigate(`/receptionist/receipt/${bookingId}`, { replace: true });
             } else {
               throw new Error(
@@ -1118,7 +1120,7 @@ const PaymentPage = () => {
             </section>
 
             <div className="flex gap-4 mt-2">
-              <Link to="/receptionist/new-booking" className="flex-1">
+              {/* <Link to="/receptionist/new-booking" className="flex-1">
                 <button className="w-full h-14 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50 hover:border-slate-300 transition-all flex items-center justify-center gap-2 group">
                   <ArrowLeft
                     size={18}
@@ -1126,7 +1128,17 @@ const PaymentPage = () => {
                   />{" "}
                   Back
                 </button>
-              </Link>
+              </Link> */}
+              <button
+                onClick={() => navigate(-1)}
+                className="flex-1 h-14 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50 hover:border-slate-300 transition-all flex items-center justify-center gap-2 group"
+              >
+                <ArrowLeft
+                  size={18}
+                  className="group-hover:-translate-x-1 transition-transform"
+                />
+                Back
+              </button>
 
               {paymentMethod === "cash" ? (
                 <button

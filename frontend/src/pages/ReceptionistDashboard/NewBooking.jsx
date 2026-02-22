@@ -55,6 +55,17 @@ const ACTIVITIES = [
   },
 ];
 
+<<<<<<< Updated upstream
+=======
+// const API = axios.create({
+//   baseURL: "https://shiv-ganga-3.onrender.com/api",
+// });
+
+const API = axios.create({
+  baseURL: "http://localhost:5001/api",
+});
+
+>>>>>>> Stashed changes
 const NewBooking = () => {
   const [rooms, setRooms] = useState([]);
   const [roomsLoading, setRoomsLoading] = useState(true);
@@ -74,6 +85,7 @@ const NewBooking = () => {
   const [extraMattresses, setExtraMattresses] = useState(0);
   const [selectedRoomIds, setSelectedRoomIds] = useState([]);
   const [selectedActivities, setSelectedActivities] = useState([]);
+  const [isRestored, setIsRestored] = useState(false); //Added
 
   const API = axios.create({
     baseURL: "https://shiv-ganga-3.onrender.com/api",
@@ -101,6 +113,53 @@ const NewBooking = () => {
   const appliedCoupon = location.state?.appliedCoupon;
   const bookingDraft = location.state?.bookingDraft;
 
+  // Restore draft from localStorage on first load
+  useEffect(() => {
+    const savedDraft = localStorage.getItem("receptionistBookingDraft");
+
+    if (savedDraft) {
+      const draft = JSON.parse(savedDraft);
+
+      if (draft.formData) setFormData(draft.formData);
+      if (draft.selectedRoomIds) setSelectedRoomIds(draft.selectedRoomIds);
+      if (draft.adults !== undefined) setAdults(draft.adults);
+      if (draft.children !== undefined) setChildren(draft.children);
+      if (draft.extraMattresses !== undefined)
+        setExtraMattresses(draft.extraMattresses);
+      if (draft.selectedActivities)
+        setSelectedActivities(draft.selectedActivities);
+    }
+
+    setIsRestored(true);   // VERY IMPORTANT
+  }, []);
+
+  // Auto-save draft whenever booking data changes
+  useEffect(() => {
+    if (!isRestored) return;   // 👈 STOP early overwrite
+
+    const draft = {
+      formData,
+      selectedRoomIds,
+      adults,
+      children,
+      extraMattresses,
+      selectedActivities,
+    };
+
+    localStorage.setItem(
+      "receptionistBookingDraft",
+      JSON.stringify(draft)
+    );
+  }, [
+    isRestored,
+    formData,
+    selectedRoomIds,
+    adults,
+    children,
+    extraMattresses,
+    selectedActivities,
+  ]);
+
   // Fetch Rooms
   useEffect(() => {
     const fetchRooms = async () => {
@@ -117,7 +176,11 @@ const NewBooking = () => {
       }
     };
     fetchRooms();
+<<<<<<< Updated upstream
   }, []);
+=======
+  }, [formData.checkIn, formData.checkOut]); // refetch when dates change
+>>>>>>> Stashed changes
 
   const availableRooms = rooms;
 
