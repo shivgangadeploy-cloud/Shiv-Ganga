@@ -27,7 +27,6 @@ const ADD_ONS_PRICE_MAP = {
   "Yoga Session": 1500,
 };
 
-const MIN_PARTIAL_PAYMENT_PERCENTAGE = 0.3;
 
 export const createPaymentOrder = async (req, res, next) => {
   try {
@@ -89,6 +88,7 @@ export const createPaymentOrder = async (req, res, next) => {
 
     const checkIn = new Date(checkInDate);
     const checkOut = new Date(checkOutDate);
+    const frontendFinalAmount = Number(req.body.finalAmount);
 
     if (checkIn >= checkOut) {
       return res.status(400).json({
@@ -143,7 +143,11 @@ export const createPaymentOrder = async (req, res, next) => {
 
     const nights = (checkOut - checkIn) / (1000 * 60 * 60 * 24);
 
-    const roomAmount = nights * room.pricePerNight;
+    const planPrice =
+      room.priceDetails?.[selectedPlan] || room.pricePerNight;
+
+    const roomAmount = nights * planPrice;
+
     const addOnsAmount = (addOns || []).reduce((sum, item) => {
       const price = ADD_ONS_PRICE_MAP[item.name] || 0;
       const qty = Number(item.quantity) || 1;
@@ -208,7 +212,14 @@ export const createPaymentOrder = async (req, res, next) => {
       }
     }
 
-    const finalAmount = totalAmount - discountAmount - membershipDiscountAmount;
+    const finalAmount = Number(req.body.finalAmount);
+
+    if (!finalAmount || finalAmount <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid booking amount"
+      });
+    }
 
     if (finalAmount <= 0) {
       return res.status(400).json({
@@ -219,63 +230,77 @@ export const createPaymentOrder = async (req, res, next) => {
 
     const totalAmountForBooking = finalAmount;
 
-    const amountInPaiseProvided =
-      req.body.amountInPaise != null && Number(req.body.amountInPaise) > 0;
+    // const amountInPaiseProvided =
+    //   req.body.amountInPaise != null && Number(req.body.amountInPaise) > 0;
 
+    // let payableNow;
+    // let razorpayAmountPaise;
+
+    // // Minimum 30% for partial payments
+    // const minPartialAmount = Math.round(finalAmount * MIN_PARTIAL_PAYMENT_PERCENTAGE);
+
+    // if (amountInPaiseProvided) {
+    //   razorpayAmountPaise = Math.round(Number(req.body.amountInPaise));
+    //   payableNow = razorpayAmountPaise / 100;
+
+    //   if (razorpayAmountPaise < 100) {
+    //     return res.status(400).json({
+    //       success: false,
+    //       message: "Minimum payment amount is ₹1",
+    //     });
+    //   }
+
+    //   if (payableNow > totalAmountForBooking + 5) {
+    //     return res.status(400).json({
+    //       success: false,
+    //       message: "Amount exceeds booking total",
+    //     });
+    //   }
+
+    //   if (paymentType === "PARTIAL" && payableNow < minPartialAmount) {
+    //     return res.status(400).json({
+    //       success: false,
+    //       message: `Minimum partial payment amount is ₹${minPartialAmount} (${Math.round(MIN_PARTIAL_PAYMENT_PERCENTAGE * 100)}% of total)`,
+    //     });
+    //   }
+    // } else {
+    //   payableNow = finalAmount;
+    //   if (paymentType === "PARTIAL") {
+    //     const requestedPartial = Number(req.body.partialAmount) || 0;
+
+    //     // Use requested partial if valid, otherwise default to minimum 30%
+    //     payableNow = requestedPartial > 0 ? requestedPartial : minPartialAmount;
+
+    //     if (payableNow < minPartialAmount) {
+    //       return res.status(400).json({
+    //         success: false,
+    //         message: `Minimum partial payment amount is ₹${minPartialAmount} (${Math.round(MIN_PARTIAL_PAYMENT_PERCENTAGE * 100)}% of total)`,
+    //       });
+    //     }
+
+    //     if (payableNow > totalAmountForBooking) {
+    //       return res.status(400).json({
+    //         success: false,
+    //         message: "Partial payment cannot exceed total amount",
+    //       });
+    //     }
+    //   }
+    //   razorpayAmountPaise = Math.round(payableNow * 100);
+    // }
     let payableNow;
     let razorpayAmountPaise;
+    const selectedPlan = req.body.plan || "ep";
 
     // Minimum 30% for partial payments
-    const minPartialAmount = Math.round(finalAmount * MIN_PARTIAL_PAYMENT_PERCENTAGE);
+    const FIXED_PARTIAL_AMOUNT = 1000; // ₹1000 fixed partial
 
-    if (amountInPaiseProvided) {
-      razorpayAmountPaise = Math.round(Number(req.body.amountInPaise));
-      payableNow = razorpayAmountPaise / 100;
-
-      if (razorpayAmountPaise < 100) {
-        return res.status(400).json({
-          success: false,
-          message: "Minimum payment amount is ₹1",
-        });
-      }
-
-      if (payableNow > totalAmountForBooking + 5) {
-        return res.status(400).json({
-          success: false,
-          message: "Amount exceeds booking total",
-        });
-      }
-
-      if (paymentType === "PARTIAL" && payableNow < minPartialAmount) {
-        return res.status(400).json({
-          success: false,
-          message: `Minimum partial payment amount is ₹${minPartialAmount} (${Math.round(MIN_PARTIAL_PAYMENT_PERCENTAGE * 100)}% of total)`,
-        });
-      }
+    if (paymentType === "PARTIAL") {
+      payableNow = Math.min(1000, frontendFinalAmount);
     } else {
-      payableNow = finalAmount;
-      if (paymentType === "PARTIAL") {
-        const requestedPartial = Number(req.body.partialAmount) || 0;
-
-        // Use requested partial if valid, otherwise default to minimum 30%
-        payableNow = requestedPartial > 0 ? requestedPartial : minPartialAmount;
-
-        if (payableNow < minPartialAmount) {
-          return res.status(400).json({
-            success: false,
-            message: `Minimum partial payment amount is ₹${minPartialAmount} (${Math.round(MIN_PARTIAL_PAYMENT_PERCENTAGE * 100)}% of total)`,
-          });
-        }
-
-        if (payableNow > totalAmountForBooking) {
-          return res.status(400).json({
-            success: false,
-            message: "Partial payment cannot exceed total amount",
-          });
-        }
-      }
-      razorpayAmountPaise = Math.round(payableNow * 100);
+      payableNow = frontendFinalAmount;
     }
+
+    razorpayAmountPaise = Math.round(payableNow * 100);
 
     const order = await razorpay.orders.create({
       amount: razorpayAmountPaise,
@@ -304,7 +329,7 @@ export const createPaymentOrder = async (req, res, next) => {
       type: "BOOKING_PAYMENT",
       paymentType,
       paidAmount: payableNow,
-      amount: totalAmountForBooking,
+      amount: finalAmount,
       razorpayOrderId: order.id,
       status: "PENDING",
       membershipDiscount: membershipDiscountAmount,
