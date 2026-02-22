@@ -1,73 +1,84 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, {
+  useEffect,
+  useRef,
+  useImperativeHandle,
+  forwardRef,
+} from "react";
 
-const Turnstile = React.forwardRef(({ onVerify }, ref) => {
+const Turnstile = forwardRef(({ onVerify }, ref) => {
   const containerRef = useRef(null);
   const widgetIdRef = useRef(null);
-  const [isReady, setIsReady] = useState(false);
-  const [simToken, setSimToken] = useState(null);
+  const tokenRef = useRef(null);
 
-  const TURNSTILE_SITE_KEY = String(import.meta.env.VITE_TURNSTILE_SITE_KEY ?? "");
+  const SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY;
 
+  // Load script only once
   useEffect(() => {
-    if (!document.querySelector('script[src*="turnstile"]') && TURNSTILE_SITE_KEY) {
-      const script = document.createElement('script');
-      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+    if (!SITE_KEY) return;
+
+    if (!window.turnstile && !document.getElementById("cf-turnstile-script")) {
+      const script = document.createElement("script");
+      script.id = "cf-turnstile-script";
+      script.src =
+        "https://challenges.cloudflare.com/turnstile/v0/api.js";
       script.async = true;
       script.defer = true;
-      script.onload = () => setIsReady(true);
       document.body.appendChild(script);
-    } else if (window.turnstile) {
-      setIsReady(true);
     }
-  }, [TURNSTILE_SITE_KEY]);
+  }, [SITE_KEY]);
 
+  // Render widget (safe)
   useEffect(() => {
-    if (
-      isReady &&
-      containerRef.current &&
-      window.turnstile &&
-      TURNSTILE_SITE_KEY &&
-      !widgetIdRef.current
-    ){
-        try {
-          widgetIdRef.current = window.turnstile.render(containerRef.current, {
-            sitekey: TURNSTILE_SITE_KEY,
-            theme: 'light',
-            callback: (token) => {
-              if (onVerify) onVerify(token);
-            },
-          });
-        } catch (error) {
-          console.error('Error rendering Turnstile:', error);
-        }
-      }
-    }, [isReady, TURNSTILE_SITE_KEY]);
+    if (!SITE_KEY) return;
 
-  React.useImperativeHandle(ref, () => ({
-    getToken: () => {
-      if (TURNSTILE_SITE_KEY && window.turnstile && widgetIdRef.current) {
-        try {
-          return window.turnstile.getResponse(widgetIdRef.current);
-        } catch {
-          return null;
-        }
+    const interval = setInterval(() => {
+      if (
+        window.turnstile &&
+        containerRef.current &&
+        widgetIdRef.current === null
+      ) {
+        widgetIdRef.current = window.turnstile.render(
+          containerRef.current,
+          {
+            sitekey: SITE_KEY,
+            theme: "light",
+            callback: (token) => {
+              tokenRef.current = token;
+              onVerify?.(token);
+            },
+          }
+        );
+        clearInterval(interval);
       }
-      return simToken;
-    },
+    }, 100);
+
+    return () => {
+      clearInterval(interval);
+      if (window.turnstile && widgetIdRef.current !== null) {
+        try {
+          window.turnstile.remove(widgetIdRef.current);
+        } catch {}
+        widgetIdRef.current = null;
+      }
+    };
+  }, [SITE_KEY, onVerify]);
+
+  useImperativeHandle(ref, () => ({
+    getToken: () => tokenRef.current,
     reset: () => {
-      if (TURNSTILE_SITE_KEY && window.turnstile && widgetIdRef.current) {
+      if (window.turnstile && widgetIdRef.current !== null) {
         try {
           window.turnstile.reset(widgetIdRef.current);
-        } catch { }
+        } catch {}
+        tokenRef.current = null;
       }
-      setSimToken(null);
     },
   }));
 
-  if (!TURNSTILE_SITE_KEY) {
+  if (!SITE_KEY) {
     return (
       <div className="text-yellow-600 text-sm">
-        Turnstile not configured. Set VITE_TURNSTILE_SITE_KEY.
+        Turnstile not configured
       </div>
     );
   }
@@ -75,12 +86,11 @@ const Turnstile = React.forwardRef(({ onVerify }, ref) => {
   return (
     <div
       ref={containerRef}
-      className="cf-turnstile flex justify-center my-4 w-full"
+      className="flex justify-center my-4 w-full"
       style={{ minHeight: 65 }}
     />
   );
 });
 
-Turnstile.displayName = 'Turnstile';
-
+Turnstile.displayName = "Turnstile";
 export default Turnstile;

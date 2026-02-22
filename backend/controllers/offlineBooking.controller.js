@@ -289,7 +289,7 @@ export const cancelOfflineBooking = async (req, res, next) => {
     const { bookingId } = req.params;
 
     const booking = await Booking.findById(bookingId)
-      .populate("room", "roomNumber status")
+      .populate("rooms.room", "roomNumber status")
       .populate("user", "firstName lastName email");
 
     if (!booking) {
@@ -563,8 +563,18 @@ export const verifyOfflinePayment = async (req, res, next) => {
     const user = await User.findById(transaction.user).session(session);
     if (!user) throw new Error("User not found for transaction");
 
-    const room = await Room.findById(bookingPayload?.roomId).session(session);
-    if (!room) throw new Error("Room not found for booking");
+    const roomsPayload = bookingPayload.rooms || [];
+
+    const roomDocs = [];
+
+    for (const r of roomsPayload) {
+
+      const room = await Room.findById(r.roomId).session(session);
+      if (!room) {
+        throw new Error(`Room not found ${r.roomId}`);
+      }
+      roomDocs.push(room);
+    }
 
     const billingSettings = await getBillingSettings();
     const extraBedPrice = billingSettings.extraBedPricePerNight;
@@ -577,15 +587,20 @@ export const verifyOfflinePayment = async (req, res, next) => {
     const extraBedsCount = bookingPayload.extraBeds?.count || 0;
     const extraBedsAmount = extraBedsCount * extraBedPrice * nights;
 
-    const overlapping = await Booking.findOne({
-      room: room._id,
-      bookingStatus: "confirmed",
-      isCheckedOut: { $ne: true },
-      checkInDate: { $lt: bookingPayload.checkOutDate },
-      checkOutDate: { $gt: bookingPayload.checkInDate },
-    }).session(session);
+    for (const r of roomsPayload) {
 
-    if (overlapping) throw new Error("Room already booked");
+      const overlapping = await Booking.findOne({
+        "rooms.room": r.roomId,
+        bookingStatus: "confirmed",
+        isCheckedOut: { $ne: true },
+        checkInDate: { $lt: bookingPayload.checkOutDate },
+        checkOutDate: { $gt: bookingPayload.checkInDate },
+      }).session(session);
+
+      if (overlapping) {
+        throw new Error(`Room already booked ${r.roomId}`);
+      }
+    }
 
     transaction.status = "SUCCESS";
     transaction.razorpayPaymentId = razorpay_payment_id;
@@ -609,14 +624,17 @@ export const verifyOfflinePayment = async (req, res, next) => {
     const bookingData = {
       guestId,
       bookingReference: bookingReference || null,
-      room: room._id,
+      rooms: roomsPayload.map(r => ({
+        room: r.roomId,
+        quantity: r.quantity || 1,
+        plan: r.plan || "ep"
+      })),
       user: user._id,
       checkInDate: bookingPayload.checkInDate,
       checkOutDate: bookingPayload.checkOutDate,
       adults: bookingPayload.adults,
       children: bookingPayload.children,
       addOns: bookingPayload.addOns || [],
-      quantity: bookingPayload.quantity || 1,
       extraBeds: {
         count: extraBedsCount,
         pricePerBed: extraBedPrice,
@@ -638,8 +656,6 @@ export const verifyOfflinePayment = async (req, res, next) => {
     }
 
     const booking = await Booking.create([bookingData], { session });
-
-    await room.save({ session });
 
     transaction.booking = booking[0]._id;
     await transaction.save({ session });
@@ -745,7 +761,7 @@ export const fakeVerifyOfflinePayment = async (req, res, next) => {
 export const getBookingReceipt = async (req, res, next) => {
   try {
     const booking = await Booking.findById(req.params.id)
-      .populate("room", "roomNumber name pricePerNight")
+      .populate("rooms.room", "roomNumber name pricePerNight")
       .populate("user", "firstName lastName email phoneNumber");
 
     if (!booking) {

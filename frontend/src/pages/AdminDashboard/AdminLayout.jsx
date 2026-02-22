@@ -177,6 +177,11 @@ Remaining: ₹${booking.pendingAmount || 0}
       label: "System Settings",
       icon: Settings,
     },
+    {
+      to: "/admin/mail-settings",
+      label: "Mail Settings",
+      icon: Settings,
+    },
   ];
 
   const isActive = (to, exact = false) =>

@@ -64,6 +64,10 @@ const PaymentPage = () => {
     baseURL: "https://shiv-ganga-3.onrender.com/api",
   });
 
+  // const API = axios.create({
+  //   baseURL: "http://localhost:5001/api",
+  // });
+
   // 4. Token Interceptor (Fixes 401 Unauthorized)
   API.interceptors.request.use((req) => {
     // Ensure this key ('token') matches what you set during login!

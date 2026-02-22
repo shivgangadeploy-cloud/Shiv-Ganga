@@ -299,11 +299,13 @@ export default function BookingPage() {
     setPaymentError(""); // ✅ Clear previous errors
     try {
       // ✅ Verify Cloudflare Turnstile before payment
-      if (!captchaToken) {
-        setPaymentError("Please complete the CAPTCHA verification");
-        setShowPaymentChoice(true);
-        return;
-      }
+     const token = turnstileRef.current?.getToken();
+
+if (!token) {
+  setPaymentError("Please complete the CAPTCHA verification");
+  setShowPaymentChoice(true);
+  return;
+}
 
       // ✅ Added Razorpay check from version 2
       if (typeof window.Razorpay === "undefined") {
@@ -358,7 +360,7 @@ export default function BookingPage() {
         // amountInPaise, // ✅ Added from version 2
         // totalAmount: finalPayableAmount, // ✅ Added from version 2
         finalAmount: finalPayableAmount,
-        captchaToken, // Include Turnstile token
+        captchaToken: token,// Include Turnstile token
       });
 
       const { order, transactionId, bookingPayload } = res.data;
@@ -557,7 +559,7 @@ export default function BookingPage() {
 
   const nights = Math.round(
     (new Date(formData.checkOut) - new Date(formData.checkIn)) /
-    (1000 * 60 * 60 * 24),
+      (1000 * 60 * 60 * 24),
   );
 
   const roomTotal = formData.selectedRooms.reduce((acc, room) => {
@@ -708,11 +710,6 @@ export default function BookingPage() {
   return (
     <div className="min-h-screen bg-background pb-20 pt-10">
       {/* Turnstile CAPTCHA for payment step */}
-      {showPaymentChoice && (
-        <div className="flex justify-center my-4">
-          <Turnstile ref={turnstileRef} onVerify={handleCaptchaVerify} />
-        </div>
-      )}
       <Seo
         title="Book Your Stay | Shiv Ganga Hotel"
         description="Plan your stay at Shiv Ganga Hotel Rishikesh. Check availability, choose rooms, and confirm your booking."
@@ -785,9 +782,10 @@ export default function BookingPage() {
                       className={`
                         w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center
                         border transition-all duration-500 text-primary
-                        ${isActive
-                          ? "border-accent bg-accent"
-                          : "border-white bg-white/80"
+                        ${
+                          isActive
+                            ? "border-accent bg-accent"
+                            : "border-white bg-white/80"
                         }
                         ${isCurrent ? "ring-4 ring-accent/20 scale-110" : ""}
                       `}
@@ -805,9 +803,10 @@ export default function BookingPage() {
                         mt-2 text-[9px] sm:text-[11px]
                         uppercase tracking-wide font-medium
                         leading-tight transition-all duration-500
-                        ${isActive
-                          ? "text-accent opacity-100"
-                          : "text-white/60 opacity-70"
+                        ${
+                          isActive
+                            ? "text-accent opacity-100"
+                            : "text-white/60 opacity-70"
                         }
                       `}
                     >
@@ -1148,110 +1147,117 @@ export default function BookingPage() {
                       const currentPlan = selected
                         ? selected.plan || "ep"
                         : "ep";
-                      const currentPrice = room.priceDetails
-                        ? room.priceDetails[currentPlan]
-                        : parsePrice(room.price);
 
                       return (
                         <div
                           key={room._id}
-                          className={`bg-white transition-all duration-500 hover:shadow-2xl hover:-translate-y-1 rounded-2xl border-primary/20 ${isSelected
-                            ? "border border-accent shadow-lg"
-                            : "border border-gray-100 shadow-sm"
-                            }`}
+                          className={`group bg-white rounded-2xl overflow-hidden transition-all duration-500 border ${
+                            isSelected
+                              ? "border-accent shadow-xl"
+                              : "border-gray-100 shadow-sm hover:shadow-xl"
+                          }`}
                         >
-                          <div className="flex flex-col md:flex-row h-92">
-                            <div className="md:w-2/5 h-64 md:h-auto relative overflow-hidden group rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none">
+                          {/* Card Layout */}
+                          <div className="flex flex-col lg:flex-row h-full">
+                            {/* Image Section */}
+                            <div className="relative w-full lg:w-2/5 h-52 sm:h-64 lg:h-auto overflow-hidden">
                               <img
                                 src={room.mainImage}
                                 alt={room.name}
-                                className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+                                className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                               />
-                              <div className="absolute inset-0 bg-primary/10 group-hover:bg-transparent transition-colors duration-500"></div>
+                              <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition duration-500"></div>
                             </div>
-                            <div className="p-8 md:w-3/5 flex flex-col justify-between">
+
+                            {/* Content Section */}
+                            <div className="flex flex-col justify-between flex-1 p-5 sm:p-6 lg:p-8">
+                              {/* Top Content */}
                               <div>
-                                <div className="flex justify-between items-start mb-4">
-                                  <h3 className="text-2xl font-semibold text-primary">
+                                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">
+                                  <h3 className="text-lg sm:text-xl lg:text-2xl font-semibold text-primary">
                                     {room.name}
                                   </h3>
-                                  <div className="text-right">
-                                    <span className="block text-xl font-semibold text-accent">
-                                      Rs. {room.pricePerNight}
+
+                                  <div className="sm:text-right">
+                                    <span className="block text-lg sm:text-xl font-semibold text-accent">
+                                      ₹ {room.pricePerNight}
                                     </span>
                                     <span className="text-[10px] text-gray-400 uppercase tracking-wider">
                                       + Taxes / Night
                                     </span>
                                   </div>
                                 </div>
-                                <p className="text-gray-500 mb-6 font-light text-sm leading-relaxed">
+
+                                <p className="text-gray-500 text-sm leading-relaxed mb-4 sm:mb-6">
                                   {room.description}
                                 </p>
 
+                                {/* Rate Plan */}
                                 {isSelected && room.priceDetails && (
-                                  <div className="mb-6 bg-gray-50/50 p-4 border border-gray-100">
-                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-3">
+                                  <div className="mb-6 bg-gray-50 p-4 rounded-xl border border-gray-100 transition-all">
+                                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">
                                       Select Rate Plan
                                     </label>
+
                                     <div className="flex flex-wrap gap-3">
-                                      <button
-                                        onClick={() =>
-                                          updateRoomPlan(room._id, "ep")
-                                        }
-                                        className={`px-4 py-2 text-xs uppercase tracking-wider font-medium transition-all duration-300 border ${currentPlan === "ep"
-                                          ? "bg-primary text-white border-primary"
-                                          : "bg-transparent text-gray-500 border-gray-200 hover:border-primary hover:text-primary"
+                                      {["ep", "cp"].map((plan) => (
+                                        <button
+                                          key={plan}
+                                          onClick={() =>
+                                            updateRoomPlan(room._id, plan)
+                                          }
+                                          className={`px-4 py-2 text-xs font-medium uppercase tracking-wider rounded-full transition-all duration-300 border ${
+                                            currentPlan === plan
+                                              ? "bg-primary text-white border-primary"
+                                              : "border-gray-200 text-gray-500 hover:border-primary hover:text-primary"
                                           }`}
-                                      >
-                                        EP (Rs. {room.priceDetails.ep})
-                                      </button>
-                                      <button
-                                        onClick={() =>
-                                          updateRoomPlan(room._id, "cp")
-                                        }
-                                        className={`px-4 py-2 text-xs uppercase tracking-wider font-medium transition-all duration-300 border ${currentPlan === "cp"
-                                          ? "bg-primary text-white border-primary"
-                                          : "bg-transparent text-gray-500 border-gray-200 hover:border-primary hover:text-primary"
-                                          }`}
-                                      >
-                                        CP (Rs. {room.priceDetails.cp})
-                                      </button>
+                                        >
+                                          {plan.toUpperCase()} (₹{" "}
+                                          {room.priceDetails[plan]})
+                                        </button>
+                                      ))}
                                     </div>
                                   </div>
                                 )}
 
-                                <div className="flex flex-wrap gap-2 mb-8">
-                                  {room.features
+                                {/* Amenities */}
+                                <div className="flex flex-wrap gap-2 mb-6">
+                                  {(room.features || [])
                                     .slice(0, 4)
                                     .map((amenity, idx) => (
                                       <span
                                         key={idx}
-                                        className="text-gray-500 text-[10px] uppercase tracking-wider px-3 py-1 border border-gray-200"
+                                        className="text-gray-500 text-[10px] uppercase tracking-wider px-3 py-1 border border-gray-200 rounded-full"
                                       >
                                         {amenity}
                                       </span>
                                     ))}
-                                  <span className="text-gray-400 text-[10px] uppercase tracking-wider px-3 py-1 border border-dashed border-gray-300">
-                                    +{room.features.length - 4} more
-                                  </span>
+
+                                  {(room.features?.length || 0) > 4 && (
+                                    <span className="text-gray-400 text-[10px] uppercase tracking-wider px-3 py-1 border border-dashed border-gray-300 rounded-full">
+                                      +{room.features.length - 4} more
+                                    </span>
+                                  )}
                                 </div>
                               </div>
-                              <div className="flex gap-6 mt-auto items-center border-t border-gray-100 pt-6">
+
+                              {/* Bottom Buttons */}
+                              <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-100">
                                 <button
                                   type="button"
                                   onClick={() => selectRoom(room)}
-                                  className={`flex-1 px-6 py-3 text-xs uppercase tracking-widest font-bold rounded-2xl transition-colors cursor-pointer ${isSelected
-                                    ? "bg-accent text-primary border border-accent"
-                                    : "border border-gray-200 text-gray-600 hover:border-primary hover:text-primary"
-                                    }`}
+                                  className={`w-full sm:flex-1 py-3 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-300 ${
+                                    isSelected
+                                      ? "bg-accent text-primary"
+                                      : "border border-gray-300 text-gray-600 hover:border-primary hover:text-primary"
+                                  }`}
                                 >
                                   {isSelected ? "Selected" : "Select Room"}
                                 </button>
+
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    // Map backend room category to marketing room id used on /rooms detail page
-                                    const category = room.category;
                                     const marketingIdByCategory = {
                                       "Single Bedroom": "standard-double",
                                       "Deluxe Double AC": "deluxe-double",
@@ -1262,8 +1268,10 @@ export default function BookingPage() {
                                         "grand-family-suite",
                                       "Single AC Room": "family-four",
                                     };
+
                                     const mappedId =
-                                      marketingIdByCategory[category] || null;
+                                      marketingIdByCategory[room.category] ||
+                                      null;
 
                                     if (mappedId) {
                                       navigate("/rooms", {
@@ -1273,7 +1281,7 @@ export default function BookingPage() {
                                       navigate("/rooms");
                                     }
                                   }}
-                                  className="text-xs uppercase tracking-widest font-bold text-gray-400 hover:text-primary transition-colors underline decoration-gray-200 underline-offset-4 hover:decoration-primary"
+                                  className="w-full sm:w-auto text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-primary transition-colors underline underline-offset-4"
                                 >
                                   View Details
                                 </button>
@@ -1324,10 +1332,11 @@ export default function BookingPage() {
                       return (
                         <div
                           key={activity.id}
-                          className={`group relative rounded-2xl overflow-hidden transition-all duration-500 cursor-pointer ${isSelected
-                            ? "ring-1 ring-accent"
-                            : "hover:shadow-xl ring-1 ring-primary/30"
-                            }`}
+                          className={`group relative rounded-2xl overflow-hidden transition-all duration-500 cursor-pointer ${
+                            isSelected
+                              ? "ring-1 ring-accent"
+                              : "hover:shadow-xl ring-1 ring-primary/30"
+                          }`}
                           onClick={() => toggleActivity(activity)}
                         >
                           <div className="h-48 relative overflow-hidden">
@@ -1338,10 +1347,11 @@ export default function BookingPage() {
                               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                             />
                             <div
-                              className={`absolute inset-0 transition-colors duration-500 ${isSelected
-                                ? "bg-accent/20"
-                                : "bg-primary/20 group-hover:bg-transparent"
-                                }`}
+                              className={`absolute inset-0 transition-colors duration-500 ${
+                                isSelected
+                                  ? "bg-accent/20"
+                                  : "bg-primary/20 group-hover:bg-transparent"
+                              }`}
                             ></div>
 
                             <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-primary rounded-2xl">
@@ -1372,10 +1382,11 @@ export default function BookingPage() {
                                   : "Per Person"}
                               </span>
                               <span
-                                className={`text-[10px] font-bold uppercase tracking-widest transition-colors ${isSelected
-                                  ? "text-accent"
-                                  : "text-gray-300 group-hover:text-primary"
-                                  }`}
+                                className={`text-[10px] font-bold uppercase tracking-widest transition-colors ${
+                                  isSelected
+                                    ? "text-accent"
+                                    : "text-gray-300 group-hover:text-primary"
+                                }`}
                               >
                                 {isSelected ? "Selected" : "Add to Booking"}
                               </span>
@@ -1489,10 +1500,11 @@ export default function BookingPage() {
                       }
                       disabled={!canApplyCoupon}
                       className={`px-5 py-2 border rounded-xl font-bold text-sm transition
-             ${canApplyCoupon
-                          ? "border-primary text-white bg-primary hover:text-primary hover:bg-accent"
-                          : "border-gray-300 text-gray-400 cursor-not-allowed opacity-60"
-                        }`}
+             ${
+               canApplyCoupon
+                 ? "border-primary text-white bg-primary hover:text-primary hover:bg-accent"
+                 : "border-gray-300 text-gray-400 cursor-not-allowed opacity-60"
+             }`}
                     >
                       Apply Coupon
                     </button>
@@ -1550,9 +1562,10 @@ export default function BookingPage() {
                             onClick={sendOtp}
                             disabled={otpVerified || otpCountdown > 0}
                             className={`px-4 py-2 text-xs uppercase tracking-wider font-bold border transition-all cursor-pointer rounded-2xl
-                              ${otpVerified
-                                ? "bg-green-600 text-white border-green-600"
-                                : "bg-primary text-white border-primary"
+                              ${
+                                otpVerified
+                                  ? "bg-green-600 text-white border-green-600"
+                                  : "bg-primary text-white border-primary"
                               }
                               disabled:opacity-60 disabled:cursor-not-allowed`}
                           >
@@ -2104,3 +2117,5 @@ export default function BookingPage() {
     </div>
   );
 }
+
+
