@@ -299,11 +299,13 @@ export default function BookingPage() {
     setPaymentError(""); // ✅ Clear previous errors
     try {
       // ✅ Verify Cloudflare Turnstile before payment
-      if (!captchaToken) {
-        setPaymentError("Please complete the CAPTCHA verification");
-        setShowPaymentChoice(true);
-        return;
-      }
+     const token = turnstileRef.current?.getToken();
+
+if (!token) {
+  setPaymentError("Please complete the CAPTCHA verification");
+  setShowPaymentChoice(true);
+  return;
+}
 
       // ✅ Added Razorpay check from version 2
       if (typeof window.Razorpay === "undefined") {
@@ -358,7 +360,7 @@ export default function BookingPage() {
         // amountInPaise, // ✅ Added from version 2
         // totalAmount: finalPayableAmount, // ✅ Added from version 2
         finalAmount: finalPayableAmount,
-        captchaToken, // Include Turnstile token
+        captchaToken: token,// Include Turnstile token
       });
 
       const { order, transactionId, bookingPayload } = res.data;
