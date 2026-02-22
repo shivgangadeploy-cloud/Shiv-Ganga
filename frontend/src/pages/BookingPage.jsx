@@ -158,8 +158,8 @@ export default function BookingPage() {
     window.open(
       `https://wa.me/${formData.phone}?text=${encodeURIComponent(
         "Thank you for booking with Shiv Ganga Hotel. Your booking reference is " +
-        bookingReference +
-        ". We look forward to hosting you!",
+          bookingReference +
+          ". We look forward to hosting you!",
       )}`,
     );
   };
@@ -331,10 +331,10 @@ export default function BookingPage() {
       // const amountInPaise = Math.round(payableAmount * 100); // ✅ Added from version 2
 
       const res = await api.post("/online-booking/create-order", {
-        rooms: formData.selectedRooms.map(room => ({
+        rooms: formData.selectedRooms.map((room) => ({
           roomId: room._id,
           quantity: Number(room.quantity) || 1,
-          plan: room.plan || "ep"
+          plan: room.plan || "ep",
         })),
         plan: formData.selectedRooms[0].plan || "ep",
         checkInDate: formData.checkIn,
@@ -556,7 +556,7 @@ export default function BookingPage() {
 
   const nights = Math.round(
     (new Date(formData.checkOut) - new Date(formData.checkIn)) /
-    (1000 * 60 * 60 * 24),
+      (1000 * 60 * 60 * 24),
   );
 
   const roomTotal = formData.selectedRooms.reduce((acc, room) => {
@@ -779,9 +779,10 @@ export default function BookingPage() {
                       className={`
                         w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center
                         border transition-all duration-500 text-primary
-                        ${isActive
-                          ? "border-accent bg-accent"
-                          : "border-white bg-white/80"
+                        ${
+                          isActive
+                            ? "border-accent bg-accent"
+                            : "border-white bg-white/80"
                         }
                         ${isCurrent ? "ring-4 ring-accent/20 scale-110" : ""}
                       `}
@@ -799,9 +800,10 @@ export default function BookingPage() {
                         mt-2 text-[9px] sm:text-[11px]
                         uppercase tracking-wide font-medium
                         leading-tight transition-all duration-500
-                        ${isActive
-                          ? "text-accent opacity-100"
-                          : "text-white/60 opacity-70"
+                        ${
+                          isActive
+                            ? "text-accent opacity-100"
+                            : "text-white/60 opacity-70"
                         }
                       `}
                     >
@@ -1133,152 +1135,160 @@ export default function BookingPage() {
                     </div>
                   )}
 
-    <div className="grid gap-8">
-  {rooms.map((room) => {
-    const selected = formData.selectedRooms.find(
-      (r) => r._id === room._id,
-    );
-    const isSelected = !!selected;
-    const currentPlan = selected ? selected.plan || "ep" : "ep";
+                  <div className="grid gap-8">
+                    {rooms.map((room) => {
+                      const selected = formData.selectedRooms.find(
+                        (r) => r._id === room._id,
+                      );
+                      const isSelected = !!selected;
+                      const currentPlan = selected
+                        ? selected.plan || "ep"
+                        : "ep";
 
-    return (
-      <div
-        key={room._id}
-        className={`group bg-white rounded-2xl overflow-hidden transition-all duration-500 border ${
-          isSelected
-            ? "border-accent shadow-xl"
-            : "border-gray-100 shadow-sm hover:shadow-xl"
-        }`}
-      >
-        {/* Card Layout */}
-        <div className="flex flex-col lg:flex-row h-full">
-          
-          {/* Image Section */}
-          <div className="relative w-full lg:w-2/5 h-52 sm:h-64 lg:h-auto overflow-hidden">
-            <img
-              src={room.mainImage}
-              alt={room.name}
-              className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition duration-500"></div>
-          </div>
+                      return (
+                        <div
+                          key={room._id}
+                          className={`group bg-white rounded-2xl overflow-hidden transition-all duration-500 border ${
+                            isSelected
+                              ? "border-accent shadow-xl"
+                              : "border-gray-100 shadow-sm hover:shadow-xl"
+                          }`}
+                        >
+                          {/* Card Layout */}
+                          <div className="flex flex-col lg:flex-row h-full">
+                            {/* Image Section */}
+                            <div className="relative w-full lg:w-2/5 h-52 sm:h-64 lg:h-auto overflow-hidden">
+                              <img
+                                src={room.mainImage}
+                                alt={room.name}
+                                className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                              />
+                              <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition duration-500"></div>
+                            </div>
 
-          {/* Content Section */}
-          <div className="flex flex-col justify-between flex-1 p-5 sm:p-6 lg:p-8">
-            
-            {/* Top Content */}
-            <div>
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">
-                <h3 className="text-lg sm:text-xl lg:text-2xl font-semibold text-primary">
-                  {room.name}
-                </h3>
+                            {/* Content Section */}
+                            <div className="flex flex-col justify-between flex-1 p-5 sm:p-6 lg:p-8">
+                              {/* Top Content */}
+                              <div>
+                                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">
+                                  <h3 className="text-lg sm:text-xl lg:text-2xl font-semibold text-primary">
+                                    {room.name}
+                                  </h3>
 
-                <div className="sm:text-right">
-                  <span className="block text-lg sm:text-xl font-semibold text-accent">
-                    ₹ {room.pricePerNight}
-                  </span>
-                  <span className="text-[10px] text-gray-400 uppercase tracking-wider">
-                    + Taxes / Night
-                  </span>
-                </div>
-              </div>
+                                  <div className="sm:text-right">
+                                    <span className="block text-lg sm:text-xl font-semibold text-accent">
+                                      ₹ {room.pricePerNight}
+                                    </span>
+                                    <span className="text-[10px] text-gray-400 uppercase tracking-wider">
+                                      + Taxes / Night
+                                    </span>
+                                  </div>
+                                </div>
 
-              <p className="text-gray-500 text-sm leading-relaxed mb-4 sm:mb-6">
-                {room.description}
-              </p>
+                                <p className="text-gray-500 text-sm leading-relaxed mb-4 sm:mb-6">
+                                  {room.description}
+                                </p>
 
-              {/* Rate Plan */}
-              {isSelected && room.priceDetails && (
-                <div className="mb-6 bg-gray-50 p-4 rounded-xl border border-gray-100 transition-all">
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">
-                    Select Rate Plan
-                  </label>
+                                {/* Rate Plan */}
+                                {isSelected && room.priceDetails && (
+                                  <div className="mb-6 bg-gray-50 p-4 rounded-xl border border-gray-100 transition-all">
+                                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">
+                                      Select Rate Plan
+                                    </label>
 
-                  <div className="flex flex-wrap gap-3">
-                    {["ep", "cp"].map((plan) => (
-                      <button
-                        key={plan}
-                        onClick={() => updateRoomPlan(room._id, plan)}
-                        className={`px-4 py-2 text-xs font-medium uppercase tracking-wider rounded-full transition-all duration-300 border ${
-                          currentPlan === plan
-                            ? "bg-primary text-white border-primary"
-                            : "border-gray-200 text-gray-500 hover:border-primary hover:text-primary"
-                        }`}
-                      >
-                        {plan.toUpperCase()} (₹ {room.priceDetails[plan]})
-                      </button>
-                    ))}
+                                    <div className="flex flex-wrap gap-3">
+                                      {["ep", "cp"].map((plan) => (
+                                        <button
+                                          key={plan}
+                                          onClick={() =>
+                                            updateRoomPlan(room._id, plan)
+                                          }
+                                          className={`px-4 py-2 text-xs font-medium uppercase tracking-wider rounded-full transition-all duration-300 border ${
+                                            currentPlan === plan
+                                              ? "bg-primary text-white border-primary"
+                                              : "border-gray-200 text-gray-500 hover:border-primary hover:text-primary"
+                                          }`}
+                                        >
+                                          {plan.toUpperCase()} (₹{" "}
+                                          {room.priceDetails[plan]})
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Amenities */}
+                                <div className="flex flex-wrap gap-2 mb-6">
+                                  {(room.features || [])
+                                    .slice(0, 4)
+                                    .map((amenity, idx) => (
+                                      <span
+                                        key={idx}
+                                        className="text-gray-500 text-[10px] uppercase tracking-wider px-3 py-1 border border-gray-200 rounded-full"
+                                      >
+                                        {amenity}
+                                      </span>
+                                    ))}
+
+                                  {(room.features?.length || 0) > 4 && (
+                                    <span className="text-gray-400 text-[10px] uppercase tracking-wider px-3 py-1 border border-dashed border-gray-300 rounded-full">
+                                      +{room.features.length - 4} more
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Bottom Buttons */}
+                              <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-100">
+                                <button
+                                  type="button"
+                                  onClick={() => selectRoom(room)}
+                                  className={`w-full sm:flex-1 py-3 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-300 ${
+                                    isSelected
+                                      ? "bg-accent text-primary"
+                                      : "border border-gray-300 text-gray-600 hover:border-primary hover:text-primary"
+                                  }`}
+                                >
+                                  {isSelected ? "Selected" : "Select Room"}
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const marketingIdByCategory = {
+                                      "Single Bedroom": "standard-double",
+                                      "Deluxe Double AC": "deluxe-double",
+                                      "Exclusive Triple": "triple-room",
+                                      "Deluxe River View Room":
+                                        "himalayan-balcony",
+                                      "Grand Family Suite":
+                                        "grand-family-suite",
+                                      "Single AC Room": "family-four",
+                                    };
+
+                                    const mappedId =
+                                      marketingIdByCategory[room.category] ||
+                                      null;
+
+                                    if (mappedId) {
+                                      navigate("/rooms", {
+                                        state: { roomId: mappedId },
+                                      });
+                                    } else {
+                                      navigate("/rooms");
+                                    }
+                                  }}
+                                  className="w-full sm:w-auto text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-primary transition-colors underline underline-offset-4"
+                                >
+                                  View Details
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                </div>
-              )}
-
-              {/* Amenities */}
-              <div className="flex flex-wrap gap-2 mb-6">
-                {(room.features || []).slice(0, 4).map((amenity, idx) => (
-                  <span
-                    key={idx}
-                    className="text-gray-500 text-[10px] uppercase tracking-wider px-3 py-1 border border-gray-200 rounded-full"
-                  >
-                    {amenity}
-                  </span>
-                ))}
-
-                {(room.features?.length || 0) > 4 && (
-                  <span className="text-gray-400 text-[10px] uppercase tracking-wider px-3 py-1 border border-dashed border-gray-300 rounded-full">
-                    +{room.features.length - 4} more
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Bottom Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-100">
-              <button
-                type="button"
-                onClick={() => selectRoom(room)}
-                className={`w-full sm:flex-1 py-3 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-300 ${
-                  isSelected
-                    ? "bg-accent text-primary"
-                    : "border border-gray-300 text-gray-600 hover:border-primary hover:text-primary"
-                }`}
-              >
-                {isSelected ? "Selected" : "Select Room"}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  const marketingIdByCategory = {
-                    "Single Bedroom": "standard-double",
-                    "Deluxe Double AC": "deluxe-double",
-                    "Exclusive Triple": "triple-room",
-                    "Deluxe River View Room": "himalayan-balcony",
-                    "Grand Family Suite": "grand-family-suite",
-                    "Single AC Room": "family-four",
-                  };
-
-                  const mappedId =
-                    marketingIdByCategory[room.category] || null;
-
-                  if (mappedId) {
-                    navigate("/rooms", {
-                      state: { roomId: mappedId },
-                    });
-                  } else {
-                    navigate("/rooms");
-                  }
-                }}
-                className="w-full sm:w-auto text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-primary transition-colors underline underline-offset-4"
-              >
-                View Details
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  })}
-</div>
 
                   {/* <div className="flex justify-end pt-8">
                     <button
@@ -1319,10 +1329,11 @@ export default function BookingPage() {
                       return (
                         <div
                           key={activity.id}
-                          className={`group relative rounded-2xl overflow-hidden transition-all duration-500 cursor-pointer ${isSelected
-                            ? "ring-1 ring-accent"
-                            : "hover:shadow-xl ring-1 ring-primary/30"
-                            }`}
+                          className={`group relative rounded-2xl overflow-hidden transition-all duration-500 cursor-pointer ${
+                            isSelected
+                              ? "ring-1 ring-accent"
+                              : "hover:shadow-xl ring-1 ring-primary/30"
+                          }`}
                           onClick={() => toggleActivity(activity)}
                         >
                           <div className="h-48 relative overflow-hidden">
@@ -1333,10 +1344,11 @@ export default function BookingPage() {
                               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                             />
                             <div
-                              className={`absolute inset-0 transition-colors duration-500 ${isSelected
-                                ? "bg-accent/20"
-                                : "bg-primary/20 group-hover:bg-transparent"
-                                }`}
+                              className={`absolute inset-0 transition-colors duration-500 ${
+                                isSelected
+                                  ? "bg-accent/20"
+                                  : "bg-primary/20 group-hover:bg-transparent"
+                              }`}
                             ></div>
 
                             <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-primary rounded-2xl">
@@ -1367,10 +1379,11 @@ export default function BookingPage() {
                                   : "Per Person"}
                               </span>
                               <span
-                                className={`text-[10px] font-bold uppercase tracking-widest transition-colors ${isSelected
-                                  ? "text-accent"
-                                  : "text-gray-300 group-hover:text-primary"
-                                  }`}
+                                className={`text-[10px] font-bold uppercase tracking-widest transition-colors ${
+                                  isSelected
+                                    ? "text-accent"
+                                    : "text-gray-300 group-hover:text-primary"
+                                }`}
                               >
                                 {isSelected ? "Selected" : "Add to Booking"}
                               </span>
@@ -1484,10 +1497,11 @@ export default function BookingPage() {
                       }
                       disabled={!canApplyCoupon}
                       className={`px-5 py-2 border rounded-xl font-bold text-sm transition
-             ${canApplyCoupon
-                          ? "border-primary text-white bg-primary hover:text-primary hover:bg-accent"
-                          : "border-gray-300 text-gray-400 cursor-not-allowed opacity-60"
-                        }`}
+             ${
+               canApplyCoupon
+                 ? "border-primary text-white bg-primary hover:text-primary hover:bg-accent"
+                 : "border-gray-300 text-gray-400 cursor-not-allowed opacity-60"
+             }`}
                     >
                       Apply Coupon
                     </button>
@@ -1545,9 +1559,10 @@ export default function BookingPage() {
                             onClick={sendOtp}
                             disabled={otpVerified || otpCountdown > 0}
                             className={`px-4 py-2 text-xs uppercase tracking-wider font-bold border transition-all cursor-pointer rounded-2xl
-                              ${otpVerified
-                                ? "bg-green-600 text-white border-green-600"
-                                : "bg-primary text-white border-primary"
+                              ${
+                                otpVerified
+                                  ? "bg-green-600 text-white border-green-600"
+                                  : "bg-primary text-white border-primary"
                               }
                               disabled:opacity-60 disabled:cursor-not-allowed`}
                           >
@@ -2099,3 +2114,5 @@ export default function BookingPage() {
     </div>
   );
 }
+
+
