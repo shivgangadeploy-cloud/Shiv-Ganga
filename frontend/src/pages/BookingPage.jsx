@@ -314,24 +314,25 @@ export default function BookingPage() {
 
       // For FULL payment, user pays the full finalPayableAmount
       // For PARTIAL payment, user always pays a fixed ₹1000 (or less if total is smaller)
-      const payableAmount =
-        type === "PARTIAL"
-          ? Math.min(PARTIAL_PAYMENT_FIXED_AMOUNT, finalPayableAmount)
-          : finalPayableAmount;
+      // const payableAmount =
+      //   type === "PARTIAL"
+      //     ? Math.min(PARTIAL_PAYMENT_FIXED_AMOUNT, finalPayableAmount)
+      //     : finalPayableAmount;
 
-      // ✅ Added amount validation from version 2
-      if (payableAmount < 1) {
-        setPaymentError(
-          "Minimum payment amount is ₹1. Please pay full amount.",
-        );
-        setShowPaymentChoice(true);
-        return;
-      }
+      // // ✅ Added amount validation from version 2
+      // if (payableAmount < 1) {
+      //   setPaymentError(
+      //     "Minimum payment amount is ₹1. Please pay full amount.",
+      //   );
+      //   setShowPaymentChoice(true);
+      //   return;
+      // }
 
-      const amountInPaise = Math.round(payableAmount * 100); // ✅ Added from version 2
+      // const amountInPaise = Math.round(payableAmount * 100); // ✅ Added from version 2
 
       const res = await api.post("/online-booking/create-order", {
         roomId: formData.selectedRooms[0]._id,
+        plan: formData.selectedRooms[0].plan || "ep",
         checkInDate: formData.checkIn,
         checkOutDate: formData.checkOut,
         adults: formData.adults,
@@ -347,11 +348,12 @@ export default function BookingPage() {
         specialRequest: formData.specialRequests,
         paymentType: type,
         // Tell backend exactly how much we want to pay now when doing PARTIAL
-        partialAmount: type === "PARTIAL" ? payableAmount : undefined,
+        // partialAmount: type === "PARTIAL" ? payableAmount : undefined,
         isMember,
         couponCode: appliedCoupon?.code || null,
-        amountInPaise, // ✅ Added from version 2
-        totalAmount: finalPayableAmount, // ✅ Added from version 2
+        // amountInPaise, // ✅ Added from version 2
+        // totalAmount: finalPayableAmount, // ✅ Added from version 2
+        finalAmount: finalPayableAmount,
         captchaToken, // Include Turnstile token
       });
 
