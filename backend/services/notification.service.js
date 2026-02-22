@@ -3,19 +3,22 @@ import Notification from "../models/Notification.model.js";
 export const notifyReceptionistPaymentCompleted = async ({
   booking,
   user,
-  room
+  rooms
 }) => {
+
+  const roomNumbers = rooms.map(r => r.roomNumber).join(", ");
+
   await Notification.create({
     role: "receptionist",
     title: "Payment Completed",
-    message: `Payment completed for Room ${room.roomNumber}.
+    message: `Payment completed for Room ${roomNumbers}.
 Guest: ${user.firstName} ${user.lastName}
 Mobile: ${user.phoneNumber}
 Email: ${user.email}`,
     booking: booking._id
   });
-};
 
+};
 
 
 

@@ -8,7 +8,7 @@ export const createTestimonial = async (req, res, next) => {
     const { bookingId, rating, message } = req.body;
 
     const booking = await Booking.findById(bookingId)
-      .populate("room")
+      .populate("rooms.room")
       .populate("user");
 
     if (!booking) {

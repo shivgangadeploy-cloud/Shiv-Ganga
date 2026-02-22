@@ -327,7 +327,7 @@ export const sendInvoiceToWhatsApp = async (req, res, next) => {
   try {
     const booking = await Booking.findById(req.params.bookingId)
       .populate("user")
-      .populate("room");
+      .populate("rooms.room");
 
     if (!booking.user.phoneNumber) {
       return res.status(400).json({

@@ -2,11 +2,23 @@ import mongoose from "mongoose";
 
 const bookingSchema = new mongoose.Schema(
   {
-    room: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Room",
-      required: true,
-    },
+    rooms: [
+      {
+        room: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Room",
+          required: true,
+        },
+        quantity: {
+          type: Number,
+          default: 1,
+        },
+        plan: {
+          type: String,
+          default: "ep",
+        },
+      },
+    ],
 
     user: {
       type: mongoose.Schema.Types.ObjectId,
@@ -53,11 +65,6 @@ const bookingSchema = new mongoose.Schema(
       type: String,
       enum: ["pending", "confirmed", "cancelled"],
       default: "pending",
-    },
-    quantity: {
-      type: Number,
-      required: true,
-      min: 1,
     },
     checkedInAt: {
       type: Date,
@@ -146,11 +153,13 @@ const bookingSchema = new mongoose.Schema(
 );
 
 //INDEX (important for lookup)
-bookingSchema.index({ room: 1, checkInDate: 1, checkOutDate: 1 });
+bookingSchema.index({ "rooms.room": 1, checkInDate: 1, checkOutDate: 1 });
 
 
 //PREVENT OVERLAPPING BOOKINGS
 bookingSchema.pre("save", async function () {
+
+  if (!this.rooms || this.rooms.length === 0) return;
 
   if (this.checkInDate) {
     this.checkInDate.setHours(0, 0, 0, 0);
@@ -160,19 +169,20 @@ bookingSchema.pre("save", async function () {
     this.checkOutDate.setHours(0, 0, 0, 0);
   }
 
-  const overlapping = await mongoose.model("Booking").findOne({
-    room: this.room,
-    bookingStatus: "confirmed",
-    isCheckedOut: false,
-    checkInDate: { $lt: this.checkOutDate },
-    checkOutDate: { $gt: this.checkInDate },
-    _id: { $ne: this._id }
-  });
+  for (const r of this.rooms) {
+    const overlapping = await mongoose.model("Booking").findOne({
+      "rooms.room": r.room,
+      bookingStatus: "confirmed",
+      isCheckedOut: false,
+      checkInDate: { $lt: this.checkOutDate },
+      checkOutDate: { $gt: this.checkInDate },
+      _id: { $ne: this._id }
+    });
 
-  if (overlapping) {
-    throw new Error("Room already booked for selected dates");
+    if (overlapping) {
+      throw new Error("Room already booked for selected dates");
+    }
   }
-
 });
 
 export default mongoose.model("Booking", bookingSchema);

@@ -71,12 +71,12 @@ const ACTIVITIES = [
 ];
 
 export default function BookingPage() {
-    // Cloudflare Turnstile CAPTCHA
-    const turnstileRef = useRef(null);
-    const handleCaptchaVerify = (token) => {
-      setCaptchaToken(token);
-      setPaymentError("");
-    };
+  // Cloudflare Turnstile CAPTCHA
+  const turnstileRef = useRef(null);
+  const handleCaptchaVerify = (token) => {
+    setCaptchaToken(token);
+    setPaymentError("");
+  };
   const today = new Date().toISOString().split("T")[0];
   const navigate = useNavigate(); // ✅ INSIDE component
   const location = useLocation();
@@ -331,7 +331,11 @@ export default function BookingPage() {
       // const amountInPaise = Math.round(payableAmount * 100); // ✅ Added from version 2
 
       const res = await api.post("/online-booking/create-order", {
-        roomId: formData.selectedRooms[0]._id,
+        rooms: formData.selectedRooms.map(room => ({
+          roomId: room._id,
+          quantity: Number(room.quantity) || 1,
+          plan: room.plan || "ep"
+        })),
         plan: formData.selectedRooms[0].plan || "ep",
         checkInDate: formData.checkIn,
         checkOutDate: formData.checkOut,
@@ -421,7 +425,7 @@ export default function BookingPage() {
         err.response?.data?.message ||
         err.message ||
         "Unable to start payment. Please try again.";
-        console.log(err);
+      console.log(err);
       setPaymentError(msg);
       setShowPaymentChoice(true);
     }
@@ -1151,8 +1155,8 @@ export default function BookingPage() {
                         <div
                           key={room._id}
                           className={`bg-white transition-all duration-500 hover:shadow-2xl hover:-translate-y-1 rounded-2xl border-primary/20 ${isSelected
-                              ? "border border-accent shadow-lg"
-                              : "border border-gray-100 shadow-sm"
+                            ? "border border-accent shadow-lg"
+                            : "border border-gray-100 shadow-sm"
                             }`}
                         >
                           <div className="flex flex-col md:flex-row h-92">
@@ -1194,8 +1198,8 @@ export default function BookingPage() {
                                           updateRoomPlan(room._id, "ep")
                                         }
                                         className={`px-4 py-2 text-xs uppercase tracking-wider font-medium transition-all duration-300 border ${currentPlan === "ep"
-                                            ? "bg-primary text-white border-primary"
-                                            : "bg-transparent text-gray-500 border-gray-200 hover:border-primary hover:text-primary"
+                                          ? "bg-primary text-white border-primary"
+                                          : "bg-transparent text-gray-500 border-gray-200 hover:border-primary hover:text-primary"
                                           }`}
                                       >
                                         EP (Rs. {room.priceDetails.ep})
@@ -1205,8 +1209,8 @@ export default function BookingPage() {
                                           updateRoomPlan(room._id, "cp")
                                         }
                                         className={`px-4 py-2 text-xs uppercase tracking-wider font-medium transition-all duration-300 border ${currentPlan === "cp"
-                                            ? "bg-primary text-white border-primary"
-                                            : "bg-transparent text-gray-500 border-gray-200 hover:border-primary hover:text-primary"
+                                          ? "bg-primary text-white border-primary"
+                                          : "bg-transparent text-gray-500 border-gray-200 hover:border-primary hover:text-primary"
                                           }`}
                                       >
                                         CP (Rs. {room.priceDetails.cp})
@@ -1236,8 +1240,8 @@ export default function BookingPage() {
                                   type="button"
                                   onClick={() => selectRoom(room)}
                                   className={`flex-1 px-6 py-3 text-xs uppercase tracking-widest font-bold rounded-2xl transition-colors cursor-pointer ${isSelected
-                                      ? "bg-accent text-primary border border-accent"
-                                      : "border border-gray-200 text-gray-600 hover:border-primary hover:text-primary"
+                                    ? "bg-accent text-primary border border-accent"
+                                    : "border border-gray-200 text-gray-600 hover:border-primary hover:text-primary"
                                     }`}
                                 >
                                   {isSelected ? "Selected" : "Select Room"}
@@ -1320,8 +1324,8 @@ export default function BookingPage() {
                         <div
                           key={activity.id}
                           className={`group relative rounded-2xl overflow-hidden transition-all duration-500 cursor-pointer ${isSelected
-                              ? "ring-1 ring-accent"
-                              : "hover:shadow-xl ring-1 ring-primary/30"
+                            ? "ring-1 ring-accent"
+                            : "hover:shadow-xl ring-1 ring-primary/30"
                             }`}
                           onClick={() => toggleActivity(activity)}
                         >
@@ -1334,8 +1338,8 @@ export default function BookingPage() {
                             />
                             <div
                               className={`absolute inset-0 transition-colors duration-500 ${isSelected
-                                  ? "bg-accent/20"
-                                  : "bg-primary/20 group-hover:bg-transparent"
+                                ? "bg-accent/20"
+                                : "bg-primary/20 group-hover:bg-transparent"
                                 }`}
                             ></div>
 
@@ -1368,8 +1372,8 @@ export default function BookingPage() {
                               </span>
                               <span
                                 className={`text-[10px] font-bold uppercase tracking-widest transition-colors ${isSelected
-                                    ? "text-accent"
-                                    : "text-gray-300 group-hover:text-primary"
+                                  ? "text-accent"
+                                  : "text-gray-300 group-hover:text-primary"
                                   }`}
                               >
                                 {isSelected ? "Selected" : "Add to Booking"}
@@ -1484,11 +1488,10 @@ export default function BookingPage() {
                       }
                       disabled={!canApplyCoupon}
                       className={`px-5 py-2 border rounded-xl font-bold text-sm transition
-             ${
-               canApplyCoupon
-                 ? "border-primary text-white bg-primary hover:text-primary hover:bg-accent"
-                 : "border-gray-300 text-gray-400 cursor-not-allowed opacity-60"
-             }`}
+             ${canApplyCoupon
+                          ? "border-primary text-white bg-primary hover:text-primary hover:bg-accent"
+                          : "border-gray-300 text-gray-400 cursor-not-allowed opacity-60"
+                        }`}
                     >
                       Apply Coupon
                     </button>

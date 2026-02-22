@@ -242,7 +242,7 @@ export const getRecentActivities = async (req, res) => {
 
 export const exportBookings = async (req, res, next) => {
   try {
-    const bookings = await Booking.find().populate("user").populate("room");
+    const bookings = await Booking.find().populate("user").populate("rooms.room");
 
     await exportBookingsToSheet(bookings);
 
@@ -283,10 +283,6 @@ export const getRoomStatusSummary = async (req, res) => {
 
     const availableRooms = await Room.countDocuments({
       status: "Available",
-    });
-
-    const bookedRooms = await Room.countDocuments({
-      status: "Booked",
     });
 
     const occupiedRooms = await Room.countDocuments({
