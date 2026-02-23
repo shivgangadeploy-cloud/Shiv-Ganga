@@ -72,29 +72,68 @@ app.use(cors(corsOptions));
 app.options(/.*/, cors(corsOptions));
 
 // Security: Helmet with enhanced HSTS
-app.use(helmet({
-  hsts: {
-    maxAge: 31536000,
-    includeSubDomains: true,
-    preload: true
-  },
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'none'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://challenges.cloudflare.com"],
-      scriptSrcAttr: ["'none'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "blob:", "data:"],
-      connectSrc: ["'self'", "https://challenges.cloudflare.com"],
-      frameSrc: ["'self'", "blob:", "https://challenges.cloudflare.com"],  // ← key fix
-      childSrc: ["'self'", "blob:", "https://challenges.cloudflare.com"],  // ← key fix
-      workerSrc: ["blob:"],
-      formAction: ["'self'"],
-      baseUri: ["'self'"],
-      // NO sandbox directive here
-    }
-  }
-}));
+app.use(
+  helmet({
+    hsts: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true,
+    },
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+
+        scriptSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          "'unsafe-eval'",
+          "https://checkout.razorpay.com",
+          "https://api.razorpay.com",
+          "https://challenges.cloudflare.com",
+        ],
+
+        scriptSrcAttr: ["'unsafe-inline'"],
+
+        styleSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          "https://fonts.googleapis.com",
+        ],
+
+        imgSrc: [
+          "'self'",
+          "data:",
+          "blob:",
+          "https://res.cloudinary.com",
+        ],
+
+        connectSrc: [
+          "'self'",
+          "https://api.razorpay.com",
+          "https://checkout.razorpay.com",
+          "https://challenges.cloudflare.com",
+        ],
+
+        frameSrc: [
+          "'self'",
+          "https://checkout.razorpay.com",
+          "https://api.razorpay.com",
+          "https://challenges.cloudflare.com",
+        ],
+
+        childSrc: [
+          "'self'",
+          "https://checkout.razorpay.com",
+          "https://challenges.cloudflare.com",
+        ],
+
+        workerSrc: ["blob:"],
+        formAction: ["'self'"],
+        baseUri: ["'self'"],
+      },
+    },
+  })
+);
 
 
 // Compression middleware for all responses
