@@ -147,8 +147,9 @@ export const getRecentActivities = async (req, res, next) => {
       const firstName = b?.user?.firstName || "";
       const lastName = b?.user?.lastName || "";
       const guestName = `${firstName} ${lastName}`.trim() || "Guest";
-      const roomName = b?.room?.name || "";
-      const roomNumber = b?.room?.roomNumber || "";
+      // FIX: use rooms[0].room instead of room (singular)
+      const roomName = b?.rooms?.[0]?.room?.name || "";
+      const roomNumber = b?.rooms?.[0]?.room?.roomNumber || "";
       const roomLabel = `${roomName} ${roomNumber}`.trim() || "Room";
       return {
         type: b.isCheckedOut
@@ -256,10 +257,11 @@ export const getGuestDetails = async (req, res, next) => {
           totalVisits,
           lifetimeSpend,
         },
+        // FIX: use rooms[0].room instead of room (singular)
         stayHistory: bookings.map((b) => ({
           bookingId: b._id,
-          room: b.room?.name,
-          roomNumber: b.room?.roomNumber,
+          room: b.rooms?.[0]?.room?.name,
+          roomNumber: b.rooms?.[0]?.room?.roomNumber,
           checkInDate: b.checkInDate,
           checkOutDate: b.checkOutDate,
           amount: b.totalAmount,
@@ -287,9 +289,10 @@ export const getInHouseGuests = async (req, res, next) => {
     res.json({
       success: true,
       count: bookings.length,
+      // FIX: use rooms array instead of room (singular)
       data: bookings.map((b) => ({
         guest: b.user,
-        room: b.room,
+        rooms: b.rooms,
         checkInDate: b.checkInDate,
         checkOutDate: b.checkOutDate,
       })),
@@ -305,7 +308,8 @@ export const updateBooking = async (req, res) => {
     const { id } = req.params;
     const { name, room, type, date, price, checkInDate, checkOutDate, totalAmount } = req.body;
 
-    const booking = await Booking.findById(id).populate("user room");
+    // FIX: populate rooms.room instead of room (singular)
+    const booking = await Booking.findById(id).populate("user rooms.room");
 
     if (!booking) {
       return res.status(404).json({
@@ -327,7 +331,8 @@ export const updateBooking = async (req, res) => {
       const roomDoc = await Room.findOne({
         $or: [{ roomNumber: rn }, { roomNumber: Number(rn) }],
       });
-      if (roomDoc) booking.room = roomDoc._id;
+      // FIX: update rooms array instead of room (singular)
+      if (roomDoc) booking.rooms = [{ room: roomDoc._id }];
     }
 
     if (checkInDate) booking.checkInDate = new Date(checkInDate);
@@ -367,7 +372,8 @@ export const deleteBooking = async (req, res) => {
       });
     }
 
-    const roomId = booking.room;
+    // FIX: get roomId from rooms array instead of room (singular)
+    const roomId = booking.rooms?.[0]?.room;
 
     await booking.deleteOne();
 
