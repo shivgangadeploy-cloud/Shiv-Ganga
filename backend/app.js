@@ -97,6 +97,10 @@ app.options(/.*/, cors(corsOptions));
 //   }
 // }));
 
+app.use((req,res,next)=>{
+  res.removeHeader("Content-Security-Policy");
+  next();
+});
 
 app.use(
   helmet({
