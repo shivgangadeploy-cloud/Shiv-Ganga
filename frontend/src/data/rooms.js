@@ -14,6 +14,25 @@ import {
   Leaf,
   VolumeX,
 } from "lucide-react";
+import room1 from "../assets/homepage-images/room1.webp";
+import room2 from "../assets/homepage-images/room2.webp";
+import room3 from "../assets/homepage-images/room3.webp";
+import room4 from "../assets/homepage-images/room4.webp";
+import room5 from "../assets/homepage-images/room5.webp";
+import room6 from "../assets/homepage-images/room6.webp";
+import room7 from "../assets/homepage-images/room7.webp";
+import room8 from "../assets/homepage-images/room8.webp";
+import room9 from "../assets/homepage-images/room9.webp";
+import room10 from "../assets/homepage-images/room10.webp";
+import room11 from "../assets/homepage-images/room11.webp";
+import room12 from "../assets/homepage-images/room12.webp";
+import room13 from "../assets/homepage-images/room13.webp";
+import room14 from "../assets/homepage-images/room14.webp";
+import room15 from "../assets/homepage-images/room15.webp";
+import room16 from "../assets/homepage-images/room16.webp";
+import room17 from "../assets/homepage-images/room17.webp";
+import room18 from "../assets/homepage-images/room18.webp";
+
 
 export const rooms = [
   {
@@ -27,11 +46,11 @@ export const rooms = [
     rating: 4.6,
     reviews: 124,
     image:
-      "https://i.pinimg.com/1200x/ad/6b/a7/ad6ba7bf5446d0acbc39adb41cbc94c9.jpg",
+      room1,
     images: [
-      "https://i.pinimg.com/1200x/ad/6b/a7/ad6ba7bf5446d0acbc39adb41cbc94c9.jpg",
-      "https://i.pinimg.com/1200x/80/d5/b2/80d5b271ba8f7dc4cd24a18d5b56938e.jpg",
-      "https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=1200&q=80",
+      room1,
+      room2,
+      room3,
     ],
     description:
       "A comfortable non-AC room designed for restful sleep and simple comfort in the heart of Rishikesh.",
@@ -63,11 +82,11 @@ export const rooms = [
     rating: 4.8,
     reviews: 162,
     image:
-      "https://i.pinimg.com/736x/3b/d2/5e/3bd25e8963584a13f000a53e93e53b03.jpg",
+      room4,
     images: [
-      "https://i.pinimg.com/736x/3b/d2/5e/3bd25e8963584a13f000a53e93e53b03.jpg",
-      "https://i.pinimg.com/736x/fa/20/dc/fa20dc0b836aa926ae639f9b21247b81.jpg",
-      "https://i.pinimg.com/1200x/d5/17/14/d517146dd26a365959895f4669687b0f.jpg",
+      room4,
+      room5,
+      room6,
     ],
     description:
       "A premium AC room with refined interiors, upgraded comforts, and a calm vibe for a better stay.",
@@ -99,11 +118,11 @@ export const rooms = [
     rating: 4.7,
     reviews: 98,
     image:
-      "https://i.pinimg.com/736x/a8/24/b1/a824b11e9a62d726234e86418ca4f7e3.jpg",
+      room7,
     images: [
-      "https://i.pinimg.com/736x/a8/24/b1/a824b11e9a62d726234e86418ca4f7e3.jpg",
-      "https://i.pinimg.com/736x/75/3b/d6/753bd6200fe14a2894aa4d9882dccc4a.jpg",
-      "https://i.pinimg.com/1200x/ab/24/21/ab24212d535836594f4d5dfbc95c2dd4.jpg",
+      room7,
+      room8,
+      room9,
     ],
     description:
       "A spacious triple room ideal for friends and small families, offering extra space and thoughtful conveniences.",
@@ -135,11 +154,11 @@ export const rooms = [
     rating: 4.9,
     reviews: 76,
     image:
-      "https://i.pinimg.com/736x/05/44/64/0544649cb1b2e02f48d02627754953cd.jpg",
+      room10,
     images: [
-      "https://i.pinimg.com/736x/05/44/64/0544649cb1b2e02f48d02627754953cd.jpg",
-      "https://i.pinimg.com/1200x/86/30/3b/86303b86fa236ce7d90668fbdcafae56.jpg",
-      "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=1200&q=80",
+      room10,
+      room11,
+      room12,
     ],
     description:
       "A calm, quiet space for mindful travellers—crafted for comfort, silence, and spiritual rest.",
@@ -171,11 +190,11 @@ export const rooms = [
     rating: 4.8,
     reviews: 64,
     image:
-      "https://i.pinimg.com/1200x/14/47/29/1447290ebb6d8b2e91033def939419c5.jpg",
+      room13,
     images: [
-      "https://i.pinimg.com/736x/14/47/29/1447290ebb6d8b2e91033def939419c5.jpg",
-      "https://i.pinimg.com/736x/ae/70/a6/ae70a6c908a67526470d20acd3fa1818.jpg",
-      "https://i.pinimg.com/736x/00/c0/96/00c096317111afb01dafe61d7286932e.jpg ",
+      room13,
+      room14,
+      room15,
     ],
     description:
       "A top-floor room with private balcony vibes—perfect for fresh air, views, and a premium unwind.",
@@ -207,11 +226,11 @@ export const rooms = [
     rating: 4.9,
     reviews: 53,
     image:
-      "https://i.pinimg.com/736x/9a/35/f4/9a35f48c6b94790eb8c1b276d58b4b79.jpg",
+      room16,
     images: [
-      "https://i.pinimg.com/736x/9a/35/f4/9a35f48c6b94790eb8c1b276d58b4b79.jpg",
-      "https://images.unsplash.com/photo-1591088398332-8a7791972843?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1200&q=80",
+      room16,
+      room17,
+      room18,
     ],
     description:
       "A large family suite with lounge comfort, warm lighting, and room to relax together.",
