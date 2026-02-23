@@ -5,12 +5,14 @@ export const getReceptionistNotifications = async (req, res) => {
     const notifications = await Notification.find({
       role: { $in: ["receptionist", "admin"] },
     })
-      .populate("guest") // 🔥 ADD THIS
+      .populate("guest")
       .populate({
         path: "booking",
         populate: [
-          { path: "room", model: "Room" },
-          { path: "user", model: "User" }, // ✅ Changed from "guest" to "user"
+          // FIX: was { path: "room", model: "Room" } — booking has no singular "room" field
+          // Must populate the nested rooms.room path instead
+          { path: "rooms.room", model: "Room" },
+          { path: "user", model: "User" },
         ],
       })
       .sort({ createdAt: -1 });

@@ -22,6 +22,10 @@ export default function Notifications() {
     baseURL: "https://shiv-ganga-3.onrender.com/api",
   });
 
+  // const API = axios.create({
+  //   baseURL: "http://localhost:5001/api",
+  // });
+
   API.interceptors.request.use((req) => {
     const token = localStorage.getItem("token");
     if (token) {
