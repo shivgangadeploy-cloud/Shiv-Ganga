@@ -59,7 +59,10 @@ const Receipt = () => {
     );
   }
 
-  const billing = booking.priceBreakdown || {};
+  // const billing = booking.priceBreakdown || {};
+  const billing = booking.priceBreakdown?.grandTotal
+  ? booking.priceBreakdown
+  : booking.computedPriceBreakdown || {};
 
   const nights =
     (new Date(booking.checkOutDate) - new Date(booking.checkInDate)) /
@@ -139,7 +142,7 @@ const Receipt = () => {
                 </p>
               </div>
               <div className="text-left sm:text-right font-bold shrink-0">
-                {formatCurrency(billing.grandTotal || booking.totalAmount)}
+                {formatCurrency(billing?.roomTotal)}
               </div>
             </div>
           </div>
@@ -186,14 +189,15 @@ const Receipt = () => {
             <div className="flex justify-between text-sm mb-2">
               <span>Total Amount</span>
               <span className="font-bold">
-                formatCurrency(billing.grandTotal ?? booking.totalAmount)
+                {formatCurrency(billing.grandTotal ?? booking.totalAmount)}
               </span>
             </div>
 
             <div className="flex justify-between text-sm mb-2">
               <span>Paid</span>
               <span className="font-bold text-green-600">
-                formatCurrency(billing.paidAmountNow ?? booking.paidAmount)
+                {/* {formatCurrency(billing.paidAmountNow ?? booking.paidAmount)} */}
+                {formatCurrency(booking.paidAmount)}
               </span>
             </div>
 
