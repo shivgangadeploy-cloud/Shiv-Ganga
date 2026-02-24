@@ -536,6 +536,7 @@ export const verifyOfflinePayment = async (req, res, next) => {
       razorpay_signature,
       transactionId,
       bookingPayload,
+      priceBreakdown
     } = req.body;
 
     const transaction =
@@ -646,6 +647,7 @@ export const verifyOfflinePayment = async (req, res, next) => {
       paymentType: transaction.paymentType,
       paymentStatus: pendingAmount > 0 ? "pending" : "paid",
       bookingStatus: "confirmed",
+      priceBreakdown: priceBreakdown || {}
     };
     if (
       transaction.coupon &&

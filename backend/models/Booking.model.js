@@ -148,9 +148,53 @@ const bookingSchema = new mongoose.Schema(
         default: "PENDING",
       },
     },
+    priceBreakdown: {
+      roomTotal: Number,
+      serviceFee: Number,
+      tourismLevy: Number,
+      extraMattressTotal: Number,
+      activityTotal: Number,
+      companyDiscount: Number,
+      couponDiscount: Number,
+      membershipDiscount: Number,
+      grandTotal: Number,
+    }
   },
   { timestamps: true },
 );
+
+// Add this just before the index line
+
+bookingSchema.virtual("computedPriceBreakdown").get(function () {
+  // If priceBreakdown was already saved, return it as-is
+  if (this.priceBreakdown?.grandTotal) {
+    return this.priceBreakdown;
+  }
+
+  // Otherwise calculate from existing top-level fields
+  const roomTotal = this.totalAmount
+    - (this.serviceFee || 0)
+    - (this.tourismFee || 0)
+    - (this.extraBeds?.totalPrice || 0)
+    + (this.membershipDiscount || 0)
+    + (this.couponDiscount || 0);
+
+  return {
+    roomTotal: Math.max(0, roomTotal),
+    serviceFee: this.serviceFee || 0,
+    tourismLevy: this.tourismFee || 0,
+    extraMattressTotal: this.extraBeds?.totalPrice || 0,
+    activityTotal: 0, // not stored separately on old bookings
+    companyDiscount: 0,
+    couponDiscount: this.couponDiscount || 0,
+    membershipDiscount: this.membershipDiscount || 0,
+    grandTotal: this.totalAmount,
+  };
+});
+
+// Make virtuals show up in JSON responses
+bookingSchema.set("toJSON", { virtuals: true });
+bookingSchema.set("toObject", { virtuals: true });
 
 //INDEX (important for lookup)
 bookingSchema.index({ "rooms.room": 1, checkInDate: 1, checkOutDate: 1 });
