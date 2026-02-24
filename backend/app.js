@@ -67,7 +67,7 @@ const _dirname = path.dirname(__filename)
 //   preflightContinue: false
 // };
 
-app.use(cors(origin="*"));
+app.use(cors({origin:"*"}));
 // Enable CORS pre-flight for all routes (Express 5 + path-to-regexp safe)
 // app.options(/.*/, cors(corsOptions));
 
