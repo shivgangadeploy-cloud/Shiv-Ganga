@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const FALLBACK_API = "https://shiv-ganga-3.onrender.com/api";
+const FALLBACK_API = "/api";
 // const FALLBACK_API = "http://localhost:5001/api";
 let resolvedBaseURL = import.meta.env.VITE_API_BASE_URL || FALLBACK_API;
 
