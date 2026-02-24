@@ -59,6 +59,8 @@ const Receipt = () => {
     );
   }
 
+  const billing = booking.priceBreakdown || {};
+
   const nights =
     (new Date(booking.checkOutDate) - new Date(booking.checkInDate)) /
     (1000 * 60 * 60 * 24);
@@ -129,15 +131,15 @@ const Receipt = () => {
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 bg-slate-50 p-4 rounded-xl border">
               <div className="min-w-0">
                 <p className="font-bold text-[#0f172a]">
-                  Room {booking.room?.roomNumber}
+                  Room {booking.rooms?.[0]?.room?.roomNumber}
                 </p>
-                <p className="text-sm text-slate-500 truncate">{booking.room?.name}</p>
+                <p className="text-sm text-slate-500 truncate">{booking.rooms?.[0]?.room?.name}</p>
                 <p className="text-xs text-slate-400">
                   Adults: {booking.adults} | Children: {booking.children}
                 </p>
               </div>
               <div className="text-left sm:text-right font-bold shrink-0">
-                {formatCurrency(booking.totalAmount)}
+                {formatCurrency(billing.grandTotal || booking.totalAmount)}
               </div>
             </div>
           </div>
@@ -184,14 +186,14 @@ const Receipt = () => {
             <div className="flex justify-between text-sm mb-2">
               <span>Total Amount</span>
               <span className="font-bold">
-                {formatCurrency(booking.totalAmount)}
+                formatCurrency(billing.grandTotal ?? booking.totalAmount)
               </span>
             </div>
 
             <div className="flex justify-between text-sm mb-2">
               <span>Paid</span>
               <span className="font-bold text-green-600">
-                {formatCurrency(booking.paidAmount)}
+                formatCurrency(billing.paidAmountNow ?? booking.paidAmount)
               </span>
             </div>
 

@@ -148,6 +148,17 @@ const bookingSchema = new mongoose.Schema(
         default: "PENDING",
       },
     },
+    priceBreakdown: {
+      roomTotal: Number,
+      serviceFee: Number,
+      tourismLevy: Number,
+      extraMattressTotal: Number,
+      activityTotal: Number,
+      companyDiscount: Number,
+      couponDiscount: Number,
+      membershipDiscount: Number,
+      grandTotal: Number,
+    }
   },
   { timestamps: true },
 );

@@ -339,6 +339,7 @@ const PaymentPage = () => {
                 razorpay_signature: paymentResponse.razorpay_signature,
                 transactionId,
                 bookingPayload,
+                priceBreakdown: billing
               },
             );
 
