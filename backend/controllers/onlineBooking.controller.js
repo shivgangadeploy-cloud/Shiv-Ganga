@@ -567,26 +567,19 @@ export const verifyPayment = async (req, res, next) => {
     sendBookingConfirmationMail({
       name: `${user.firstName} ${user.lastName}`,
       email: user.email,
+      roomNumber: roomDocs.map(r => r.roomNumber).join(", "),
       guestId: bookingDoc.guestId,
       bookingReference: bookingDoc.bookingReference,
       checkInDate: checkIn.toDateString(),
       checkOutDate: checkOut.toDateString(),
       nights,
-
-      rooms: bookingDoc.rooms,
-      activities: bookingDoc.activities,
-
-      pricing: {
-        roomTotal: bookingDoc.pricing.roomTotal,
-        activityTotal: bookingDoc.pricing.activityTotal,
-        extraGuestTotal: bookingDoc.pricing.extraGuestTotal,
-        membershipDiscount: bookingDoc.pricing.membershipDiscount,
-        coupon: bookingDoc.coupon || null,
-        grandTotal: bookingDoc.totalAmount,
-        paidAmount: bookingDoc.paidAmount,
-        pendingAmount: bookingDoc.pendingAmount,
-        paymentType: bookingDoc.paymentType,
-      },
+      totalAmount: bookingDoc.totalAmount,
+      paidAmount: bookingDoc.paidAmount,
+      pendingAmount: bookingDoc.pendingAmount,
+      coupon: bookingDoc.coupon,
+      activities,
+    }).catch((err) => {
+      console.error("Booking confirmation email failed:", err.message);
     });
 
     /* ================= OTP CLEANUP ================= */

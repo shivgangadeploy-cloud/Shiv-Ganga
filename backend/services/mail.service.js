@@ -65,323 +65,431 @@ export const sendBookingConfirmationMail = async ({
   checkInDate,
   checkOutDate,
   nights,
-  rooms = [],
-  activities = [],
-  pricing = {},
+  totalAmount,
+  paidAmount,
+  pendingAmount,
+  coupon,
+  activities,
 }) => {
+  // DEBUG: Log the complete received data
+  console.log("\n========== SENDING BOOKING CONFIRMATION EMAIL ==========");
+  console.log("📋 Booking Reference:", bookingReference);
+  console.log("📧 Guest Email:", email);
+  console.log("💰 Total Amount:", totalAmount);
+  console.log("💳 Paid Amount:", paidAmount);
+  console.log("⏳ Pending Amount:", pendingAmount);
+  console.log("🎟️ Coupon:", JSON.stringify(coupon, null, 2));
+  
+  // CRITICAL: Log the raw activities data
+  console.log("\n🔍 RAW ACTIVITIES DATA:");
+  console.log("Type of activities:", typeof activities);
+  console.log("Is Array?", Array.isArray(activities));
+  console.log("Activities value:", JSON.stringify(activities, null, 2));
+  
+  if (activities) {
+    console.log("Activities keys:", Object.keys(activities));
+    if (Array.isArray(activities)) {
+      console.log("Activities length:", activities.length);
+      activities.forEach((item, index) => {
+        console.log(`\nActivity ${index}:`, JSON.stringify(item, null, 2));
+        console.log(`Activity ${index} type:`, typeof item);
+        console.log(`Activity ${index} keys:`, item ? Object.keys(item) : 'No keys');
+      });
+    }
+  }
+
   const system = await SystemSetting.findOne().sort({ updatedAt: -1 });
   if (!system) throw new Error("System settings not configured");
 
-  const formatINR = (n) =>
-    Number(n || 0).toLocaleString("en-IN", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
+  const primaryEmail =
+    Array.isArray(system.systemEmails) && system.systemEmails.length > 0
+      ? system.systemEmails[0]
+      : config.BREVO_SENDER_EMAIL;
 
-  const {
-    roomTotal = 0,
-    activityTotal = 0,
-    extraGuestTotal = 0,
-    membershipDiscount = 0,
-    coupon = null,
-    grandTotal = 0,
-    paidAmount = 0,
-    pendingAmount = 0,
-    paymentType = "FULL",
-  } = pricing;
+  const primaryPhone =
+    Array.isArray(system.systemPhoneNumbers) && system.systemPhoneNumbers.length > 0
+      ? system.systemPhoneNumbers[0]
+      : "N/A";
 
-  /* ================= ROOMS HTML ================= */
+  // Price mapping for activities
+  const PRICE_MAP = {
+    "River Rafting": 2500,
+    "Bungee Jumping": 4000,
+    "Ganga Aarti": 0,
+    "Yoga Session": 1500,
+  };
 
-  const roomsHTML =
-    rooms.length > 0
-      ? `
-    <h4 style="margin-bottom:10px;">Rooms</h4>
-    ${rooms
-      .map(
-        (r) => `
-        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-          <span>${r.name} (${r.plan?.toUpperCase()}) × ${r.quantity}</span>
-          <span>₹${formatINR(r.totalPrice)}</span>
-        </div>
-      `
-      )
-      .join("")}
-    `
-      : "";
+  // Normalize key: lowercase + single space
+  const normalizeActivityKey = (s) =>
+    (s || "").toString().trim().toLowerCase().replace(/\s+/g, " ");
+  
+  const NORMALIZED_PRICE_MAP = Object.fromEntries(
+    Object.entries(PRICE_MAP).map(([k, v]) => [normalizeActivityKey(k), v]),
+  );
 
-  /* ================= ACTIVITIES HTML ================= */
+  const safeCoupon = coupon && typeof coupon === "object" ? coupon : null;
+  const couponCode = safeCoupon?.code || "";
+  const couponDiscount = safeCoupon?.discountAmount || 0;
 
-  const activitiesHTML =
-    activities.length > 0
-      ? `
-    <h4 style="margin-top:15px;margin-bottom:10px;">Activities</h4>
-    ${activities
-      .map(
-        (a) => `
-        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-          <span>${a.name} × ${a.quantity}</span>
-          <span>₹${formatINR(a.totalPrice)}</span>
-        </div>
-      `
-      )
-      .join("")}
-    `
-      : "";
+  const amountBeforeDiscount = safeCoupon
+    ? Number(totalAmount || 0) + Number(couponDiscount || 0)
+    : Number(totalAmount || 0);
 
-  /* ================= PAYMENT BREAKDOWN ================= */
-
-  let discountHTML = "";
-
-  if (membershipDiscount > 0) {
-    discountHTML += `
-      <div style="display:flex;justify-content:space-between;color:green;">
-        <span>Membership Discount</span>
-        <span>- ₹${formatINR(membershipDiscount)}</span>
-      </div>
-    `;
-  }
-
-  if (coupon && coupon.discountAmount > 0) {
-    discountHTML += `
-      <div style="display:flex;justify-content:space-between;color:green;">
-        <span>Coupon (${coupon.code})</span>
-        <span>- ₹${formatINR(coupon.discountAmount)}</span>
-      </div>
-    `;
-  }
-
-  /* ================= EMAIL TEMPLATE ================= */
-
-  // const htmlContent = `
-  // <div style="font-family:Arial,sans-serif;background:#f6f6f6;padding:20px;">
-  //   <div style="max-width:700px;margin:auto;background:#ffffff;padding:30px;border-radius:10px;">
-
-  //     <div style="text-align:center;margin-bottom:20px;">
-  //       ${
-  //         system.logo
-  //           ? `<img src="${system.logo}" style="max-height:80px;margin-bottom:10px;" />`
-  //           : ""
-  //       }
-  //       <h2>${system.systemHotelName}</h2>
-  //       <p style="color:#666;">Booking Confirmation</p>
-  //     </div>
-
-  //     <p>Hello <b>${name}</b>,</p>
-  //     <p>Your booking has been successfully confirmed.</p>
-
-  //     <hr/>
-
-  //     <h3>Booking Details</h3>
-  //     <div style="display:flex;justify-content:space-between;">
-  //       <span>Reference</span>
-  //       <span><b>${bookingReference}</b></span>
-  //     </div>
-  //     <div style="display:flex;justify-content:space-between;">
-  //       <span>Guest ID</span>
-  //       <span>${guestId}</span>
-  //     </div>
-  //     <div style="display:flex;justify-content:space-between;">
-  //       <span>Check-in</span>
-  //       <span>${checkInDate}</span>
-  //     </div>
-  //     <div style="display:flex;justify-content:space-between;">
-  //       <span>Check-out</span>
-  //       <span>${checkOutDate}</span>
-  //     </div>
-  //     <div style="display:flex;justify-content:space-between;margin-bottom:15px;">
-  //       <span>Nights</span>
-  //       <span>${nights}</span>
-  //     </div>
-
-  //     <hr/>
-
-  //     ${roomsHTML}
-  //     ${activitiesHTML}
-
-  //     <hr/>
-
-  //     <h3>Payment Summary</h3>
-
-  //     <div style="display:flex;justify-content:space-between;">
-  //       <span>Room & Add-ons</span>
-  //       <span>₹${formatINR(roomTotal + activityTotal + extraGuestTotal)}</span>
-  //     </div>
-
-  //     ${discountHTML}
-
-  //     <div style="display:flex;justify-content:space-between;font-size:18px;font-weight:bold;margin-top:10px;">
-  //       <span>Final Amount</span>
-  //       <span>₹${formatINR(grandTotal)}</span>
-  //     </div>
-
-  //     <div style="margin-top:15px;padding:10px;background:#f1f8ff;border-radius:6px;">
-  //       <div style="display:flex;justify-content:space-between;">
-  //         <span>Payment Type</span>
-  //         <span>${paymentType === "PARTIAL" ? "Partial Payment" : "Full Payment"}</span>
-  //       </div>
-  //       <div style="display:flex;justify-content:space-between;">
-  //         <span>Paid</span>
-  //         <span>₹${formatINR(paidAmount)}</span>
-  //       </div>
-  //       ${
-  //         pendingAmount > 0
-  //           ? `
-  //         <div style="display:flex;justify-content:space-between;">
-  //           <span>Remaining</span>
-  //           <span>₹${formatINR(pendingAmount)}</span>
-  //         </div>
-  //       `
-  //           : ""
-  //       }
-  //     </div>
-
-  //     <hr/>
-
-  //     <p>If you need assistance, contact us:</p>
-  //     <p><b>Phone:</b> ${system.systemPhoneNumbers?.[0] || "N/A"}</p>
-  //     <p><b>Email:</b> ${system.systemEmails?.[0] || ""}</p>
-
-  //     <p style="margin-top:20px;">Regards,<br/><b>${system.systemHotelName}</b></p>
-  //     <p style="font-size:12px;color:#777;text-align:center;">
-  //       This is an automated email. Please do not reply.
-  //     </p>
-
-  //   </div>
-  // </div>
-  // `;
-
-const htmlContent = `
-<div style="font-family:Arial,sans-serif;background:#f6f6f6;padding:20px;">
-  <div style="max-width:700px;margin:auto;background:#ffffff;padding:30px;border-radius:10px;">
-
-    <div style="text-align:center;margin-bottom:20px;">
-      ${
-        system.logo
-          ? `<img src="${system.logo}" style="max-height:80px;margin-bottom:10px;" />`
-          : ""
+  // Process activities with comprehensive data extraction
+  let safeActivities = [];
+  let activitiesTotal = 0;
+  
+  console.log("\n🔄 Processing activities...");
+  
+  // Check if activities exists and is an array
+  if (activities && Array.isArray(activities) && activities.length > 0) {
+    console.log(`✅ Found ${activities.length} activities to process`);
+    
+    safeActivities = activities.map((a, index) => {
+      console.log(`\n--- Processing Activity ${index + 1} ---`);
+      console.log("Raw activity data:", a);
+      
+      if (!a) {
+        console.log("⚠️ Activity is null or undefined");
+        return null;
       }
-      <h2>${system.systemHotelName}</h2>
-      <p style="color:#666;">Booking Confirmation</p>
-    </div>
+      
+      // Try multiple possible property names for each field
+      
+      // 1. Extract name
+      const activityName = 
+        a?.activityName || 
+        a?.name || 
+        a?.title || 
+        a?.activity || 
+        a?.description ||
+        a?.itemName ||
+        a?.serviceName ||
+        "Unknown Activity";
+      console.log("Extracted name:", activityName);
+      
+      // 2. Extract quantity
+      const quantity = Number(
+        a?.quantity || 
+        a?.qty || 
+        a?.count || 
+        a?.numberOfPeople ||
+        a?.pax ||
+        a?.participants ||
+        1
+      );
+      console.log("Extracted quantity:", quantity);
+      
+      // 3. Extract unit price (try multiple fields)
+      let unitPrice = 0;
+      
+      // Try various price fields
+      const priceCandidates = [
+        a?.unitPrice,
+        a?.price,
+        a?.rate,
+        a?.unit_price,
+        a?.amount,
+        a?.cost,
+        a?.charges,
+        a?.fee
+      ];
+      
+      for (const candidate of priceCandidates) {
+        const num = Number(candidate);
+        if (!isNaN(num) && num > 0) {
+          unitPrice = num;
+          break;
+        }
+      }
+      
+      // If still zero, try the price map
+      if (unitPrice === 0 && activityName) {
+        const lookupKey = normalizeActivityKey(activityName);
+        unitPrice = NORMALIZED_PRICE_MAP[lookupKey] || 0;
+        console.log(`Using price map for ${activityName}: ${unitPrice}`);
+      }
+      console.log("Extracted unit price:", unitPrice);
+      
+      // 4. Extract total price
+      let totalPrice = 0;
+      
+      const totalCandidates = [
+        a?.totalPrice,
+        a?.total,
+        a?.total_amount,
+        a?.amount,
+        a?.totalCost,
+        a?.grandTotal,
+        a?.subtotal
+      ];
+      
+      for (const candidate of totalCandidates) {
+        const num = Number(candidate);
+        if (!isNaN(num) && num > 0) {
+          totalPrice = num;
+          break;
+        }
+      }
+      
+      // If total price is still zero but we have quantity and unit price, calculate it
+      if (totalPrice === 0 && quantity > 0 && unitPrice > 0) {
+        totalPrice = quantity * unitPrice;
+        console.log(`Calculated total price: ${quantity} × ${unitPrice} = ${totalPrice}`);
+      }
+      
+      console.log("Final total price:", totalPrice);
 
-    <p>Hello <b>${name}</b>,</p>
-    <p>Your booking has been successfully confirmed. Below are your booking and payment details.</p>
+      const processedActivity = {
+        name: activityName.toString().trim(),
+        quantity: isNaN(quantity) ? 1 : quantity,
+        unitPrice: isNaN(unitPrice) ? 0 : unitPrice,
+        totalPrice: isNaN(totalPrice) ? 0 : totalPrice,
+        // Keep original data for reference
+        originalData: a
+      };
+      
+      console.log("✅ Processed activity:", processedActivity);
+      return processedActivity;
+    }).filter(activity => activity !== null); // Remove null activities
+    
+    console.log(`\n📊 Successfully processed ${safeActivities.length} activities`);
+    
+    // Calculate activities total
+    activitiesTotal = safeActivities.reduce(
+      (sum, a) => {
+        const total = Number(a.totalPrice || 0);
+        console.log(`Adding to sum: ${a.name} = ${total}`);
+        return sum + total;
+      },
+      0,
+    );
+    
+    console.log("💰 Activities Total calculated:", activitiesTotal);
+  } else {
+    console.log("⚠️ No activities found or activities is not an array");
+    if (activities) {
+      console.log("Activities is of type:", typeof activities);
+      console.log("Activities value:", activities);
+    }
+  }
 
-    <hr/>
+  // Format currency function
+  const formatINR = (n) => {
+    const num = Number(n || 0);
+    return num.toLocaleString("en-IN", { 
+      minimumFractionDigits: 2, 
+      maximumFractionDigits: 2 
+    });
+  }
 
-    <h3>Booking Details</h3>
-    <div style="display:flex;justify-content:space-between;"><span>Reference</span><b>${bookingReference}</b></div>
-    <div style="display:flex;justify-content:space-between;"><span>Guest ID</span><span>${guestId}</span></div>
-    <div style="display:flex;justify-content:space-between;"><span>Check-in</span><span>${checkInDate}</span></div>
-    <div style="display:flex;justify-content:space-between;"><span>Check-out</span><span>${checkOutDate}</span></div>
-    <div style="display:flex;justify-content:space-between;margin-bottom:15px;"><span>Nights</span><span>${nights}</span></div>
+  // Calculate all amounts
+  const roomCharges = Number(totalAmount || 0);
+  const finalActivitiesTotal = Number(activitiesTotal || 0);
+  const grandTotal = roomCharges + finalActivitiesTotal;
+  const finalPaidAmount = Number(paidAmount || 0);
+  
+  // Calculate pending amount (grand total minus paid amount)
+  // If pendingAmount is provided, use it, otherwise calculate
+  const finalPendingAmount = pendingAmount !== undefined 
+    ? Number(pendingAmount) 
+    : Math.max(0, grandTotal - finalPaidAmount);
 
-    <hr/>
+  console.log("\n📊 FINAL CALCULATIONS:");
+  console.log("Room Charges:", roomCharges);
+  console.log("Activities Total:", finalActivitiesTotal);
+  console.log("Grand Total:", grandTotal);
+  console.log("Paid Amount:", finalPaidAmount);
+  console.log("Pending Amount:", finalPendingAmount);
 
-    ${rooms.length > 0 ? `
-      <h3>Room Charges</h3>
-      ${rooms.map(r => `
-        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-          <span>${r.name} (${r.plan?.toUpperCase()}) × ${r.quantity}</span>
-          <span>₹${formatINR(r.totalPrice)}</span>
-        </div>
-      `).join("")}
-      <div style="display:flex;justify-content:space-between;font-weight:bold;margin-top:8px;">
-        <span>Total Room Price</span>
-        <span>₹${formatINR(roomTotal)}</span>
-      </div>
+  // Build the email HTML
+  let activitiesHTML = '';
+  
+  if (safeActivities.length > 0) {
+    activitiesHTML = `
       <hr/>
-    ` : ""}
+      <h3>Activities Booked</h3>
+      <table style="width:100%; border-collapse:collapse; margin-top:10px; border:1px solid #ddd;">
+        <thead>
+          <tr style="background-color:#4CAF50; color:white;">
+            <th style="padding:10px; text-align:left;">Activity</th>
+            <th style="padding:10px; text-align:center;">Quantity</th>
+            <th style="padding:10px; text-align:right;">Unit Price (₹)</th>
+            <th style="padding:10px; text-align:right;">Total (₹)</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${safeActivities
+            .map(
+              (a) => `
+              <tr style="border-bottom:1px solid #ddd;">
+                <td style="padding:10px; text-align:left;">${a.name}</td>
+                <td style="padding:10px; text-align:center;">${a.quantity}</td>
+                <td style="padding:10px; text-align:right;">${formatINR(a.unitPrice)}</td>
+                <td style="padding:10px; text-align:right;">${formatINR(a.totalPrice)}</td>
+              </tr>`
+            )
+            .join("")}
+          <tr style="background-color:#f2f2f2; font-weight:bold;">
+            <td colspan="3" style="padding:12px; text-align:right;">Activities Subtotal:</td>
+            <td style="padding:12px; text-align:right;">₹${formatINR(finalActivitiesTotal)}</td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+  }
 
-    ${activities.length > 0 ? `
-      <h3>Activities Charges</h3>
-      ${activities.map(a => `
-        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-          <span>${a.name} × ${a.quantity}</span>
-          <span>₹${formatINR(a.totalPrice)}</span>
-        </div>
-      `).join("")}
-      <div style="display:flex;justify-content:space-between;font-weight:bold;margin-top:8px;">
-        <span>Total Activities Price</span>
-        <span>₹${formatINR(activityTotal)}</span>
-      </div>
-      <hr/>
-    ` : ""}
+  // Build payment summary HTML
+  let paymentHTML = `
+    <h3>Payment Summary</h3>
+    <table style="width:100%; border-collapse:collapse; margin-top:10px;">
+      <tr>
+        <td style="padding:8px;"><b>Room Charges</b></td>
+        <td style="padding:8px; text-align:right;">₹${formatINR(roomCharges)}</td>
+      </tr>
+  `;
 
-    ${extraGuestTotal > 0 ? `
-      <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
-        <span>Extra Guest Charges</span>
-        <span>₹${formatINR(extraGuestTotal)}</span>
-      </div>
-      <hr/>
-    ` : ""}
+  if (finalActivitiesTotal > 0) {
+    paymentHTML += `
+      <tr>
+        <td style="padding:8px;"><b>Activities Charges</b></td>
+        <td style="padding:8px; text-align:right;">₹${formatINR(finalActivitiesTotal)}</td>
+      </tr>
+    `;
+  }
 
-    <h3>Discounts</h3>
-    ${membershipDiscount > 0 ? `
-      <div style="display:flex;justify-content:space-between;color:green;">
-        <span>Membership Discount</span>
-        <span>- ₹${formatINR(membershipDiscount)}</span>
-      </div>
-    ` : ""}
+  if (safeCoupon && couponDiscount > 0) {
+    paymentHTML += `
+      <tr>
+        <td style="padding:8px;">Coupon Discount (${couponCode})</td>
+        <td style="padding:8px; text-align:right; color:green;">- ₹${formatINR(couponDiscount)}</td>
+      </tr>
+    `;
+  }
 
-    ${coupon?.discountAmount > 0 ? `
-      <div style="display:flex;justify-content:space-between;color:green;">
-        <span>Coupon (${coupon.code})</span>
-        <span>- ₹${formatINR(coupon.discountAmount)}</span>
-      </div>
-    ` : ""}
+  paymentHTML += `
+    <tr style="background-color:#e8f4f8; font-weight:bold; font-size:16px;">
+      <td style="padding:12px;">GRAND TOTAL</td>
+      <td style="padding:12px; text-align:right;">₹${formatINR(grandTotal)}</td>
+    </tr>
+    <tr style="background-color:#d4edda; color:#155724;">
+      <td style="padding:10px;"><b>Paid Amount</b></td>
+      <td style="padding:10px; text-align:right;"><b>₹${formatINR(finalPaidAmount)}</b></td>
+    </tr>
+  `;
 
-    <hr/>
+  if (finalPendingAmount > 0) {
+    paymentHTML += `
+      <tr style="background-color:#f8d7da; color:#721c24;">
+        <td style="padding:10px;"><b>Pending Amount</b></td>
+        <td style="padding:10px; text-align:right;"><b>₹${formatINR(finalPendingAmount)}</b></td>
+      </tr>
+    `;
+  }
 
-    <h3>Final Payment Summary</h3>
-    <div style="display:flex;justify-content:space-between;font-size:18px;font-weight:bold;">
-      <span>Grand Total</span>
-      <span>₹${formatINR(grandTotal)}</span>
-    </div>
+  paymentHTML += `</table>`;
 
-    <div style="margin-top:15px;padding:12px;background:#f1f8ff;border-radius:6px;">
-      <div style="display:flex;justify-content:space-between;">
-        <span>Payment Type</span>
-        <span>${paymentType === "PARTIAL" ? "Partial Payment" : "Full Payment"}</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;">
-        <span>Paid Amount</span>
-        <span>₹${formatINR(paidAmount)}</span>
-      </div>
-      ${pendingAmount > 0 ? `
-        <div style="display:flex;justify-content:space-between;">
-          <span>Pending Amount</span>
-          <span>₹${formatINR(pendingAmount)}</span>
-        </div>
-      ` : ""}
-    </div>
+  // Send the email
+  try {
+    console.log("\n📧 Sending email...");
+    
+    await transactionalEmailApi.sendTransacEmail({
+      sender: {
+        email: config.BREVO_SENDER_EMAIL,
+        name: system.systemHotelName,
+      },
+      to: [{ email }],
+      subject: `Booking Confirmed - ${bookingReference} | ${system.systemHotelName}`,
+      htmlContent: `
+        <div style="font-family: Arial, sans-serif; background:#f6f6f6; padding:20px;">
+          <div style="max-width:650px; margin:auto; background:#ffffff; padding:20px; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.1);">
 
-    <hr/>
+            <div style="text-align:center; margin-bottom:20px;">
+  ${
+  system.logo
+    ? `<img 
+        src="${system.logo}" 
+        alt="${system.systemHotelName}" 
+        style="
+          max-height:90px; 
+          margin-bottom:10px; 
+          border-radius:12px;
+          padding:6px;
+          background:#ffffff;
+        " 
+      />`
+    : ""
+}
+              <h2 style="margin:10px 0; color:#333;">${system.systemHotelName}</h2>
+              <p style="color:#666;">Booking Confirmation & Receipt</p>
+            </div>
 
-    <p><b>Need Help?</b></p>
-    <p><b>Phone:</b> ${system.systemPhoneNumbers?.[0] || "N/A"}</p>
-    <p><b>Email:</b> ${system.systemEmails?.[0] || "N/A"}</p>
+            <p>Hello <b>${name || "Guest"}</b>,</p>
 
-    <p style="margin-top:20px;">Regards,<br/><b>${system.systemHotelName}</b></p>
+            <p style="line-height:1.6;">
+              Thank you for choosing <b>${system.systemHotelName}</b>.
+              Your booking has been successfully confirmed.
+            </p>
 
-    <p style="font-size:12px;color:#777;text-align:center;">
-      This is an automated email. Please do not reply.
-    </p>
+            <div style="background-color:#f9f9f9; padding:15px; border-radius:5px; margin:20px 0;">
+              <h3 style="margin-top:0; color:#333;">Booking Details</h3>
+              <table style="width:100%; border-collapse:collapse;">
+                <tr><td style="padding:5px;"><b>Guest ID:</b></td><td style="padding:5px;">${guestId || "-"}</td></tr>
+                <tr><td style="padding:5px;"><b>Reference Number:</b></td><td style="padding:5px;">${bookingReference || "-"}</td></tr>
+                <tr><td style="padding:5px;"><b>Check-in:</b></td><td style="padding:5px;">${checkInDate || "-"}</td></tr>
+                <tr><td style="padding:5px;"><b>Check-out:</b></td><td style="padding:5px;">${checkOutDate || "-"}</td></tr>
+                <tr><td style="padding:5px;"><b>Nights:</b></td><td style="padding:5px;">${nights ?? "-"}</td></tr>
+              </table>
+            </div>
 
-  </div>
+            ${activitiesHTML}
+
+            <div style="background-color:#f9f9f9; padding:15px; border-radius:5px; margin:20px 0;">
+              ${paymentHTML}
+            </div>
+
+          <div style="background-color:#e3f2fd; padding:16px; border-radius:6px; margin:20px 0; font-family:Arial, sans-serif;">
+  <h3 style="margin:0 0 12px 0; color:#333;">Need Assistance?</h3>
+
+  <table cellpadding="0" cellspacing="0" style="width:100%; color:#333; font-size:14px;">
+    <tr>
+      <td style="padding:4px 0; width:90px;"><b>Phone</b></td>
+      <td style="padding:4px 0;">: ${primaryPhone}</td>
+    </tr>
+    <tr>
+      <td style="padding:4px 0;"><b>Email</b></td>
+      <td style="padding:4px 0;">: ${primaryEmail}</td>
+    </tr>
+    <tr>
+      <td style="padding:4px 0; vertical-align:top;"><b>Address</b></td>
+      <td style="padding:4px 0;">: ${system.systemAddress}</td>
+    </tr>
+  </table>
 </div>
-`;
+            
 
+            <p style="margin-top:30px; color:#666; font-size:14px; text-align:center;">
+              This is an automated email. Please do not reply to this message.
+            </p>
 
-  await transactionalEmailApi.sendTransacEmail({
-    sender: {
-      email: config.BREVO_SENDER_EMAIL,
-      name: system.systemHotelName,
-    },
-    to: [{ email }],
-    subject: `Booking Confirmed - ${bookingReference}`,
-    htmlContent,
-  });
+            <p style="margin-top:20px;">
+              Regards,<br/>
+              <b>${system.systemHotelName}</b>
+            </p>
+
+          </div>
+        </div>
+      `,
+    });
+    
+    console.log("✅ Email sent successfully!");
+    
+  } catch (error) {
+    console.error("❌ Error sending email:", error);
+    throw error;
+  }
+  
+  console.log("========== EMAIL PROCESSING COMPLETE ==========\n");
 };
 
 /* ================= CONTACT MAIL ================= */
