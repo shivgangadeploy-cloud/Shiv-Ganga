@@ -65,32 +65,12 @@ export const sendBookingConfirmationMail = async ({
   checkInDate,
   checkOutDate,
   nights,
-  pricing,
+  rooms = [],
   activities = [],
+  pricing = {},
 }) => {
-  console.log("\n========== SENDING BOOKING CONFIRMATION EMAIL ==========");
-  console.log("Booking Ref:", bookingReference);
-
   const system = await SystemSetting.findOne().sort({ updatedAt: -1 });
   if (!system) throw new Error("System settings not configured");
-
-  const primaryEmail =
-    Array.isArray(system.systemEmails) && system.systemEmails.length > 0
-      ? system.systemEmails[0]
-      : config.BREVO_SENDER_EMAIL;
-
-  const primaryPhone =
-    Array.isArray(system.systemPhoneNumbers) &&
-    system.systemPhoneNumbers.length > 0
-      ? system.systemPhoneNumbers[0]
-      : "N/A";
-
-  /* ================= PRICING (NO RE-CALCULATION) ================= */
-
-  const grandTotal = Number(pricing?.grandTotal || 0);
-  const paidAmount = Number(pricing?.paidAmount || 0);
-  const pendingAmount = Number(pricing?.pendingAmount || 0);
-  const coupon = pricing?.coupon || null;
 
   const formatINR = (n) =>
     Number(n || 0).toLocaleString("en-IN", {
@@ -98,171 +78,187 @@ export const sendBookingConfirmationMail = async ({
       maximumFractionDigits: 2,
     });
 
-  /* ================= ACTIVITIES DISPLAY ================= */
+  const {
+    roomTotal = 0,
+    activityTotal = 0,
+    extraGuestTotal = 0,
+    membershipDiscount = 0,
+    coupon = null,
+    grandTotal = 0,
+    paidAmount = 0,
+    pendingAmount = 0,
+    paymentType = "FULL",
+  } = pricing;
 
-  let activitiesHTML = "";
+  /* ================= ROOMS HTML ================= */
 
-  if (Array.isArray(activities) && activities.length > 0) {
-    activitiesHTML = `
-      <hr/>
-      <h3>Activities Booked</h3>
-      <table style="width:100%; border-collapse:collapse; margin-top:10px; border:1px solid #ddd;">
-        <thead>
-          <tr style="background-color:#4CAF50; color:white;">
-            <th style="padding:10px; text-align:left;">Activity</th>
-            <th style="padding:10px; text-align:center;">Qty</th>
-            <th style="padding:10px; text-align:right;">Unit (₹)</th>
-            <th style="padding:10px; text-align:right;">Total (₹)</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${activities
-            .map(
-              (a) => `
-              <tr style="border-bottom:1px solid #ddd;">
-                <td style="padding:10px;">${a.name}</td>
-                <td style="padding:10px; text-align:center;">${a.quantity}</td>
-                <td style="padding:10px; text-align:right;">
-                  ₹${formatINR(a.unitPrice)}
-                </td>
-                <td style="padding:10px; text-align:right;">
-                  ₹${formatINR(a.totalPrice)}
-                </td>
-              </tr>
-            `
-            )
-            .join("")}
-        </tbody>
-      </table>
+  const roomsHTML =
+    rooms.length > 0
+      ? `
+    <h4 style="margin-bottom:10px;">Rooms</h4>
+    ${rooms
+      .map(
+        (r) => `
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+          <span>${r.name} (${r.plan?.toUpperCase()}) × ${r.quantity}</span>
+          <span>₹${formatINR(r.totalPrice)}</span>
+        </div>
+      `
+      )
+      .join("")}
+    `
+      : "";
+
+  /* ================= ACTIVITIES HTML ================= */
+
+  const activitiesHTML =
+    activities.length > 0
+      ? `
+    <h4 style="margin-top:15px;margin-bottom:10px;">Activities</h4>
+    ${activities
+      .map(
+        (a) => `
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+          <span>${a.name} × ${a.quantity}</span>
+          <span>₹${formatINR(a.totalPrice)}</span>
+        </div>
+      `
+      )
+      .join("")}
+    `
+      : "";
+
+  /* ================= PAYMENT BREAKDOWN ================= */
+
+  let discountHTML = "";
+
+  if (membershipDiscount > 0) {
+    discountHTML += `
+      <div style="display:flex;justify-content:space-between;color:green;">
+        <span>Membership Discount</span>
+        <span>- ₹${formatINR(membershipDiscount)}</span>
+      </div>
     `;
   }
-
-  /* ================= PAYMENT SUMMARY ================= */
-
-  let paymentHTML = `
-    <h3>Payment Summary</h3>
-    <table style="width:100%; border-collapse:collapse; margin-top:10px;">
-  `;
 
   if (coupon && coupon.discountAmount > 0) {
-    paymentHTML += `
-      <tr>
-        <td style="padding:8px;">Coupon Discount (${coupon.code})</td>
-        <td style="padding:8px; text-align:right; color:green;">
-          - ₹${formatINR(coupon.discountAmount)}
-        </td>
-      </tr>
+    discountHTML += `
+      <div style="display:flex;justify-content:space-between;color:green;">
+        <span>Coupon (${coupon.code})</span>
+        <span>- ₹${formatINR(coupon.discountAmount)}</span>
+      </div>
     `;
   }
 
-  paymentHTML += `
-    <tr style="background-color:#e8f4f8; font-weight:bold; font-size:16px;">
-      <td style="padding:12px;">GRAND TOTAL</td>
-      <td style="padding:12px; text-align:right;">
-        ₹${formatINR(grandTotal)}
-      </td>
-    </tr>
+  /* ================= EMAIL TEMPLATE ================= */
 
-    <tr style="background-color:#d4edda; color:#155724;">
-      <td style="padding:10px;"><b>Paid Amount</b></td>
-      <td style="padding:10px; text-align:right;">
-        <b>₹${formatINR(paidAmount)}</b>
-      </td>
-    </tr>
+  const htmlContent = `
+  <div style="font-family:Arial,sans-serif;background:#f6f6f6;padding:20px;">
+    <div style="max-width:700px;margin:auto;background:#ffffff;padding:30px;border-radius:10px;">
+
+      <div style="text-align:center;margin-bottom:20px;">
+        ${
+          system.logo
+            ? `<img src="${system.logo}" style="max-height:80px;margin-bottom:10px;" />`
+            : ""
+        }
+        <h2>${system.systemHotelName}</h2>
+        <p style="color:#666;">Booking Confirmation</p>
+      </div>
+
+      <p>Hello <b>${name}</b>,</p>
+      <p>Your booking has been successfully confirmed.</p>
+
+      <hr/>
+
+      <h3>Booking Details</h3>
+      <div style="display:flex;justify-content:space-between;">
+        <span>Reference</span>
+        <span><b>${bookingReference}</b></span>
+      </div>
+      <div style="display:flex;justify-content:space-between;">
+        <span>Guest ID</span>
+        <span>${guestId}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;">
+        <span>Check-in</span>
+        <span>${checkInDate}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;">
+        <span>Check-out</span>
+        <span>${checkOutDate}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:15px;">
+        <span>Nights</span>
+        <span>${nights}</span>
+      </div>
+
+      <hr/>
+
+      ${roomsHTML}
+      ${activitiesHTML}
+
+      <hr/>
+
+      <h3>Payment Summary</h3>
+
+      <div style="display:flex;justify-content:space-between;">
+        <span>Room & Add-ons</span>
+        <span>₹${formatINR(roomTotal + activityTotal + extraGuestTotal)}</span>
+      </div>
+
+      ${discountHTML}
+
+      <div style="display:flex;justify-content:space-between;font-size:18px;font-weight:bold;margin-top:10px;">
+        <span>Final Amount</span>
+        <span>₹${formatINR(grandTotal)}</span>
+      </div>
+
+      <div style="margin-top:15px;padding:10px;background:#f1f8ff;border-radius:6px;">
+        <div style="display:flex;justify-content:space-between;">
+          <span>Payment Type</span>
+          <span>${paymentType === "PARTIAL" ? "Partial Payment" : "Full Payment"}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;">
+          <span>Paid</span>
+          <span>₹${formatINR(paidAmount)}</span>
+        </div>
+        ${
+          pendingAmount > 0
+            ? `
+          <div style="display:flex;justify-content:space-between;">
+            <span>Remaining</span>
+            <span>₹${formatINR(pendingAmount)}</span>
+          </div>
+        `
+            : ""
+        }
+      </div>
+
+      <hr/>
+
+      <p>If you need assistance, contact us:</p>
+      <p><b>Phone:</b> ${system.systemPhoneNumbers?.[0] || "N/A"}</p>
+      <p><b>Email:</b> ${system.systemEmails?.[0] || ""}</p>
+
+      <p style="margin-top:20px;">Regards,<br/><b>${system.systemHotelName}</b></p>
+      <p style="font-size:12px;color:#777;text-align:center;">
+        This is an automated email. Please do not reply.
+      </p>
+
+    </div>
+  </div>
   `;
 
-  if (pendingAmount > 0) {
-    paymentHTML += `
-      <tr style="background-color:#f8d7da; color:#721c24;">
-        <td style="padding:10px;"><b>Pending Amount</b></td>
-        <td style="padding:10px; text-align:right;">
-          <b>₹${formatINR(pendingAmount)}</b>
-        </td>
-      </tr>
-    `;
-  }
-
-  paymentHTML += `</table>`;
-
-  /* ================= SEND EMAIL ================= */
-
-  try {
-    await transactionalEmailApi.sendTransacEmail({
-      sender: {
-        email: config.BREVO_SENDER_EMAIL,
-        name: system.systemHotelName,
-      },
-      to: [{ email }],
-      subject: `Booking Confirmed - ${bookingReference} | ${system.systemHotelName}`,
-      htmlContent: `
-        <div style="font-family: Arial, sans-serif; background:#f6f6f6; padding:20px;">
-          <div style="max-width:650px; margin:auto; background:#ffffff; padding:20px; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.1);">
-
-            <div style="text-align:center; margin-bottom:20px;">
-              ${
-                system.logo
-                  ? `<img src="${system.logo}" alt="${system.systemHotelName}"
-                     style="max-height:90px; margin-bottom:10px;" />`
-                  : ""
-              }
-              <h2 style="margin:10px 0; color:#333;">
-                ${system.systemHotelName}
-              </h2>
-              <p style="color:#666;">Booking Confirmation & Receipt</p>
-            </div>
-
-            <p>Hello <b>${name || "Guest"}</b>,</p>
-
-            <p>
-              Thank you for choosing <b>${system.systemHotelName}</b>.
-              Your booking has been successfully confirmed.
-            </p>
-
-            <div style="background:#f9f9f9; padding:15px; border-radius:5px; margin:20px 0;">
-              <h3>Booking Details</h3>
-              <table style="width:100%;">
-                <tr><td><b>Guest ID:</b></td><td>${guestId}</td></tr>
-                <tr><td><b>Reference:</b></td><td>${bookingReference}</td></tr>
-                <tr><td><b>Check-in:</b></td><td>${checkInDate}</td></tr>
-                <tr><td><b>Check-out:</b></td><td>${checkOutDate}</td></tr>
-                <tr><td><b>Nights:</b></td><td>${nights}</td></tr>
-              </table>
-            </div>
-
-            ${activitiesHTML}
-
-            <div style="background:#f9f9f9; padding:15px; border-radius:5px; margin:20px 0;">
-              ${paymentHTML}
-            </div>
-
-            <div style="background:#e3f2fd; padding:16px; border-radius:6px;">
-              <h3>Need Assistance?</h3>
-              <p><b>Phone:</b> ${primaryPhone}</p>
-              <p><b>Email:</b> ${primaryEmail}</p>
-              <p><b>Address:</b> ${system.systemAddress}</p>
-            </div>
-
-            <p style="margin-top:30px; font-size:12px; text-align:center; color:#777;">
-              This is an automated email. Please do not reply.
-            </p>
-
-            <p>
-              Regards,<br/>
-              <b>${system.systemHotelName}</b>
-            </p>
-
-          </div>
-        </div>
-      `,
-    });
-
-    console.log("✅ Booking confirmation email sent");
-  } catch (error) {
-    console.error("❌ Email sending failed:", error.message);
-    throw error;
-  }
-
-  console.log("========== EMAIL COMPLETE ==========\n");
+  await transactionalEmailApi.sendTransacEmail({
+    sender: {
+      email: config.BREVO_SENDER_EMAIL,
+      name: system.systemHotelName,
+    },
+    to: [{ email }],
+    subject: `Booking Confirmed - ${bookingReference}`,
+    htmlContent,
+  });
 };
 
 /* ================= CONTACT MAIL ================= */

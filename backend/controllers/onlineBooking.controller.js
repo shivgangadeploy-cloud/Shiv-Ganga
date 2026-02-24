@@ -573,14 +573,20 @@ export const verifyPayment = async (req, res, next) => {
       checkOutDate: checkOut.toDateString(),
       nights,
 
+      rooms: bookingDoc.rooms,
+      activities: bookingDoc.activities,
+
       pricing: {
-        grandTotal: bookingDoc.totalAmount,   // FINAL amount (already discounted)
+        roomTotal: bookingDoc.pricing.roomTotal,
+        activityTotal: bookingDoc.pricing.activityTotal,
+        extraGuestTotal: bookingDoc.pricing.extraGuestTotal,
+        membershipDiscount: bookingDoc.pricing.membershipDiscount,
+        coupon: bookingDoc.coupon || null,
+        grandTotal: bookingDoc.totalAmount,
         paidAmount: bookingDoc.paidAmount,
         pendingAmount: bookingDoc.pendingAmount,
-        coupon: bookingDoc.coupon || null,
+        paymentType: bookingDoc.paymentType,
       },
-
-      activities,
     });
 
     /* ================= OTP CLEANUP ================= */
