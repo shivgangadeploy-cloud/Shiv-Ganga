@@ -57,7 +57,41 @@ const AvailableCoupons = () => {
 
   return (
     <div className="max-w-2xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">Available Coupons</h1>
+      {/* Header */}
+      <div className="text-center mb-10">
+        <h1 className="text-3xl md:text-4xl font-semibold text-primary mb-3">
+          Available Coupons
+        </h1>
+        <p className="text-gray-500 text-sm">
+          Apply a coupon to enjoy exclusive savings on your booking
+        </p>
+      </div>
+
+      {/* Back Button */}
+      <div className="mb-8">
+  <button
+    onClick={() => {
+      const redirectPath =
+        mode === "receptionist"
+          ? "/receptionist/new-booking"
+          : "/booking";
+
+      navigate(redirectPath, {
+        replace: true,
+        state: {
+          bookingDraft,
+          fromCoupon: true,
+        },
+      });
+    }}
+    className="px-4 py-2 rounded-xl border 
+               font-semibold text-sm uppercase tracking-wider
+               transition-all duration-300 
+               border-primary text-white bg-primary hover:text-primary hover:bg-accent"
+  >
+    Back to Booking
+  </button>
+</div>
 
       {error && <p className="text-red-500">{error}</p>}
 

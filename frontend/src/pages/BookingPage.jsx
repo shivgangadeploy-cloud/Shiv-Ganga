@@ -79,7 +79,9 @@ export default function BookingPage() {
   const today = new Date().toISOString().split("T")[0];
   const navigate = useNavigate(); // ✅ INSIDE component
   const location = useLocation();
-  const appliedCoupon = location.state?.appliedCoupon;
+  const [appliedCoupon, setAppliedCoupon] = useState(
+    location.state?.appliedCoupon || null
+  ); // New
 
   // restore various pieces from bookingDraft when navigating back from coupons
   const draft = location.state?.bookingDraft || {};
@@ -91,6 +93,7 @@ export default function BookingPage() {
   const [showMembershipPopup, setShowMembershipPopup] = useState(false);
   const [isMember, setIsMember] = useState(draft.isMember || false);
   const [membershipDiscount, setMembershipDiscount] = useState(0);
+  const [showAllAmenities, setShowAllAmenities] = useState(false);// added
 
   const [currentStep, setCurrentStep] = useState(() => {
     const s = location.state || {};
@@ -179,19 +182,19 @@ export default function BookingPage() {
     fetchMembership();
   }, []);
 
-  useEffect(() => {
-    if (location.state?.fromCoupon && location.state?.bookingDraft) {
-      const { formData, rooms, isMember, otpSent, otpVerified, otpCountdown } =
-        location.state.bookingDraft;
+  // useEffect(() => {
+  //   if (location.state?.fromCoupon && location.state?.bookingDraft) {
+  //     const { formData, rooms, isMember, otpSent, otpVerified, otpCountdown } =
+  //       location.state.bookingDraft;
 
-      setFormData(formData);
-      setRooms(rooms || []);
-      setIsMember(isMember || false);
-      if (typeof otpSent !== "undefined") setOtpSent(otpSent);
-      if (typeof otpVerified !== "undefined") setOtpVerified(otpVerified);
-      if (typeof otpCountdown !== "undefined") setOtpCountdown(otpCountdown);
-    }
-  }, []);
+  //     setFormData(formData);
+  //     setRooms(rooms || []);
+  //     setIsMember(isMember || false);
+  //     if (typeof otpSent !== "undefined") setOtpSent(otpSent);
+  //     if (typeof otpVerified !== "undefined") setOtpVerified(otpVerified);
+  //     if (typeof otpCountdown !== "undefined") setOtpCountdown(otpCountdown);
+  //   }
+  // }, []);
 
   // ✅ Added from version 2 - Clear coupon after payment
   useEffect(() => {
@@ -1216,25 +1219,28 @@ export default function BookingPage() {
                                   </div>
                                 )}
 
-                                {/* Amenities */}
-                                <div className="flex flex-wrap gap-2 mb-6">
-                                  {(room.features || [])
-                                    .slice(0, 4)
-                                    .map((amenity, idx) => (
+                                {/* Amenities - changed */} 
+                                <div className="flex flex-wrap gap-2 mb-4">
+                                  {(showAllAmenities ? room.features : room.features?.slice(0, 4)).map(
+                                    (amenity, idx) => (
                                       <span
                                         key={idx}
                                         className="text-gray-500 text-[10px] uppercase tracking-wider px-3 py-1 border border-gray-200 rounded-full"
                                       >
                                         {amenity}
                                       </span>
-                                    ))}
-
-                                  {(room.features?.length || 0) > 4 && (
-                                    <span className="text-gray-400 text-[10px] uppercase tracking-wider px-3 py-1 border border-dashed border-gray-300 rounded-full">
-                                      +{room.features.length - 4} more
-                                    </span>
+                                    )
                                   )}
                                 </div>
+
+                                {room.features?.length > 6 && (
+                                  <button
+                                    onClick={() => setShowAllAmenities(!showAllAmenities)}
+                                    className="text-xs text-accent font-medium"
+                                  >
+                                    {showAllAmenities ? "Show Less" : "Show All Amenities"}
+                                  </button>
+                                )}
                               </div>
 
                               {/* Bottom Buttons */}
@@ -1250,7 +1256,7 @@ export default function BookingPage() {
                                   {isSelected ? "Selected" : "Select Room"}
                                 </button>
 
-                                <button
+                                {/* <button
                                   type="button"
                                   onClick={() => {
                                     const marketingIdByCategory = {
@@ -1279,7 +1285,7 @@ export default function BookingPage() {
                                   className="w-full sm:w-auto text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-primary transition-colors underline underline-offset-4"
                                 >
                                   View Details
-                                </button>
+                                </button> */}
                               </div>
                             </div>
                           </div>
