@@ -20,7 +20,7 @@ import {
   UserCheck,
 } from "lucide-react";
 import Sidebar from "./Sidebar";
-import logo from "../../assets/homepage-images/logo.webp";
+import logo from "../../assets/logo1.webp";
 
 // 2. REMOVED the broken import line that caused the Red Screen error.
 
@@ -1197,7 +1197,7 @@ const PaymentPage = () => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <h2 className="text-3xl font-light text-slate-100 mb-1 select-none">
+                      <h2 className="text-3xl font-light text-slate-300 mb-1 select-none">
                         INVOICE
                       </h2>
                       <p className="text-xs font-bold text-[#0f172a]">
