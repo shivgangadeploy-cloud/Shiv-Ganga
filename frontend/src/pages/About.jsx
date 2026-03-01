@@ -132,7 +132,7 @@ export default function About() {
 
 
       {/* ================= BLOCKS ================= */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-4 py-20 space-y-24">
+      <section className="max-w-7xl mx-auto px-4 sm:px-4 pt-15 pb-5 space-y-12">
         <Block
           image={about1}
           title="A Refined Retreat in Rishikesh"
@@ -172,12 +172,12 @@ export default function About() {
       </section>
 
       {/* ================= TESTIMONIALS ================= */}
-      <section className="py-14">
+      <section className="py-8">
         <Testimonials />
       </section>
 
       {/* ================= GALLERY ================= */}
-      <section className="py-24 bg-gradient-to-b from-[#0F2A44] to-[#081726]">
+      <section className="py-12 bg-linear-to-b from-[#0F2A44] to-[#081726]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-16">
             <span className="text-accent uppercase tracking-widest text-xs">
@@ -191,7 +191,7 @@ export default function About() {
           <div className="grid md:grid-cols-2 gap-6">
             <motion.div
               whileHover={{ scale: 1.04 }}
-              className="h-[300px] sm:h-[380px] md:h-[460px] rounded-3xl overflow-hidden"
+              className="h-75 sm:h-95 md:h-115 rounded-3xl overflow-hidden"
             >
               <img src={about4} alt="Hotel Shiv Ganga room" className="w-full h-full object-cover" />
             </motion.div>
@@ -202,7 +202,7 @@ export default function About() {
                   <motion.div
                     key={i}
                     whileHover={{ scale: 1.05 }}
-                    className="h-[160px] sm:h-[200px] rounded-2xl overflow-hidden"
+                    className="h-40 sm:h-50 rounded-2xl overflow-hidden"
                   >
                     <img src={img} alt={`Hotel Shiv Ganga room collage ${i+1}`} className="w-full h-full object-cover" />
                   </motion.div>
@@ -211,7 +211,7 @@ export default function About() {
 
               <motion.div
                 whileHover={{ scale: 1.05 }}
-                className="h-[180px] sm:h-[220px] rounded-2xl overflow-hidden"
+                className="h-45 sm:h-55 rounded-2xl overflow-hidden"
               >
                 <img src={about3} alt="Hotel Shiv Ganga image" className="w-full h-full object-cover" />
               </motion.div>
@@ -237,7 +237,7 @@ function Block({ image, title, subtitle, children, points, reverse }) {
       <div className={reverse ? "lg:order-2" : ""}>
         <img
           src={image}
-          className="h-[260px] sm:h-[340px] md:h-[420px] w-full object-cover rounded-3xl shadow-xl"
+          className="h-65 sm:h-85 md:h-105 w-full object-cover rounded-3xl shadow-xl"
         />
       </div>
 
