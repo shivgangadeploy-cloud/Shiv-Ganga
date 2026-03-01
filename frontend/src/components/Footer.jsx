@@ -252,10 +252,10 @@ export default function Footer() {
       {/* BOTTOM BAR */}
       <motion.div
         className="relative max-w-7xl mx-auto px-4 sm:px-6 pt-6
-    border-t border-white/30
-    flex flex-col md:flex-row gap-3
-    justify-between items-start md:items-center
-    text-[11px] sm:text-xs text-left"
+        border-t border-white/30
+        flex flex-col sm:flex-row gap-3 sm:gap-4
+        justify-between items-center
+        text-[11px] sm:text-xs text-center sm:text-left"
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
@@ -277,7 +277,7 @@ export default function Footer() {
           </a>
         </p>
 
-        <div className="flex flex-wrap gap-5">
+        <div className="flex gap-4 sm:gap-6 justify-center sm:justify-start">
           <Link to="/privacypolicy" className="hover:text-accent transition">
             Privacy Policy
           </Link>
