@@ -154,7 +154,13 @@ export default function BookingCalendar() {
                     </td>
 
                     {/* Room */}
-                    <td className="px-4 py-3 text-sm">{b.room?.roomNumber}</td>
+                    <td className="px-4 py-3 text-sm">
+                      {b.rooms && b.rooms.length > 0 
+                        ? b.rooms.map(r => 
+                            `${r.room?.name || 'Room'} ${r.room?.roomNumber ? `- ${r.room.roomNumber}` : ''}`
+                          ).join(", ")
+                        : "—"}
+                    </td>
 
                     {/* Date */}
                     <td className="px-4 py-3 text-sm">
@@ -225,7 +231,13 @@ export default function BookingCalendar() {
                   <div className="mt-2 grid grid-cols-2 gap-3">
                     <div>
                       <div className="text-[10px] uppercase tracking-widest text-gray-400">Room</div>
-                      <div className="text-sm text-gray-700">{b.room?.roomNumber || "—"}</div>
+                      <div className="text-sm text-gray-700">
+                        {b.rooms && b.rooms.length > 0 
+                          ? b.rooms.map(r => 
+                              `${r.room?.name || 'Room'} ${r.room?.roomNumber ? `- ${r.room.roomNumber}` : ''}`
+                            ).join(", ")
+                          : "—"}
+                      </div>
                     </div>
                     <div>
                       <div className="text-[10px] uppercase tracking-widest text-gray-400">Date</div>
